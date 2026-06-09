@@ -13,7 +13,7 @@ struct LLApiServiceBuilder<T> {
     static func make(for exchange: ExchangeType,
                      endpointType: EndpointType,
                      credentials: Credentials,
-                     networkService: LLNetworkServiceProtocol) async throws -> LLApiService<T> {
+                     networkService: LLNetworkServiceProtocol) throws -> LLApiService<T> {
         
         let registry = exchange.registry
         
