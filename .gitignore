@@ -1,22 +1,19 @@
 # Xcode
 .DS_Store
 /build
-*.xcodeproj
-*.xcworkspace
-xcuserdata/
-*.xccheckout
-*.moved-aside
-*.xcuserdatad
-*.xctestplan
-*.xcscheme
 
+# User-specific (never commit)
 **/xcuserdata/
 **/*.xcuserdatad/
+*.xccheckout
+*.moved-aside
+**/xcshareddata/WorkspaceSettings.xcsettings
 
 bbticker/.vscode/
 
 # Swift
 .swiftpm/
+
 Packages/
 *.swiftdeps
 *.swiftmodule

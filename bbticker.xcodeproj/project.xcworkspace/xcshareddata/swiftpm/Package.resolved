@@ -1,5 +1,5 @@
 {
-  "originHash" : "ab0a391f00ecf620648b32d983b3e9e55962224652b11bd14b889a3328642234",
+  "originHash" : "6e82ddd5b2356220ab4842c79937ea80bdfc3e6a26cc27a3c55dd923cc2ac04a",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -115,7 +115,7 @@
       "location" : "https://github.com/beemol/LLCore.git",
       "state" : {
         "branch" : "main",
-        "revision" : "1affa805788d2ee29f0f4fed35cc852f00e70001"
+        "revision" : "6f03b1002510e8dff481105b0cdde0cf5398b654"
       }
     },
     {
