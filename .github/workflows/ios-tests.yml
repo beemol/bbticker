@@ -10,7 +10,6 @@ jobs:
   test:
     name: Run Tests
     runs-on: macos-15
-    xcode-version: 'latest-stable'
     timeout-minutes: 15
 
     steps:
