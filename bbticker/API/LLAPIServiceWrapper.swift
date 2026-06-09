@@ -38,7 +38,8 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             // 4. Parsing (via WalletDataParserFactory)
             
             let endpointType = EndpointType.wallet(exchangeType.walletType)
-            let service = try await LLApiServiceBuilder<WalletData>.make(for: exchangeType, endpointType: endpointType, credentials: credentialManager.getCredentials(forAccount: exchangeType.displayName), networkService: LLNetworkService(urlSession: urlSession))
+            let credentials = try await credentialManager.getCredentials(forAccount: exchangeType.displayName)
+            let service = try LLApiServiceBuilder<WalletData>.make(for: exchangeType, endpointType: endpointType, credentials: credentials, networkService: LLNetworkService(urlSession: urlSession))
             let walletData = try await service.execute()
             
             // Track success, but do not block result

@@ -12,6 +12,7 @@ import Network
 //extension NWPathMonitor: PathMonitorProtocol {
 //}
 
+@MainActor
 protocol NetworkStoreProtocol {
     var statusStream: AsyncStream<Bool> { get }
     var state: NetworkState { get }
@@ -56,7 +57,7 @@ final class NetworkStore: NetworkStoreProtocol {
             statusContinuation?.yield(state.isConnected)
         }
     }
-    
+
     deinit {
         statusContinuation?.finish()
     }
