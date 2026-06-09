@@ -58,6 +58,7 @@ final class NetworkStore: NetworkStoreProtocol {
         }
     }
 
+    @MainActor
     deinit {
         statusContinuation?.finish()
     }
