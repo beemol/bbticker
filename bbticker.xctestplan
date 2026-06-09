@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "BD2625EE-BCD1-49B4-9D64-EFE31F7E1EC6",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:bbticker.xcodeproj",
+      "identifier" : "E7C513BD2E16C55700561E15",
+      "name" : "bbticker"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:bbticker.xcodeproj",
+        "identifier" : "E79209432E3A191D003244E4",
+        "name" : "bbtickerTests"
+      }
+    }
+  ],
+  "version" : 1
+}

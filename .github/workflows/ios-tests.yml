@@ -1,0 +1,91 @@
+name: iOS Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: macos-14
+    timeout-minutes: 15
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Cache Xcode DerivedData
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/Library/Developer/Xcode/DerivedData
+          ~/.cache/org.swift.swiftpm
+        key: ${{ runner.os }}-xcode
+        restore-keys: |
+          ${{ runner.os }}-xcode-
+
+    - name: Cache SPM Dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          .build
+          ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+        key: ${{ runner.os }}-spm
+        restore-keys: |
+          ${{ runner.os }}-spm-
+
+
+    - name: Setup Xcode Version
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: 'latest-stable'
+
+    - name: Show Build Environment
+      run: |
+        echo "Xcode version:"
+        xcodebuild -version
+        echo "Available schemes:"
+        xcodebuild -list -project bbticker.xcodeproj | sed -n '/Schemes:/,$p'
+        echo "Cache status:"
+        ls -la ~/Library/Developer/Xcode/DerivedData/ 2>/dev/null | head -5 || echo "No cached DerivedData"
+
+    # No clean step to let cache work
+
+    - name: Build for Testing
+      timeout-minutes: 8
+      run: |
+        xcodebuild build-for-testing \
+          -project bbticker.xcodeproj \
+          -scheme bbtickerTests \
+          -configuration Debug \
+          -destination 'platform=macOS,arch=arm64' \
+          -derivedDataPath dd \
+          -parallel-testing-enabled YES \
+          -quiet \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
+
+    - name: Run Tests (without building)
+      timeout-minutes: 5
+      run: |
+        xcodebuild test-without-building \
+          -project bbticker.xcodeproj \
+          -scheme bbtickerTests \
+          -configuration Debug \
+          -destination 'platform=macOS,arch=arm64' \
+          -derivedDataPath dd \
+          -parallel-testing-enabled YES \
+          -test-timeouts-enabled YES \
+          -maximum-test-execution-time-allowance 300 \
+          -quiet \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
+
+    - name: Generate Test Report
+      if: always()
+      timeout-minutes: 1
+      run: |
+        echo "Test execution completed"
+        find dd -name "*.xcresult" -print -quit 2>/dev/null || echo "No test results found"

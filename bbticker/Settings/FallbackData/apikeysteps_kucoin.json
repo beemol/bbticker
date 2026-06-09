@@ -1,0 +1,13 @@
+{
+  "exchange": "KuCoin",
+  "steps": [
+    "Log in to your KuCoin account and go to Account Security → API Management",
+    "Click Create API",
+    "Set a name and passphrase for your API key",
+    "Set API Key Permissions: General (for portfolio viewing)",
+    "Enable Read-Only permissions (DO NOT enable trading or withdrawal)",
+    "Optionally, restrict IP addresses for added security",
+    "Click Next and copy your API Key, Secret, and Passphrase"
+  ],
+  "notes": "Always keep your API Secret and Passphrase secure. Only enable the minimum permissions required for portfolio viewing."
+}

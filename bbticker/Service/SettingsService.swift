@@ -1,0 +1,146 @@
+import Foundation
+import Combine
+import LLCore
+
+@MainActor
+protocol SettingsServiceProtocol: ObservableObject {
+    var state: SettingsState { get }
+    
+    // TODO: to be removed all 3 of them, but don't forget about tests
+    func setExchangeType(_ exchangeType: Exchange)
+    func setUpdateFrequency(_ frequency: Double)
+    func setUpdateFrequencyUnlocked(_ unlocked: Bool)
+    
+    // UI-facing bridge bindings
+    var selectedExchangeBinding: Binding<ExchangeIdentifier> { get }
+    var selectedWalletBinding: Binding<WalletType> { get }
+}
+
+extension SettingsServiceProtocol {
+    // UI helpers — Bindings that READ from state (so the view refreshes)
+    var selectedExchangeBinding: Binding<ExchangeIdentifier> {
+        Binding(
+            get: { self.state.exchangeType.identifier },
+            set: { [weak self] newExchangeName in
+                // use current wallet type. if doesn't match, service will fallback to available or default option
+                let wallet = self?.state.exchangeType.walletType ?? .unified
+                self?.setExchangeType(Exchange(newExchangeName, wallet: wallet))
+            }
+        )
+    }
+
+    var selectedWalletBinding: Binding<WalletType> {
+        Binding(
+            get: { self.state.exchangeType.walletType },
+            set: { [weak self] newWalletType in
+                let exchangeName = self?.state.exchangeType.identifier ?? .bybit
+                self?.setExchangeType(Exchange(exchangeName, wallet: newWalletType))
+            }
+        )
+    }
+}
+
+import SwiftUI
+
+@Observable
+@MainActor
+final class SettingsState {
+    var updateFrequency: Double = 5.0
+    var exchangeType: Exchange = Exchange(.bybit, wallet: .unified)
+    var isUpdateFrequencyUnlocked: Bool = false
+}
+
+/// Shared service for app settings that can be observed reactively
+final class SettingsService: SettingsServiceProtocol {
+    
+    let state = SettingsState()
+    
+    private let storage: UserDataStorageProtocol
+    
+    init(storage: UserDataStorageProtocol = UserDefaultsStorage()) {
+        self.storage = storage
+        print("[SettingsService] initialized")
+        
+        loadUpdateFrequency()
+        loadExchangeType()
+        
+        // Load cached IAP unlock state for fast UI reflect
+        let cached = storage.value(forKey: "iap_updatefrequency_unlocked") as? Bool ?? false
+        state.isUpdateFrequencyUnlocked = cached
+    }
+    
+    func setUpdateFrequency(_ frequency: Double) {
+        state.updateFrequency = frequency
+        storage.save(key: "update_frequency", value: frequency)
+    }
+    
+    func setExchangeType(_ newExchangeType: Exchange) {
+        if newExchangeType.availableWalletTypes.contains(newExchangeType.walletType) == false {
+            print("[SettingsService] Warning: Attempted to set unsupported exchange type: \(state.exchangeType.displayName). Falling back to a safe one.")
+            
+            // Attempted to set unsupported exchange type or wallet type, fallback to first avaialble option
+            if let first = newExchangeType.availableWalletTypes.first {
+                state.exchangeType = Exchange(newExchangeType.identifier, wallet: first)
+            } else {
+                state.exchangeType = Exchange(.bybit, wallet: .unified)
+            }
+            
+            print("[SettingsService] Setting exchange type to: \(newExchangeType.displayName) : wallet \(newExchangeType.walletType.rawValue)" )
+            
+            save(newExchangeType: state.exchangeType)
+            
+            return
+        }
+        
+        print("[SettingsService] Setting exchange type to: \(newExchangeType.displayName) : wallet \(newExchangeType.walletType.rawValue)" )
+        
+        state.exchangeType = newExchangeType
+        
+        save(newExchangeType: state.exchangeType)
+    }
+    
+    private func save(newExchangeType: ExchangeType) {
+        let exchangeName = newExchangeType.displayName
+        let wt: String = newExchangeType.walletType.rawValue
+        
+        let serializedValue: String = exchangeName + ":" + wt
+        
+        storage.save(key: "selected_exchange_type", value: serializedValue)
+
+        Task.detached {
+            await AnalyticsManager.shared.track(.settingsChange(key: "exchange_type_changed_to", newValue: newExchangeType.displayName))
+        }
+    }
+    
+    private func loadUpdateFrequency() {
+        let storedFrequency = storage.value(forKey: "update_frequency") as? Double
+        state.updateFrequency = storedFrequency ?? 5.0 // Default to 5 seconds
+    }
+    
+    private func loadExchangeType() {
+        guard let parts = (storage.value(forKey: "selected_exchange_type") as? String)?.split(separator: ":"),
+              parts.count == 2,
+              let walletType = WalletType(rawValue: String(parts[1])) else {
+            
+            // Fallback for legacy values or unknown formats
+            state.exchangeType = Exchange(.bybit, wallet: .unified)
+            return
+        }
+        
+        let identifier = ExchangeIdentifier(rawValue: String(parts[0]))
+        
+        // Validate if this exchange registered
+        guard ExchangeRegistry.shared.capabilities(for: identifier) != nil else {
+            state.exchangeType = Exchange(.bybit, wallet: .unified)
+            return
+        }
+        
+        state.exchangeType = Exchange(identifier, wallet: walletType)
+    }
+
+    // MARK: - IAP
+    func setUpdateFrequencyUnlocked(_ unlocked: Bool) {
+        state.isUpdateFrequencyUnlocked = unlocked
+        storage.save(key: "iap_updatefrequency_unlocked", value: unlocked)
+    }
+}

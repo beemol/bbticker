@@ -1,0 +1,29 @@
+# Xcode
+.DS_Store
+/build
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.xcuserdatad
+*.xctestplan
+*.xcscheme
+
+**/xcuserdata/
+**/*.xcuserdatad/
+
+bbticker/.vscode/
+
+# Swift
+.swiftpm/
+Packages/
+*.swiftdeps
+*.swiftmodule
+
+# Pods
+Pods/
+Podfile.lock
+
+#Firebase
+bbticker/GoogleService-Info.plist

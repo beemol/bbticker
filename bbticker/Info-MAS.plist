@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDisplayName</key>
+	<string>BBTicker</string>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>GetBalanceIntent</string>
+	</array>
+	<key>NSSiriUsageDescription</key>
+	<string>This app uses Siri to let you check your balance with voice commands.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+	</array>
+</dict>
+</plist>

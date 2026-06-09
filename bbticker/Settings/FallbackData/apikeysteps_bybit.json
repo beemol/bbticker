@@ -1,0 +1,12 @@
+{
+  "exchange": "Bybit",
+  "steps": [
+    "Go to Profile Icon → API (top-right corner of Bybit website)",
+    "Click Create New Key → System-generated API Keys",
+    "Set API Key Usage: API Transaction (allows reading account data)",
+    "Set API Key Permissions: Read-Only (NEVER enable trading permissions)",
+    "Give READ permissions for: Trade data (portfolio viewing), Assets data (balance information)",
+    "Click Submit and copy your API Key and Secret"
+  ],
+  "notes": "Always keep your API Secret secure and never share it. Only enable the minimum permissions required for portfolio viewing."
+}
