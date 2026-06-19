@@ -50,6 +50,10 @@ class StaleTracked<T> {
         timer?.invalidate()
     }
     
+    func set(threshold: Double) {
+        self.threshold = threshold
+    }
+    
     private func startTimer(with lastUpdated: Date?) {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: threshold, repeats: false) { _ in

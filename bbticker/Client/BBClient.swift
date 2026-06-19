@@ -29,7 +29,7 @@ class BBClient: ObservableObject {
     @Published var connectionStatus: ConnectionStatus = .disconnected
     @Published var authenticationError: String?
 
-    // MARK: - Dependencies (Testable)
+    // MARK: - Dependencies
     private var settingsService: any SettingsServiceProtocol
     private let networkMonitor: any NetworkStoreProtocol
     private let sharedDataManager: SharedDataManagerProtocol
@@ -38,11 +38,10 @@ class BBClient: ObservableObject {
     
     private let reconnectionDelayInSec: Double
     
-    // MARK: - Internal State
     private var pollingStrategy: PollingStrategy<WalletData>?
     private var pollingConfiguration: PollingConfiguration
     
-    // MARK: - Initialization
+
     init(
         settingsService: any SettingsServiceProtocol,
         networkMonitor: any NetworkStoreProtocol,
@@ -57,6 +56,8 @@ class BBClient: ObservableObject {
         self.pollingConfiguration = pollingConfiguration
         self.walletRepository = walletRepository
         self.reconnectionDelayInSec = reconnectionDelayInSec
+        
+        $walletState.set(threshold: settingsService.state.updateFrequency + 1) // + 1 for a buffer
         
         setupNetworkMonitoring()
     }
