@@ -10,8 +10,6 @@ import Foundation
 import LLCore
 @testable import bbticker
 
-/// Tests for BBClient reconnection behavior and API error handling
-/// These tests should FAIL initially as they expose the current architectural issues
 @Suite("BBClient Reconnection Logic")
 struct BBClientReconnectionTests {
     
@@ -72,6 +70,11 @@ struct BBClientReconnectionTests {
             )
         }
         
+        // Keeps failing until `reset()` — use when tests must observe stale state before recovery.
+        func simulatePersistentNetworkErrors() {
+            simulateNetworkErrors(count: .max)
+        }
+        
         // MARK: - API Error Simulation (should disconnect immediately)
         
         func simulateAuthenticationErrors(count: Int = 1) {
@@ -111,6 +114,21 @@ struct BBClientReconnectionTests {
                     exchange: .bybit,
                     httpStatus: 500,
                     rawMessage: "Internal server error"
+                )
+            )
+        }
+        
+        // Unmapped/unrecognized API response — surfaces as "Polling Error:" in BBClient.
+        func simulateUnknownAPIErrors(count: Int = 1) {
+            shouldFail = true
+            maxFailures = count
+            failureCount = 0
+            thrownError = APIDomainError.unknown(
+                context: APIErrorContext(
+                    exchange: .bybit,
+                    httpStatus: 200,
+                    apiCode: "99999",
+                    rawMessage: "Unexpected exchange response"
                 )
             )
         }
@@ -159,7 +177,7 @@ struct BBClientReconnectionTests {
     
     @MainActor
     class MockNetworkStore: NetworkStoreProtocol {
-        var state = NetworkState(isConnected: true)
+        var state = NetworkState(isConnected: false)
         private var statusContinuation: AsyncStream<Bool>.Continuation?
         
         lazy var statusStream: AsyncStream<Bool> = {
@@ -219,14 +237,105 @@ struct BBClientReconnectionTests {
             networkMonitor: networkStore,
             sharedDataManager: sharedDataManager,
             pollingConfiguration: .fastRetry,
-            walletRepository: MockWalletRepository(apiService: apiService)
+            walletRepository: MockWalletRepository(apiService: apiService),
+            reconnectionDelayInSec: 1.0
         )
         
         return (client, apiService, networkStore, settingsService, sharedDataManager)
     }
     
     
-    // MARK: - Failing Tests (Current Issues)
+    // MARK: - Connect error handling
+    
+    @Test("Transient connect error while disconnected does not schedule reconnect")
+    @MainActor
+    func testTransientConnectErrorWhileDisconnectedDoesNotScheduleReconnect() async throws {
+        let (client, apiService, _, _, _) = createTestClient()
+        
+        apiService.simulatePersistentNetworkErrors()
+        client.connectionStatus = .disconnected
+        
+        client.handleConnectError(
+            APIDomainError.network(
+                context: APIErrorContext(
+                    exchange: .bybit,
+                    httpStatus: nil,
+                    rawMessage: "Network connection failed"
+                )
+            )
+        )
+        
+        let callsAfterHandler = apiService.callTimestamps.count
+        
+        try await Task.sleep(for: .seconds(1.5))
+        
+        #expect(client.connectionStatus == .disconnected)
+        #expect(apiService.callTimestamps.count == callsAfterHandler,
+               "Transient failure while disconnected must not schedule reconnect")
+    }
+    
+    @Test("Initial connect + network error disconnects without polling or retry")
+    @MainActor
+    func testInitialConnectNetworkErrorShouldDisconnect() async throws {
+        let (client, apiService, _, _, _) = createTestClient()
+        
+        apiService.simulateNetworkErrors(count: 1)
+        await client.connect()
+        
+        #expect(client.connectionStatus == .disconnected,
+               "First connect attempt with network error should end session, not stay in .connecting")
+        
+        try await Task.sleep(for: .seconds(1.5))
+        #expect(apiService.callTimestamps.count == 1,
+               "Failed first connect should not start polling or schedule reconnect")
+    }
+    
+    @Test("Reconnect while connected + network error schedules another connect attempt")
+    @MainActor
+    func testReconnectWhileConnectedNetworkErrorShouldRecover() async throws {
+        let (client, apiService, _, _, _) = createTestClient()
+        
+        await client.connect()
+        #expect(client.connectionStatus == .connected)
+        
+        apiService.simulatePersistentNetworkErrors()
+        await client.connect()
+        
+        let callsAfterFailedReconnect = apiService.callTimestamps.count
+        
+        #expect(client.connectionStatus == .connected, "Reconnect failure should keep session active")
+        #expect(client.$walletState.isStale, "Data should be stale after failed reconnect")
+        
+        // do not clear the history, just soft reset
+        apiService.shouldFail = false
+        apiService.failureCount = 0
+        apiService.maxFailures = 0
+        
+        try await Task.sleep(for: .seconds(1.5))
+        
+        #expect(apiService.callTimestamps.count > callsAfterFailedReconnect,
+               "A network error during reconnect should schedule another connect() attempt")
+        #expect(client.$walletState.isStale == false, "Scheduled reconnect should refresh data when API recovers")
+    }
+    
+    @Test("Initial connect + unknown error disconnects without scheduled retry")
+    @MainActor
+    func testInitialConnectUnknownErrorShouldDisconnect() async throws {
+        let (client, apiService, _, _, _) = createTestClient()
+        
+        apiService.simulateUnknownAPIErrors(count: 1)
+        await client.connect()
+        
+        #expect(client.connectionStatus == .disconnected,
+               "Unknown on first connect should not leave UI stuck in .connecting")
+        
+        try await Task.sleep(for: .seconds(1.5))
+        #expect(apiService.callTimestamps.count == 1,
+               "Failed first connect should not schedule reconnect")
+    }
+    
+    
+    // MARK: - Polling and reconnection behavior
     
     @Test("Network errors should NOT disconnect client during retry attempts")
     @MainActor
@@ -243,7 +352,6 @@ struct BBClientReconnectionTests {
         // Wait a bit to let polling encounter the API errors
         try await Task.sleep(for: .milliseconds(500))
         
-        // FAILING ASSERTION: Currently, first API error disconnects client
         #expect(client.connectionStatus == .connected, 
                "Client should remain connected during API retry attempts")
     }
@@ -263,32 +371,25 @@ struct BBClientReconnectionTests {
         #expect(apiService.failureCount >= 2, 
                "API should be called multiple times during retry attempts")
         
-        // FAILING ASSERTION: Polling currently stops after first error. client should remain connected during poling attempts
         #expect(client.connectionStatus == .connected,
                "Client should remain connected during retries")
     }
     
-    
-    @Test("Client should only disconnect after max retry attempts exhausted", .timeLimit(.minutes(1)))
+    @Test("After max polling retries, BBClient schedules reconnect without disconnecting")
     @MainActor
-    func testDisconnectOnlyAfterMaxRetries() async throws {
-        let (client, apiService, _, _, _) = createTestClient()
-        
-        // First allow connection to succeed
+    func testMaxRetriesSchedulesReconnectWithoutDisconnecting() async throws {
+        let (client, apiService, _, _, _) = createTestClient()  // reconnectionDelayInSec: 1.0
+
         await client.connect()
-        #expect(client.connectionStatus == .connected, "Should connect initially")
-        
-        // Now simulate permanent API failure during polling
-        apiService.simulateNetworkErrors(count: 9)
-        
-        // Wait long enough for all retry attempts to be exhausted
-        try await Task.sleep(for: .seconds(2))
-        
-        // FAILING ASSERTION: Currently disconnects on first error, not after max retries  
-        #expect(apiService.failureCount >= 5, 
-               "Should attempt at least 5 retries before giving up, but got \(apiService.failureCount). Call history: \(apiService.callResults)")
-        #expect(client.connectionStatus == .disconnected, 
-               "Should disconnect only after exhausting all retries")
+        apiService.simulatePersistentNetworkErrors()
+
+        // Wait long enough for 5 backoff retries + synthetic unknown + reconnect sleep
+        try await Task.sleep(for: .seconds(3))
+
+        #expect(client.connectionStatus == .connected,
+               "Max polling retries should schedule reconnect, not disconnect")
+        #expect(client.$walletState.isStale,
+               "Data should remain stale until a successful fetch after reconnect")
     }
     
     @Test("Data should be marked stale during Network failures, not disconnected")
@@ -299,20 +400,17 @@ struct BBClientReconnectionTests {
         await client.connect()
         #expect(client.connectionStatus == .connected)
         
-        // Simulate permanent API failure - this SHOULD disconnect with current implementation
-        apiService.simulateNetworkErrors(count: 2)
+        // Keep failing so polling cannot recover before we assert stale state.
+        apiService.simulatePersistentNetworkErrors()
         try await Task.sleep(for: .milliseconds(400))
         
         print("After API failure - client status: \(client.connectionStatus)")
-        
-        // FAILING ASSERTION: Currently disconnects instead of marking data stale  
+         
         #expect(client.connectionStatus == .connected, 
                "Connection status should remain connected during API failures")
-        // TODO: Add stale data tracking when implemented
-        // #expect(client.dataStatus == .stale, "Data should be marked as stale")
+        #expect(client.$walletState.isStale, "Data should be marked as stale")
     }
     
-    // this should NOT pass
     @Test("Successful API call should clear stale data state")
     @MainActor
     func testSuccessfulAPICallClearsStaleState() async throws {
@@ -321,26 +419,23 @@ struct BBClientReconnectionTests {
         await client.connect()
         #expect(client.connectionStatus == .connected)
         
-        // Simulate transient failure then recovery
-        apiService.simulateNetworkErrors(count: 2)
+        // Fail until reset — count: 2 would auto-recover and clear stale before we can assert it.
+        apiService.simulatePersistentNetworkErrors()
         try await Task.sleep(for: .milliseconds(600))
         
         #expect(client.connectionStatus == .connected)
-        #expect(apiService.callResults.count > 2)
-        // TODO: Add stale data state verification when implemented
-        // #expect(client.dataStatus == .stale, "Data should be marked as stale after network issue")
+        #expect(apiService.failureCount >= 1)
+        #expect(client.$walletState.isStale, "Data should be marked as stale after network issue")
         
-        // Reset API to success
+        // Reset API to success and wait for the next successful poll
         apiService.reset()
         
         try await Task.sleep(for: .milliseconds(500))
         
-        // FAILING ASSERTION: Currently doesn't track/clear stale state
         #expect(client.connectionStatus == .connected)
-        #expect(client.authenticationError == nil, 
+        #expect(client.authenticationError == nil,
                "Authentication error should be cleared after successful API call")
-        // TODO: Add stale data state verification when implemented
-        // #expect(client.dataStatus == .fresh, "Data should be marked as fresh after success")
+        #expect(client.$walletState.isStale == false, "Data should be marked as fresh after success")
     }
     
     // MARK: - Network vs API Error Separation Tests
@@ -390,6 +485,30 @@ struct BBClientReconnectionTests {
                "Should resume API calls after network restoration")
     }
     
+    @Test("Client should reconnect after transient unknown API error during polling")
+    @MainActor
+    func testReconnectAfterTransientUnknownAPIError() async throws {
+        let (client, apiService, _, _, _) = createTestClient()
+        
+        await client.connect()
+        #expect(client.connectionStatus == .connected, "Initial connection should succeed")
+        
+        // Transient unmapped API response (e.g. unrecognized retCode) during a poll cycle.
+        apiService.simulateUnknownAPIErrors(count: 1)
+        
+        try await Task.sleep(for: .milliseconds(500))
+        
+        #expect(client.connectionStatus == .connected,
+               "Unknown API errors should not disconnect right away")
+        #expect(client.$walletState.isStale, "Data should be marked as stale")
+        
+        try await Task.sleep(for: .seconds(1))
+        
+        #expect(client.connectionStatus == .connected,
+               "Should be reconnected after reconnectionDelay time passed")
+        #expect(client.$walletState.isStale == false, "Data should be fresh again")
+    }
+    
     @Test("Network restoration should trigger reconnection even after API-induced disconnection")
     @MainActor
     func testNetworkRestorationTriggersReconnectionAfterAPIError() async throws {
@@ -413,8 +532,7 @@ struct BBClientReconnectionTests {
         
         // Wait for reconnection attempt
         try await Task.sleep(for: .milliseconds(500))
-        
-        // PASSING ASSERTION: Network restoration should work regardless of disconnection cause
+
         #expect(client.connectionStatus == .connected,
                "Network restoration should trigger reconnection even after API-induced disconnection")
     }

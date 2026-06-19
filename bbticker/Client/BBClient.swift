@@ -36,6 +36,8 @@ class BBClient: ObservableObject {
     
     private let walletRepository: WalletRepositoryProtocol
     
+    private let reconnectionDelayInSec: Double
+    
     // MARK: - Internal State
     private var pollingStrategy: PollingStrategy<WalletData>?
     private var pollingConfiguration: PollingConfiguration
@@ -46,15 +48,15 @@ class BBClient: ObservableObject {
         networkMonitor: any NetworkStoreProtocol,
         sharedDataManager: SharedDataManagerProtocol,
         pollingConfiguration: PollingConfiguration = .default,
-        walletRepository: WalletRepositoryProtocol
+        walletRepository: WalletRepositoryProtocol,
+        reconnectionDelayInSec: Double = 30
     ) {
         self.settingsService = settingsService
         self.networkMonitor = networkMonitor
         self.sharedDataManager = sharedDataManager
-        
         self.pollingConfiguration = pollingConfiguration
-        
         self.walletRepository = walletRepository
+        self.reconnectionDelayInSec = reconnectionDelayInSec
         
         setupNetworkMonitoring()
     }
@@ -76,14 +78,17 @@ class BBClient: ObservableObject {
     // MARK: - Connection Management
     func connect() async {
         await AnalyticsManager.shared.track(.connectionAttempt)
-        connectionStatus = .connecting
+        
+        if connectionStatus != .connected {
+            connectionStatus = .connecting
+        }
         
         do {
             let walletData = try await walletRepository.getWalletData(for: currentExchangeType)
             setupPollingStrategy(with: self.settingsService.state.updateFrequency)
             handleSuccessfulConnection(with: walletData)
         } catch {
-            applyErrorAndDisconnectIfNeeded(error)
+            handleConnectError(error)
         }
     }
 
@@ -103,6 +108,47 @@ class BBClient: ObservableObject {
     
     // MARK: - Private Methods
     
+    private func isPermanentConnectError(_ error: Error) -> Bool {
+        guard let apiError = error as? APIDomainError else {
+            return true  // unknown error type - treat as fatal
+        }
+        
+        switch apiError {
+        case .network, .unknown:
+            return false   // transient — retry later
+        default:
+            return true    // invalidCredentials, rateLimited, server, etc.
+        }
+    }
+    
+    private func transientErrorMessage(for error: Error) -> String {
+        if let apiError = error as? APIDomainError, case .network = apiError {
+            return apiError.userMessage
+        }
+        
+        if let apiError = error as? APIDomainError, case .unknown = apiError {
+            return "Polling Error: \(error.localizedDescription)"
+        }
+        
+        return error.localizedDescription
+    }
+    
+    private var reconnectTask: Task<Void, Never>?
+    
+    private func scheduleReconnect() {
+        reconnectTask?.cancel()
+        
+        reconnectTask = Task { [weak self] in
+            guard let self else { return }
+            
+            try? await Task.sleep(for: .seconds(self.reconnectionDelayInSec))
+            
+            guard !Task.isCancelled else { return }
+            
+            await self.connect()
+        }
+    }
+    
     private func setupPollingStrategy(with updateFrequency: Double) {
         pollingStrategy?.stop()
         pollingStrategy = .init(frequencyProvider: { [weak self] in
@@ -118,7 +164,7 @@ class BBClient: ObservableObject {
         }, updateHandler: { [weak self] walletData in
             self?.applyWalletData(walletData)
         }, errorHandler: { [weak self] error in
-            self?.applyErrorAndDisconnectIfNeeded(error) ?? .stopPolling
+            self?.handlePollingError(error) ?? .stopPolling
         }, config: self.pollingConfiguration)
     }
     
@@ -139,6 +185,48 @@ class BBClient: ObservableObject {
         )
     }
 
+    func handlePollingError(_ error: Error) -> PollingStrategyAction {
+        print("[BBClient] handlePollingError called with error: \(error)")
+        
+        if let apiError = error as? APIDomainError, case .network = apiError {
+            authenticationError = apiError.userMessage
+            $walletState.markStale()
+            return .continuePolling
+        } else if let apiError = error as? APIDomainError, case .unknown = apiError {
+            authenticationError = "Polling Error: \(error.localizedDescription)"
+            $walletState.markStale()
+            pollingStrategy?.stop()
+            
+            scheduleReconnect()
+            
+            return .stopPolling
+        } else {
+            setDisconnectedState(errorMessage: "API Error: \(error.localizedDescription)")
+            return .stopPolling
+        }
+    }
+    
+    func handleConnectError(_ error: Error) {
+        print("[BBClient] handleConnectError: \(error), status: \(connectionStatus)")
+        
+        // Permanent failure — always end session
+        if isPermanentConnectError(error) {
+            setDisconnectedState(errorMessage: "API Error: \(error.localizedDescription)")
+            return
+        }
+        
+        // Active session — keep connected and retry later
+        if connectionStatus == .connected {
+            authenticationError = transientErrorMessage(for: error)
+            $walletState.markStale()
+            scheduleReconnect()
+            return
+        }
+        
+        // .connecting or .disconnected — no established session (includes onNetworkLost
+        // resetting status during an in-flight first connect())
+        setDisconnectedState(errorMessage: transientErrorMessage(for: error))
+    }
     
     // normalizes message, setDisconnectedState, stopPolling, and optionally reconnect
     @discardableResult
@@ -146,12 +234,19 @@ class BBClient: ObservableObject {
         print("[BBClient] applyErrorAndDisconnectIfNeeded called with error: \(error)")
         
         if let apiError = error as? APIDomainError, case .network = apiError {
-            //print("Network error detected: \(apiError)")
             authenticationError = apiError.userMessage
+            $walletState.markStale()
             return .continuePolling
         } else if let apiError = error as? APIDomainError, case .unknown = apiError {
-            //print("Unknown error detected (max attempts): \(apiError)")
-            setDisconnectedState(errorMessage: "Polling Error: \(error.localizedDescription)")
+            authenticationError = "Polling Error: \(error.localizedDescription)"
+            $walletState.markStale()
+            pollingStrategy?.stop()
+            
+            // wait and try to reconnect
+            Task {
+                try? await Task.sleep(for: .seconds(self.reconnectionDelayInSec))
+                await connect()
+            }
             return .stopPolling
         } else {
             //print("Other API error detected: \(error)")
@@ -180,9 +275,7 @@ class BBClient: ObservableObject {
         connectionStatus = .disconnected
         authenticationError = errorMessage
         
-        // reset state
         $walletState.markStale()
-        //walletState.reset()
         
         // Track connection loss if there was an error
         if let error = errorMessage {
