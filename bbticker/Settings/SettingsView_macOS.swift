@@ -148,9 +148,9 @@ struct SettingsView_macOS: View {
                     Text("15 seconds").tag(15.0)
                 }
                 .pickerStyle(.segmented)
-                .disabled(!viewModel.isUpdateFrequencyUnlocked)
+                .disabled(!viewModel.isProActive)
 
-                if !viewModel.isUpdateFrequencyUnlocked {
+                if !viewModel.isProActive {
                     HStack(spacing: 8) {
                         Image(systemName: "lock.fill").foregroundColor(.orange)
                         Text("Unlock faster updates with a one‑time purchase.")

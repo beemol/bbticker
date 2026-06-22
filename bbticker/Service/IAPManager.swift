@@ -1,33 +1,39 @@
 import Foundation
 import StoreKit
 
-protocol IAPManagerProtocol: Actor {
-    func isUnlocked() async -> Bool
-    func purchaseUnlock() async throws -> Bool
-    func restorePurchases() async -> Bool
+enum ProFeatures {
+    static let freePollingInterval: Double = 15
+    static let proPollingOptions: [Double] = [1, 5, 10]
+    static let defaultProPollingInterval: Double = 1
 }
 
-// make it an actor since I consider to add caching in the future
+protocol IAPManagerProtocol: Actor {
+    func isProActive() async -> Bool
+    func purchasePro() async throws -> Bool
+    func restorePurchases() async -> Bool
+    
+    func startObservingTransactions(onProStatusChange: @escaping @Sendable (Bool) -> Void)
+}
+
 actor IAPManager: IAPManagerProtocol {
     static let shared = IAPManager()
 
-    // Update with your App Store Connect product identifier
-    private let unlockProductId = getBundleIdentifier() + ".updatefrequency.unlock"
+    private let proSubscriptionProductId = getBundleIdentifier() + ".pro.unlock"
 
     private init() {}
 
-    func isUnlocked() async -> Bool {
+    func isProActive() async -> Bool {
         for await result in Transaction.currentEntitlements {
             guard case .verified(let transaction) = result else { continue }
-            if transaction.productID == unlockProductId {
+            if transaction.productID == proSubscriptionProductId {
                 return true
             }
         }
         return false
     }
 
-    func purchaseUnlock() async throws -> Bool {
-        guard let product = try await Product.products(for: [unlockProductId]).first else {
+    func purchasePro() async throws -> Bool {
+        guard let product = try await Product.products(for: [proSubscriptionProductId]).first else {
             return false
         }
 
@@ -47,11 +53,24 @@ actor IAPManager: IAPManagerProtocol {
             return false
         }
     }
+    
+    func startObservingTransactions(onProStatusChange: @escaping @Sendable (Bool) -> Void) {
+        Task {
+            for await result in Transaction.updates {
+                guard case .verified(let transaction) = result else { continue }
+                if transaction.productID == proSubscriptionProductId {
+                    await transaction.finish()
+                    let active = await isProActive()
+                    onProStatusChange(active)
+                }
+            }
+        }
+    }
 
     func restorePurchases() async -> Bool {
         do {
             try await AppStore.sync()
-            return await isUnlocked()
+            return await isProActive()
         } catch {
             return false
         }

@@ -105,8 +105,13 @@ struct MenuBarPopoverView: View {
             }
             
             Divider()
-
-            DonationButton(openDonation: openDonation)
+            
+            Button {
+                NSApplication.shared.terminate(nil)
+            } label: {
+                Text("Quit")
+            }
+            .buttonStyle(.plain)
         }
         .padding(EdgeInsets(top: 10, leading: 14, bottom: 10, trailing: 10))
         .frame(minWidth: 200, maxWidth: 220, alignment: .top)
@@ -123,22 +128,22 @@ struct MenuBarPopoverView: View {
 }
 
 // MARK: - Donation Button Component
-struct DonationButton: View {
-    let openDonation: () -> Void
-    
-    var body: some View {
-        Button {
-            openDonation()
-        } label: {
-            HStack(spacing: 4) {
-                Image(systemName: "heart")
-                    .foregroundColor(.yellow)
-                Text("Donate")
-            }
-        }
-        .buttonStyle(.plain)
-    }
-}
+//struct DonationButton: View {
+//    let openDonation: () -> Void
+//    
+//    var body: some View {
+//        Button {
+//            openDonation()
+//        } label: {
+//            HStack(spacing: 4) {
+//                Image(systemName: "heart")
+//                    .foregroundColor(.yellow)
+//                Text("Donate")
+//            }
+//        }
+//        .buttonStyle(.plain)
+//    }
+//}
 
 #if DEBUG
 struct MenuBarPopoverView_Previews: PreviewProvider {
@@ -169,13 +174,11 @@ class Mocks {
         func setWallet(_ wallet: WalletType) {
             //
         }
-        
-        // Mirror production state but allow test control
-        //final class MockState: SettingsState {}
+
         let state = SettingsState()
 
         // MARK: - Optional conveniences (not required by the protocol)
-        // Keep these if your code still reads these directly instead of state.*
+        // We keep these if your code still reads these directly instead of state.*
         var exchangeType: ExchangeType { state.exchangeType }
         var updateFrequency: Double { state.updateFrequency }
 
@@ -183,7 +186,7 @@ class Mocks {
         private let exchangeTypeSubject: CurrentValueSubject<ExchangeType, Never>
         private let unlockSubject: CurrentValueSubject<Bool, Never>
 
-        // If your ViewModel still uses Combine, expose these:
+        // If a ViewModel still uses Combine, expose these:
         var exchangeTypePublisher: AnyPublisher<ExchangeType, Never> {
             exchangeTypeSubject.eraseToAnyPublisher()
         }
@@ -208,7 +211,7 @@ class Mocks {
         ) {
             state.exchangeType = initialExchange
             state.updateFrequency = initialFrequency
-            state.isUpdateFrequencyUnlocked = initialUnlocked
+            state.isProActive = initialUnlocked
 
             exchangeTypeSubject = .init(initialExchange)
             unlockSubject = .init(initialUnlocked)
@@ -229,9 +232,9 @@ class Mocks {
             exchangeTypeSubject.send(exchangeType)
         }
 
-        func setUpdateFrequencyUnlocked(_ unlocked: Bool) {
+        func applyProStatus(_ unlocked: Bool) {
             setUpdateFrequencyUnlockedCalled = true
-            state.isUpdateFrequencyUnlocked = unlocked
+            state.isProActive = unlocked
             unlockSubject.send(unlocked)
         }
 
@@ -245,10 +248,10 @@ class Mocks {
 
             state.updateFrequency = 5.0
             state.exchangeType = Exchange(.bybit, wallet: .unified)
-            state.isUpdateFrequencyUnlocked = false
+            state.isProActive = false
 
             exchangeTypeSubject.send(state.exchangeType)
-            unlockSubject.send(state.isUpdateFrequencyUnlocked)
+            unlockSubject.send(state.isProActive)
         }
     }
     
@@ -268,10 +271,6 @@ class Mocks {
                 print("MockRemoteConfigManager: Simulating successful refresh")
             }
         }
-        
-    //    func getVersionedKillSwitchConfig() -> (isDisabled: Bool, message: String) {
-    //        return killSwitchConfig
-    //    }
         
         func getDonationWalletConfig() -> String? {
             return donationWalletConfig
@@ -338,11 +337,15 @@ class Mocks {
     
     // mock for IAPManager
     actor MockIAPManager: IAPManagerProtocol {
-        func isUnlocked() async -> Bool {
+        func startObservingTransactions(onProStatusChange: @escaping @Sendable (Bool) -> Void) {
+            //
+        }
+        
+        func isProActive() async -> Bool {
             true
         }
         
-        func purchaseUnlock() async throws -> Bool {
+        func purchasePro() async throws -> Bool {
             true
         }
         

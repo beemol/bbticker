@@ -97,6 +97,14 @@ struct bbtickerApp: App {
             iapManager: IAPManager.shared
         )
         
+        Task {
+            await IAPManager.shared.startObservingTransactions { isPro in
+                Task { @MainActor in
+                    settings.applyProStatus(isPro)
+                }
+            }
+        }
+        
         donationViewModel = DonationViewModel(remoteConfigManager: remoteConfig)
         
         #if !os(macOS)

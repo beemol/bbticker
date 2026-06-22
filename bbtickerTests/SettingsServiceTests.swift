@@ -24,22 +24,22 @@ final class SettingsServiceTests: XCTestCase {
         let mock = MockUserDataStorage()
         mock.save(key: "update_frequency", value: 10.0)
         mock.save(key: "selected_exchange_type", value: "kucoin:futures")
-        mock.save(key: "iap_updatefrequency_unlocked", value: true)
+        mock.save(key: "iap_ispro_unlocked", value: true)
         
         let service = SettingsService(storage: mock)
         
         XCTAssertEqual(service.state.updateFrequency, 10.0)
         XCTAssertEqual(service.state.exchangeType, Exchange(.kucoin, wallet: .futures))
-        XCTAssertTrue(service.state.isUpdateFrequencyUnlocked)
+        XCTAssertTrue(service.state.isProActive)
     }
     
     func testInitialLoad_DefaultsWhenNoValues() {
         let mock = MockUserDataStorage()
         let service = SettingsService(storage: mock)
         
-        XCTAssertEqual(service.state.updateFrequency, 5.0)
+        XCTAssertEqual(service.state.updateFrequency, ProFeatures.freePollingInterval)
         XCTAssertEqual(service.state.exchangeType, Exchange(.bybit, wallet: .unified))
-        XCTAssertFalse(service.state.isUpdateFrequencyUnlocked)
+        XCTAssertFalse(service.state.isProActive)
     }
     
     func testSetUpdateFrequency_SavesValue() {
@@ -66,10 +66,10 @@ final class SettingsServiceTests: XCTestCase {
         let mock = MockUserDataStorage()
         let service = SettingsService(storage: mock)
         
-        service.setUpdateFrequencyUnlocked(true)
+        service.applyProStatus(true)
         
-        XCTAssertTrue(service.state.isUpdateFrequencyUnlocked)
-        XCTAssertEqual(mock.value(forKey: "iap_updatefrequency_unlocked") as? Bool, true)
+        XCTAssertTrue(service.state.isProActive)
+        XCTAssertEqual(mock.value(forKey: "iap_ispro_unlocked") as? Bool, true)
     }
     
     func testLoadExchangeType_InvalidStringFallsBack() {

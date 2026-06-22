@@ -206,7 +206,7 @@ class SettingsViewModelTests: XCTestCase {
         )
         await viewModel.refreshIAP()
         XCTAssertTrue(mockSettingsService.isUpdateFrequencyUnlocked)
-        XCTAssertTrue(viewModel.isUpdateFrequencyUnlocked)
+        XCTAssertTrue(viewModel.isProActive)
     }
     
     func testUnlockUpdateFrequency_PurchaseSuccess() async {
@@ -286,7 +286,7 @@ class MockSettingsService: SettingsServiceProtocol {
         set { setExchangeType(newValue) }
     }
     var updateFrequency: Double { state.updateFrequency }
-    var isUpdateFrequencyUnlocked: Bool { state.isUpdateFrequencyUnlocked }
+    var isUpdateFrequencyUnlocked: Bool { state.isProActive }
 
     init() {
         mockStorage = MockUserDataStorage()
@@ -296,9 +296,9 @@ class MockSettingsService: SettingsServiceProtocol {
         realService.setExchangeType(Exchange(.bybit, wallet: .spot))
     }
 
-    func setUpdateFrequencyUnlocked(_ unlocked: Bool) {
+    func applyProStatus(_ unlocked: Bool) {
         setUpdateFrequencyUnlockedCalled = true
-        realService.setUpdateFrequencyUnlocked(unlocked)
+        realService.applyProStatus(unlocked)
     }
 
     func setUpdateFrequency(_ frequency: Double) {
@@ -324,7 +324,7 @@ class MockSettingsService: SettingsServiceProtocol {
         mockStorage.reset()
         realService.setUpdateFrequency(5.0)
         realService.setExchangeType(Exchange(.bybit, wallet: .spot))
-        realService.setUpdateFrequencyUnlocked(false)
+        realService.applyProStatus(false)
     }
 }
 
@@ -477,6 +477,8 @@ actor MockCredentialManager: CredentialManagerProtocol {
 }
 
 actor MockIAPManager: IAPManagerProtocol {
+    func startObservingTransactions(onProStatusChange: @escaping @Sendable (Bool) -> Void) {}
+
     private var isUnlockedToReturn: Bool = false
     private var purchaseUnlockToReturn: Bool = true
     private var restorePurchasesToReturn: Bool = true
@@ -493,11 +495,11 @@ actor MockIAPManager: IAPManagerProtocol {
         restorePurchasesToReturn = value
     }
     
-    func isUnlocked() async -> Bool {
+    func isProActive() async -> Bool {
         isUnlockedToReturn
     }
     
-    func purchaseUnlock() async throws -> Bool {
+    func purchasePro() async throws -> Bool {
         purchaseUnlockToReturn
     }
     

@@ -23,9 +23,8 @@ class SettingsViewModel: ObservableObject {
     let settingsService: any SettingsServiceProtocol
     let credentialManager: CredentialManagerProtocol
 
-    var isUpdateFrequencyUnlocked: Bool {
-        true
-        //settingsService.state.isUpdateFrequencyUnlocked
+    var isProActive: Bool {
+        settingsService.state.isProActive
     }
     
     var exchangeType: ExchangeType {
@@ -47,32 +46,16 @@ class SettingsViewModel: ObservableObject {
         self.sharedDataService = sharedDataService
         self.iapManager = iapManager
         
+        Task {
+            await performInitialLoad()
+        }
+        
         loadWidgetSettings()
-
-        // setupUpdateFrequencyBinding()
-        // setupUnlockBinding()
     }
     
-    /// Explicit initial load to be called by the host (view/controller)
     func performInitialLoad() async {
         await refreshIAP()
     }
-    
-    // MARK: - API Credentials
-    // keep it only for testing purposes for now. ExchangeTypeSectionScenarioTests is using view model as a bridge for credentials access
-/*
-    private func setupExchangeTypeObservation() {
-        withObservationTracking(
-            { _ = settingsService.state.exchangeType },
-            onChange: { [weak self] in
-                Task { @MainActor in
-                    await self?.loadCredentials()
-                    self?.setupExchangeTypeObservation() // re-arm
-                }
-            }
-        )
-    }
-*/
     
     func setUpdateFrequency(_ frequency: Double) {
         settingsService.setUpdateFrequency(frequency)
@@ -105,24 +88,6 @@ class SettingsViewModel: ObservableObject {
     }
     
     // MARK: - Binding Helpers
-    
-//    private func setupUpdateFrequencyBinding() {
-//        // Sync with shared settings service
-//        updateFrequency = settingsService.updateFrequency
-//        
-//        // Keep local property in sync with service using protocol publisher
-//        settingsService.updateFrequencyPublisher.removeDuplicates()
-//            .assign(to: \.updateFrequency, on: self)
-//            .store(in: &cancellables)
-//    }
-
-    // private func setupUnlockBinding() {
-    //     settingsService.isUpdateFrequencyUnlockedPublisher.removeDuplicates()
-    //         .receive(on: RunLoop.main)
-    //         .assign(to: \.isUpdateFrequencyUnlocked, on: self)
-    //         .store(in: &cancellables)
-    // }
-    
     var widgetEnabledBinding: Binding<Bool> {
         Binding(
             get: { self.widgetEnabled },
@@ -154,31 +119,29 @@ class SettingsViewModel: ObservableObject {
     }
 
     func refreshIAP() async {
-        let unlocked = await iapManager.isUnlocked()
-        await MainActor.run { settingsService.setUpdateFrequencyUnlocked(unlocked) }
+        let unlocked = await iapManager.isProActive()
+        settingsService.applyProStatus(unlocked)
     }
 
     func unlockUpdateFrequency() {
         Task {
-            await MainActor.run { self.purchaseState = .purchasing }
+            purchaseState = .purchasing
             do {
-                let success = try await iapManager.purchaseUnlock()
+                let success = try await iapManager.purchasePro()
                 if success {
-                    await MainActor.run {
-                        self.purchaseState = .purchased
-                        self.settingsService.setUpdateFrequencyUnlocked(true)
-                    }
+                    purchaseState = .purchased
+                    settingsService.applyProStatus(true)
                     Task {
                         await AnalyticsManager.shared.track(.settingsChange(key: "iap_unlock_succeeded", newValue: ""))
                     }
                 } else {
-                    await MainActor.run { self.purchaseState = .failed("Purchase cancelled or unverified") }
+                    purchaseState = .failed("Purchase cancelled or unverified")
                     Task {
                         await AnalyticsManager.shared.track(.settingsChange(key: "iap_unlock_failed", newValue: ""))
                     }
                 }
             } catch {
-                await MainActor.run { self.purchaseState = .failed(error.localizedDescription) }
+                purchaseState = .failed(error.localizedDescription)
                 Task {
                     await AnalyticsManager.shared.track(.settingsChange(key: "iap_unlock_failed", newValue: ""))
                 }
@@ -188,18 +151,17 @@ class SettingsViewModel: ObservableObject {
 
     func restorePurchases() {
         Task {
-            await MainActor.run { self.purchaseState = .restoring }
+            purchaseState = .restoring
             let success = await iapManager.restorePurchases()
             if success {
-                await MainActor.run {
-                    self.purchaseState = .purchased
-                    self.settingsService.setUpdateFrequencyUnlocked(true)
-                }
+                purchaseState = .purchased
+                settingsService.applyProStatus(true)
                 Task {
                     await AnalyticsManager.shared.track(.settingsChange(key:"iap_restore_succeeded", newValue: ""))
                 }
             } else {
-                await MainActor.run { self.purchaseState = .failed("No purchases to restore") }
+                await refreshIAP()
+                purchaseState = .failed("No purchases to restore")
                 Task {
                     await AnalyticsManager.shared.track(.settingsChange(key:"iap_restore_failed", newValue: ""))
                 }
