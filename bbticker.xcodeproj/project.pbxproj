@@ -90,6 +90,8 @@
 				IAP/Tests/SpyIAPManager.swift,
 				Repository/Tests/WalletRepositoryTests.swift,
 				Service/NetworkMonitor/Tests/NetworkStoreTests.swift,
+				Settings/Tests/SettingsViewModelIAPTests.swift,
+				Settings/Tests/SettingsViewModelTests.swift,
 			);
 			target = E79209432E3A191D003244E4 /* bbtickerTests */;
 		};
@@ -102,6 +104,8 @@
 				"Info-STANDALONE.plist",
 				Repository/Tests/WalletRepositoryTests.swift,
 				Service/NetworkMonitor/Tests/NetworkStoreTests.swift,
+				Settings/Tests/SettingsViewModelIAPTests.swift,
+				Settings/Tests/SettingsViewModelTests.swift,
 				SparkleUpdater.swift,
 			);
 			target = E7C513BD2E16C55700561E15 /* bbticker */;
@@ -145,6 +149,8 @@
 				Settings/SettingsView_macOS.swift,
 				Settings/SettingsViewModel.swift,
 				Settings/SettingsViewModelProtocols.swift,
+				Settings/Tests/SettingsViewModelIAPTests.swift,
+				Settings/Tests/SettingsViewModelTests.swift,
 				Siri/BalanceAppIntent.swift,
 				Siri/SiriManager.swift,
 				View/ConnectionButton.swift,
