@@ -60,4 +60,21 @@ final class ProEntitlementTests: XCTestCase {
         XCTAssertEqual(service.state.updateFrequency, ProFeatures.freePollingInterval)
     }
     
+    func test_givenCachedProTrueAndStored10s_whenInit_thenKeepsProFrequency() {
+        // Given
+        let storage = MockUserDataStorage()
+        storage.save(key: SettingsService.StorageKey.updateFrequency, value: 10.0)
+        storage.save(key: SettingsService.StorageKey.isProActive, value: true)
+        // When
+        let service = SettingsService(storage: storage)
+        // Then
+        XCTAssertTrue(service.state.isProActive)
+        XCTAssertEqual(service.state.updateFrequency, 10.0)
+    }
+    
+    func test_givenNoPersistedValues_whenInit_thenDefaultsToFreeTier() {
+        let service = SettingsService(storage: MockUserDataStorage())
+        XCTAssertFalse(service.state.isProActive)
+        XCTAssertEqual(service.state.updateFrequency, ProFeatures.freePollingInterval)
+    }
 }
