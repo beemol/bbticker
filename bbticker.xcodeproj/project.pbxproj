@@ -86,6 +86,8 @@
 		E723797E2FC32A3F009F2F0D /* Exceptions for "bbticker" folder in "bbtickerTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				IAP/Tests/ProEntitlementTests.swift,
+				IAP/Tests/SpyIAPManager.swift,
 				Repository/Tests/WalletRepositoryTests.swift,
 				Service/NetworkMonitor/Tests/NetworkStoreTests.swift,
 			);
@@ -94,6 +96,8 @@
 		E759BE8D2E1AD20600D1FE2B /* Exceptions for "bbticker" folder in "bbticker" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				IAP/Tests/ProEntitlementTests.swift,
+				IAP/Tests/SpyIAPManager.swift,
 				"Info-MAS.plist",
 				"Info-STANDALONE.plist",
 				Repository/Tests/WalletRepositoryTests.swift,
@@ -117,6 +121,9 @@
 				Donation/DonationView.swift,
 				Donation/DonationViewModel.swift,
 				"GoogleService-Info.plist",
+				IAP/IAPManager.swift,
+				IAP/Tests/ProEntitlementTests.swift,
+				IAP/Tests/SpyIAPManager.swift,
 				"Info-MAS.plist",
 				"Info-STANDALONE.plist",
 				Repository/Tests/WalletRepositoryTests.swift,
@@ -125,7 +132,6 @@
 				Service/DependencyContainer.swift,
 				Service/DisableCenter.swift,
 				Service/Helper.swift,
-				Service/IAPManager.swift,
 				Service/KeychainHelper.swift,
 				Service/NetworkMonitor.swift,
 				Service/NetworkMonitor/Tests/NetworkStoreTests.swift,

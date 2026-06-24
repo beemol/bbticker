@@ -122,7 +122,7 @@ final class SettingsService: SettingsServiceProtocol {
     
     private func loadUpdateFrequency() {
         let storedFrequency = storage.value(forKey: StorageKey.updateFrequency) as? Double
-        state.updateFrequency = storedFrequency ?? ProFeatures.defaultProPollingInterval
+        state.updateFrequency = storedFrequency ?? ProFeatures.freePollingInterval
     }
     
     private func loadExchangeType() {
@@ -152,7 +152,7 @@ final class SettingsService: SettingsServiceProtocol {
         storage.save(key: StorageKey.isProActive, value: isPro)
         
         if isPro {
-            if state.updateFrequency >= ProFeatures.freePollingInterval {
+            if state.updateFrequency > ProFeatures.proPollingOptions.max() ?? 10 {
                 setUpdateFrequency(ProFeatures.defaultProPollingInterval)
             }
         } else {

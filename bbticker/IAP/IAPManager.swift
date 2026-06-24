@@ -17,15 +17,17 @@ protocol IAPManagerProtocol: Actor {
 
 actor IAPManager: IAPManagerProtocol {
     static let shared = IAPManager()
+    
+    private let proProductId: String
 
-    private let proSubscriptionProductId = getBundleIdentifier() + ".pro.unlock"
-
-    private init() {}
+    private init(productID: String = IAPProductID.forCurrentBundle) {
+        self.proProductId = productID
+    }
 
     func isProActive() async -> Bool {
         for await result in Transaction.currentEntitlements {
             guard case .verified(let transaction) = result else { continue }
-            if transaction.productID == proSubscriptionProductId {
+            if transaction.productID == proProductId {
                 return true
             }
         }
@@ -33,7 +35,7 @@ actor IAPManager: IAPManagerProtocol {
     }
 
     func purchasePro() async throws -> Bool {
-        guard let product = try await Product.products(for: [proSubscriptionProductId]).first else {
+        guard let product = try await Product.products(for: [proProductId]).first else {
             return false
         }
 
@@ -58,7 +60,7 @@ actor IAPManager: IAPManagerProtocol {
         Task {
             for await result in Transaction.updates {
                 guard case .verified(let transaction) = result else { continue }
-                if transaction.productID == proSubscriptionProductId {
+                if transaction.productID == proProductId {
                     await transaction.finish()
                     let active = await isProActive()
                     onProStatusChange(active)
