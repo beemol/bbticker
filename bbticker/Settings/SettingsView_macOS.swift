@@ -12,6 +12,8 @@ struct SettingsView_macOS: View {
     @State private var apiKeySteps: [String] = []
     @State private var apiKeyNotes: String? = nil
     @State private var isShowingExchangeInfoPopover = false
+    // UI-only placeholder until margin dot preference is persisted.
+    @State private var showMarginLevelDot = true
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -43,7 +45,7 @@ struct SettingsView_macOS: View {
                 ExchangeTypeSection(settingsService: viewModel.settingsService)
                 ApiCredentialsSection (settingsService: viewModel.settingsService, credentialManager: viewModel.credentialManager)
                 apiKeyCreationSection
-                updateFrequencySection
+                proSection
                 //importantNotesSection
                 contactSection
             }
@@ -135,50 +137,92 @@ struct SettingsView_macOS: View {
         }
     }
     
-    private var updateFrequencySection: some View {
-        Section("Update Frequency (Paid Feature)") {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("How often should the app update your balance data?")
+    private var proSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 16) {
+                proFeatureControls
+                    .disabled(!viewModel.isProActive)
+                    .opacity(viewModel.isProActive ? 1 : 0.45)
+                
+                if !viewModel.isProActive {
+                    proUnlockFooter
+                }
+            }
+        } header: {
+            Text("BBTicker Pro")
+        } footer: {
+            if viewModel.isProActive {
+                Text("Pro features are active on this device.")
+            } else {
+                Text("Free tier uses 15 second balance updates. Unlock Pro with a one-time purchase.")
+            }
+        }
+    }
+    
+    private var proFeatureControls: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                Label("Update frequency", systemImage: "arrow.triangle.2.circlepath")
                     .font(.callout)
+                    .fontWeight(.medium)
+                
+                Text("How often the app refreshes your balance data.")
+                    .font(.caption)
                     .foregroundColor(.secondary)
                 
                 Picker("Update Frequency", selection: viewModel.updateFrequencyBinding) {
                     Text("1 second").tag(1.0)
                     Text("5 seconds").tag(5.0)
-                    Text("15 seconds").tag(15.0)
+                    Text("10 seconds").tag(10.0)
                 }
                 .pickerStyle(.segmented)
-                .disabled(!viewModel.isProActive)
-
-                if !viewModel.isProActive {
-                    HStack(spacing: 8) {
-                        Image(systemName: "lock.fill").foregroundColor(.orange)
-                        Text("Unlock faster updates with a one‑time purchase.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Button("Unlock") {
-                            viewModel.unlockUpdateFrequency()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        Button("Restore") {
-                            viewModel.restorePurchases()
-                        }
-                    }
-                    .padding(.top, 4)
-                    switch viewModel.purchaseState {
-                    case .purchasing:
-                        Text("Purchasing…").font(.caption).foregroundColor(.secondary)
-                    case .restoring:
-                        Text("Restoring…").font(.caption).foregroundColor(.secondary)
-                    case .failed(let message):
-                        Text(message).font(.caption).foregroundColor(.red)
-                    default:
-                        EmptyView()
-                    }
+                .labelsHidden()
+            }
+            
+            Toggle(isOn: $showMarginLevelDot) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("Margin level dot", systemImage: "circle.fill")
+                        .font(.callout)
+                        .fontWeight(.medium)
+                    Text("Show a colored dot in the menu bar indicating your maintenance margin level.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
+            .toggleStyle(.switch)
         }
+    }
+    
+    private var proUnlockFooter: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "lock.fill")
+                    .foregroundColor(.orange)
+                Text("Unlock faster updates and the margin level dot.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Spacer()
+                Button("Unlock") {
+                    viewModel.unlockUpdateFrequency()
+                }
+                .buttonStyle(.borderedProminent)
+                Button("Restore") {
+                    viewModel.restorePurchases()
+                }
+            }
+            
+            switch viewModel.purchaseState {
+            case .purchasing:
+                Text("Purchasing…").font(.caption).foregroundColor(.secondary)
+            case .restoring:
+                Text("Restoring…").font(.caption).foregroundColor(.secondary)
+            case .failed(let message):
+                Text(message).font(.caption).foregroundColor(.red)
+            default:
+                EmptyView()
+            }
+        }
+        .padding(.top, 4)
     }
     
     private var contactSection: some View {
