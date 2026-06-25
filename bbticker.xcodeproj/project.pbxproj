@@ -92,6 +92,7 @@
 				IAP/Tests/StoreKitIntegrationTests.swift,
 				Repository/Tests/WalletRepositoryTests.swift,
 				Service/NetworkMonitor/Tests/NetworkStoreTests.swift,
+				Settings/Tests/MarginLevelDotIntegrationTests.swift,
 				Settings/Tests/SettingsViewModelIAPTests.swift,
 				Settings/Tests/SettingsViewModelTests.swift,
 			);
@@ -107,6 +108,7 @@
 				"Info-STANDALONE.plist",
 				Repository/Tests/WalletRepositoryTests.swift,
 				Service/NetworkMonitor/Tests/NetworkStoreTests.swift,
+				Settings/Tests/MarginLevelDotIntegrationTests.swift,
 				Settings/Tests/SettingsViewModelIAPTests.swift,
 				Settings/Tests/SettingsViewModelTests.swift,
 				SparkleUpdater.swift,
@@ -154,6 +156,7 @@
 				Settings/SettingsView_macOS.swift,
 				Settings/SettingsViewModel.swift,
 				Settings/SettingsViewModelProtocols.swift,
+				Settings/Tests/MarginLevelDotIntegrationTests.swift,
 				Settings/Tests/SettingsViewModelIAPTests.swift,
 				Settings/Tests/SettingsViewModelTests.swift,
 				Siri/BalanceAppIntent.swift,
