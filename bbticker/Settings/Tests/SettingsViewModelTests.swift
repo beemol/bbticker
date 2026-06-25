@@ -312,6 +312,10 @@ class MockSettingsService: SettingsServiceProtocol {
         lastExchangeType = exchangeType
         realService.setExchangeType(exchangeType)
     }
+    
+    func setShowMarginLevelDot(_ enabled: Bool) {
+        realService.setShowMarginLevelDot(enabled)
+    }
 
     func reset() {
         setUpdateFrequencyCalled = false

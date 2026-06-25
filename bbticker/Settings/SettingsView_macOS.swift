@@ -12,8 +12,6 @@ struct SettingsView_macOS: View {
     @State private var apiKeySteps: [String] = []
     @State private var apiKeyNotes: String? = nil
     @State private var isShowingExchangeInfoPopover = false
-    // UI-only placeholder until margin dot preference is persisted.
-    @State private var showMarginLevelDot = true
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -179,7 +177,7 @@ struct SettingsView_macOS: View {
                 .labelsHidden()
             }
             
-            Toggle(isOn: $showMarginLevelDot) {
+            Toggle(isOn: viewModel.showMarginLevelDotBinding) {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("Margin level dot", systemImage: "circle.fill")
                         .font(.callout)

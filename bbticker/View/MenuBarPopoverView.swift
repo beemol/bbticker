@@ -237,6 +237,10 @@ class Mocks {
             state.isProActive = unlocked
             unlockSubject.send(unlocked)
         }
+        
+        func setShowMarginLevelDot(_ enabled: Bool) {
+            state.showMarginLevelDot = enabled
+        }
 
         // MARK: - Test helper
         func reset() {

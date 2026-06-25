@@ -9,18 +9,21 @@ import SwiftUI
 import AppKit
 
 struct MenuBarLabelView: View {
-    // since BBClient is ObservableObject we need to tell him to update us
     @Bindable var walletState: WalletState
+    var settingsService: SettingsService
     let isStale: Bool
     
+    private var showsMarginLevelDot: Bool {
+        settingsService.state.isProActive && settingsService.state.showMarginLevelDot
+    }
+    
     var body: some View {
-        // Always use image to show margin level color consistently
-        Image(nsImage: generateMenuBarImage())
+        Image(nsImage: generateMenuBarImage(showMarginLevelDot: showsMarginLevelDot))
             .resizable()
             .aspectRatio(contentMode: .fit)
     }
     
-    private func generateMenuBarImage() -> NSImage {
+    private func generateMenuBarImage(showMarginLevelDot: Bool) -> NSImage {
         let text = String(format: "%.1f", walletState.equity)
         let font = NSFont.systemFont(ofSize: 12, weight: .medium)
         
@@ -40,14 +43,14 @@ struct MenuBarLabelView: View {
         ]
         
         let textSize = text.size(withAttributes: attributes)
-        let dotSize: CGFloat = 8  // Size of the margin level indicator dot
-        let spacing: CGFloat = 8  // Space between dot and text
+        let dotSize: CGFloat = showMarginLevelDot ? 8 : 0
+        let spacing: CGFloat = showMarginLevelDot ? 8 : 0
         let padding: CGFloat = 0
         let verticalPadding: CGFloat = 0
         
         let imageSize = CGSize(
-            width: dotSize + spacing + textSize.width + (padding * 2),
-            height: max(dotSize, textSize.height) + (verticalPadding * 2)
+            width: (showMarginLevelDot ? dotSize + spacing : 0) + textSize.width + (padding * 2),
+            height: max(showMarginLevelDot ? dotSize : textSize.height, textSize.height) + (verticalPadding * 2)
         )
         
         // Create image
@@ -59,28 +62,30 @@ struct MenuBarLabelView: View {
         let dotY = (imageSize.height - dotSize) / 2
         let textY = (imageSize.height - textSize.height) / 2
         
-        // Draw margin level indicator dot
-        let dotRect = CGRect(
-            x: padding,
-            y: dotY,
-            width: dotSize,
-            height: dotSize
-        )
-        
-        let marginColor = getMarginLevelColor()
-        marginColor.setFill()
-        
-        let dotPath = NSBezierPath(ovalIn: dotRect)
-        dotPath.fill()
-        
-        // Add subtle border to the dot for better visibility
-        NSColor.white.withAlphaComponent(0.3).setStroke()
-        dotPath.lineWidth = 0.5
-        dotPath.stroke()
+        if showMarginLevelDot {
+            // Draw margin level indicator dot
+            let dotRect = CGRect(
+                x: padding,
+                y: dotY,
+                width: dotSize,
+                height: dotSize
+            )
+            
+            let marginColor = getMarginLevelColor()
+            marginColor.setFill()
+            
+            let dotPath = NSBezierPath(ovalIn: dotRect)
+            dotPath.fill()
+            
+            // Add subtle border to the dot for better visibility
+            NSColor.white.withAlphaComponent(0.3).setStroke()
+            dotPath.lineWidth = 0.5
+            dotPath.stroke()
+        }
         
         // Draw text
         let textRect = CGRect(
-            x: padding + dotSize + spacing,
+            x: padding + (showMarginLevelDot ? dotSize + spacing : 0),
             y: textY,
             width: textSize.width,
             height: textSize.height
@@ -163,6 +168,8 @@ struct MenuBarLabelView_Previews: PreviewProvider {
 struct MenuBarLabelViewPreview: View {
     @State private var maintenanceMargin: Double = 0
     @State private var isStale: Bool = false
+    @State private var showMarginLevelDot: Bool = true
+    @State private var previewSettingsService = SettingsService()
     
     var body: some View {
         VStack(spacing: 20) {
@@ -170,12 +177,22 @@ struct MenuBarLabelViewPreview: View {
                 .font(.headline)
             
             // The actual menu bar label view
-            MenuBarLabelView(walletState: previewWalletState, isStale: isStale)
+            MenuBarLabelView(
+                walletState: previewWalletState,
+                settingsService: previewSettingsService,
+                isStale: isStale
+            )
                 .scaleEffect(3.0)  // Make it bigger for preview
             
             // Stale data toggle
             Toggle("Stale Data", isOn: $isStale)
                 .padding(.horizontal)
+            
+            Toggle("Margin Level Dot", isOn: $showMarginLevelDot)
+                .padding(.horizontal)
+                .onChange(of: showMarginLevelDot) { _, enabled in
+                    previewSettingsService.setShowMarginLevelDot(enabled)
+                }
             
             // Current values display
             VStack(spacing: 8) {
@@ -223,6 +240,10 @@ struct MenuBarLabelViewPreview: View {
                 Button("Critical (95%)") { maintenanceMargin = 95 }
             }
             .buttonStyle(.bordered)
+        }
+        .onAppear {
+            previewSettingsService.applyProStatus(true)
+            previewSettingsService.setShowMarginLevelDot(showMarginLevelDot)
         }
     }
     

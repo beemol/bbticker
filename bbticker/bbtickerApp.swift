@@ -143,6 +143,7 @@ struct bbtickerApp: App {
         }, label: {
             MenuBarLabelView(
                 walletState: bybitClient.walletState,
+                settingsService: settingsService,
                 isStale: bybitClient.$walletState.isStale
             )
         })

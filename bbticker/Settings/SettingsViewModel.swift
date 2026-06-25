@@ -108,6 +108,13 @@ class SettingsViewModel: ObservableObject {
             set: { self.settingsService.setUpdateFrequency($0) }
         )
     }
+    
+    var showMarginLevelDotBinding: Binding<Bool> {
+        Binding(
+            get: { self.settingsService.state.showMarginLevelDot },
+            set: { self.settingsService.setShowMarginLevelDot($0) }
+        )
+    }
 
     // MARK: - IAP
     enum PurchaseState {
