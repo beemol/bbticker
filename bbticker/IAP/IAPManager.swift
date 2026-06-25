@@ -20,7 +20,7 @@ actor IAPManager: IAPManagerProtocol {
     
     private let proProductId: String
 
-    private init(productID: String = IAPProductID.forCurrentBundle) {
+    init(productID: String = IAPProductID.forCurrentBundle) {
         self.proProductId = productID
     }
 
