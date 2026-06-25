@@ -93,6 +93,7 @@
 				Repository/Tests/WalletRepositoryTests.swift,
 				Service/NetworkMonitor/Tests/NetworkStoreTests.swift,
 				Settings/Tests/MarginLevelDotIntegrationTests.swift,
+				Settings/Tests/MarginLevelDotTests.swift,
 				Settings/Tests/SettingsViewModelIAPTests.swift,
 				Settings/Tests/SettingsViewModelTests.swift,
 			);
@@ -109,6 +110,7 @@
 				Repository/Tests/WalletRepositoryTests.swift,
 				Service/NetworkMonitor/Tests/NetworkStoreTests.swift,
 				Settings/Tests/MarginLevelDotIntegrationTests.swift,
+				Settings/Tests/MarginLevelDotTests.swift,
 				Settings/Tests/SettingsViewModelIAPTests.swift,
 				Settings/Tests/SettingsViewModelTests.swift,
 				SparkleUpdater.swift,
@@ -157,6 +159,7 @@
 				Settings/SettingsViewModel.swift,
 				Settings/SettingsViewModelProtocols.swift,
 				Settings/Tests/MarginLevelDotIntegrationTests.swift,
+				Settings/Tests/MarginLevelDotTests.swift,
 				Settings/Tests/SettingsViewModelIAPTests.swift,
 				Settings/Tests/SettingsViewModelTests.swift,
 				Siri/BalanceAppIntent.swift,
