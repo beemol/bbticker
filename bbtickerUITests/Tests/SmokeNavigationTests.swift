@@ -32,4 +32,13 @@ final class SmokeNavigationTests: XCTestCase {
         )
         XCTAssertTrue(menuBar.popoverSettingsButton.isHittable)
     }
+    
+    func test_openSettings_showsProSection() throws {
+        let menuBar = MenuBarApp.launch()
+        let settingsPage = SettingsPage(app: menuBar.app)
+        
+        XCTAssertTrue(menuBar.openPopover(), "Expected popover with Settings button '\(AccessibilityID.popoverSettingsButton)'")
+        XCTAssertTrue(menuBar.openSettings(), "expect Settings view to be open")
+        XCTAssertTrue(settingsPage.proSectionHeader.waitForExistence(timeout: 1.0))
+    }
 }

@@ -51,4 +51,10 @@ struct MenuBarApp {
     var popoverSettingsButton: XCUIElement {
         app.buttons[AccessibilityID.popoverSettingsButton]
     }
+    
+    func openSettings() -> Bool {
+        guard UITestUtils.waitFor(element: popoverSettingsButton) else { return false }
+        popoverSettingsButton.click()
+        return app.windows["Settings"].waitForExistence(timeout: 5) || app.staticTexts["Settings"].waitForExistence(timeout: 5)
+    }
 }
