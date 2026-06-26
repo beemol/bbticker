@@ -21,6 +21,7 @@ struct MenuBarLabelView: View {
         Image(nsImage: generateMenuBarImage(showMarginLevelDot: showsMarginLevelDot))
             .resizable()
             .aspectRatio(contentMode: .fit)
+            .accessibilityIdentifier(AccessibilityID.menuBarStatusItem)
     }
     
     private func generateMenuBarImage(showMarginLevelDot: Bool) -> NSImage {

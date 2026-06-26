@@ -93,6 +93,7 @@ struct MenuBarPopoverView: View {
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier(AccessibilityID.popoverSettingsButton)
             
             HStack {
                 Image(systemName: "power")
