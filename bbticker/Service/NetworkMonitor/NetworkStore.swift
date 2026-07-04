@@ -27,7 +27,7 @@ final class NetworkStore: NetworkStoreProtocol {
     private let reducer: (NetworkState, NetworkAction) -> (NetworkState, NetworkEffect?) = NetworkReducer.reduce
     
     // Internal network monitor
-    private let pathMonitor: NWPathMonitor = NWPathMonitor()
+    private let pathMonitor: ProductionPathMonitor = ProductionPathMonitor()
     private var statusContinuation: AsyncStream<Bool>.Continuation?
     
     @MainActor
@@ -94,7 +94,7 @@ enum NetworkAction: Equatable {
 }
 
 enum NetworkEffect {
-    case execute((_ pathMonitor: NWPathMonitor) -> AsyncStream<NetworkAction>?)
+    case execute((_ pathMonitor: ProductionPathMonitor) -> AsyncStream<NetworkAction>?)
 }
 
 enum NetworkReducer {
