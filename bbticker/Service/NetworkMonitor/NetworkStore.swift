@@ -9,9 +9,6 @@ import SwiftUI
 import Combine
 import Network
 
-//extension NWPathMonitor: PathMonitorProtocol {
-//}
-
 @MainActor
 protocol NetworkStoreProtocol {
     var statusStream: AsyncStream<Bool> { get }
@@ -80,10 +77,14 @@ final class NetworkStore: NetworkStoreProtocol {
     }
 }
 
+enum InternetStatus: Equatable { case unavailable, checking, reachable, unreachable }
 
 struct NetworkState {
+    var internetStatus: InternetStatus = .unavailable
     var isConnected: Bool = false
     var connectionType: NetworkStore.ConnectionType = .unknown
+    
+    var isInternetReachable: Bool { internetStatus == .reachable }
 }
 
 enum NetworkAction: Equatable {
