@@ -24,11 +24,18 @@ final class NetworkStore: NetworkStoreProtocol {
     private let reducer: (NetworkState, NetworkAction) -> (NetworkState, NetworkEffect?) = NetworkReducer.reduce
     
     // Internal network monitor
-    private let pathMonitor: ProductionPathMonitor = ProductionPathMonitor()
+    private let reachability: InternetReachabilityServiceProtocol
+    private let pathMonitor: PathMonitorProtocol
     private var statusContinuation: AsyncStream<Bool>.Continuation?
     
     @MainActor
-    init() {
+    init(reachability: InternetReachabilityServiceProtocol = InternetReachabilityService(),
+         pathMonitor: PathMonitorProtocol = ProductionPathMonitor())
+    {
+        
+        self.reachability = reachability
+        self.pathMonitor = pathMonitor
+        
         let (stream, continuation) = AsyncStream<Bool>.makeStream()
         statusStream = stream
         statusContinuation = continuation
@@ -39,25 +46,27 @@ final class NetworkStore: NetworkStoreProtocol {
     }
     
     // for tests usage only
-    @MainActor
-    internal init(startMonitoring: Bool) {
-        let (stream, continuation) = AsyncStream<Bool>.makeStream()
-        statusStream = stream
-        statusContinuation = continuation
-        
-        if startMonitoring {
-            Task {
-                await dispatch(.startMonitoring)
-            }
-        } else {
-            // push initial state to prevent tests from hanging
-            statusContinuation?.yield(state.isConnected)
-        }
-    }
+//    @MainActor
+//    internal init(startMonitoring: Bool) {
+//        let (stream, continuation) = AsyncStream<Bool>.makeStream()
+//        statusStream = stream
+//        statusContinuation = continuation
+//        
+//        if startMonitoring {
+//            Task {
+//                await dispatch(.startMonitoring)
+//            }
+//        } else {
+//            // push initial state to prevent tests from hanging
+//            statusContinuation?.yield(state.isConnected)
+//        }
+//    }
 
     @MainActor
     deinit {
         statusContinuation?.finish()
+        reachability.stop()
+        pathMonitor.cancel()
     }
     
     @MainActor
@@ -68,7 +77,7 @@ final class NetworkStore: NetworkStoreProtocol {
         statusContinuation?.yield(newState.isConnected)
         
         if let effect = effect, case let .execute(effectClosure) = effect {
-            if let stream = effectClosure(pathMonitor) {
+            if let stream = effectClosure(pathMonitor, reachability) {
                 for await action in stream {
                     await dispatch(action)
                 }
@@ -95,7 +104,7 @@ enum NetworkAction: Equatable {
 }
 
 enum NetworkEffect {
-    case execute((_ pathMonitor: ProductionPathMonitor) -> AsyncStream<NetworkAction>?)
+    case execute((_ pathMonitor: PathMonitorProtocol, _ rechabilityService: InternetReachabilityServiceProtocol) -> AsyncStream<NetworkAction>?)
 }
 
 enum NetworkReducer {
@@ -110,24 +119,39 @@ enum NetworkReducer {
             newState.connectionType = type
             return (newState, nil)
         case .startMonitoring:
-            return (newState, .execute({ monitor in
+            return (newState, .execute({ monitor, rechabilityService in
                 
                 return AsyncStream<NetworkAction> { continuation in
                     monitor.pathUpdateHandler = { path in
-                        let isConnected = path.status == .satisfied
-                        continuation.yield(.statusChanged(isConnected))
+                        Task { @MainActor in
+                            rechabilityService.stop()
+                            
+                            if path.status == .satisfied, let reachabilityStream = try? rechabilityService.run() {
+                                for await reachability in reachabilityStream {
+                                    continuation.yield(.statusChanged(reachability))
+                                }
+                            } else {
+                                continuation.yield(.statusChanged(false))
+                            }
+                        }
                     }
                     monitor.start(queue: DispatchQueue(label: "NetworkStore"))
                     
                     continuation.onTermination = { _ in
-                        monitor.cancel()
+                        Task { @MainActor in
+                            rechabilityService.stop()
+                            monitor.cancel()
+                        }
                     }
                 }
             }))
         // not really needed
         case .stopMonitioring:
-            return (newState, .execute({ monitor in
-                monitor.cancel()
+            return (newState, .execute({ monitor, rechabilityService in
+                Task { @MainActor in
+                    rechabilityService.stop()
+                    monitor.cancel()
+                }
                 return nil
             }))
         }
