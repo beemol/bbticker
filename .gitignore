@@ -24,3 +24,7 @@ Podfile.lock
 
 #Firebase
 bbticker/GoogleService-Info.plist
+
+#AI
+.env
+.aider*
