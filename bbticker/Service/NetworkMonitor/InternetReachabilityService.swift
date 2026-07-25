@@ -62,7 +62,6 @@ final class InternetReachabilityService: InternetReachabilityServiceProtocol {
         timer = nil
 
         // Finish the continuation to allow the for await loop to exit
-        continuation?.finish()
-        continuation = nil
+        continuation.finish()
     }
 }

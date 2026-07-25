@@ -195,7 +195,7 @@ struct BBClientReconnectionTests {
                 statusContinuation?.yield(isConnected)
             case .startMonitoring:
                 break
-            case .connectionTypeChanged, .stopMonitioring:
+            case .connectionTypeChanged, .stopMonitoring:
                 break
             }
         }

@@ -100,7 +100,7 @@ enum NetworkAction: Equatable {
     case statusChanged(Bool)
     case connectionTypeChanged(NetworkStore.ConnectionType)
     case startMonitoring
-    case stopMonitioring
+    case stopMonitoring
 }
 
 enum NetworkEffect {
@@ -119,14 +119,14 @@ enum NetworkReducer {
             newState.connectionType = type
             return (newState, nil)
         case .startMonitoring:
-            return (newState, .execute({ monitor, rechabilityService in
+            return (newState, .execute({ monitor, reachabilityService in
                 
                 return AsyncStream<NetworkAction> { continuation in
                     monitor.pathUpdateHandler = { path in
                         Task { @MainActor in
-                            rechabilityService.stop()
+                            reachabilityService.stop()
                             
-                            if path.status == .satisfied, let reachabilityStream = try? rechabilityService.run() {
+                            if path.status == .satisfied, let reachabilityStream = try? reachabilityService.run() {
                                 for await reachability in reachabilityStream {
                                     continuation.yield(.statusChanged(reachability))
                                 }
@@ -139,14 +139,14 @@ enum NetworkReducer {
                     
                     continuation.onTermination = { _ in
                         Task { @MainActor in
-                            rechabilityService.stop()
+                            reachabilityService.stop()
                             monitor.cancel()
                         }
                     }
                 }
             }))
         // not really needed
-        case .stopMonitioring:
+        case .stopMonitoring:
             return (newState, .execute({ monitor, rechabilityService in
                 Task { @MainActor in
                     rechabilityService.stop()

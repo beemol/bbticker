@@ -937,7 +937,7 @@ final class StableMockNetworkStore: NetworkStoreProtocol {
         case .statusChanged(let isConnected):
             state.isConnected = isConnected
             statusContinuation?.yield(isConnected)
-        case .startMonitoring, .connectionTypeChanged, .stopMonitioring:
+        case .startMonitoring, .connectionTypeChanged, .stopMonitoring:
             break
         }
     }
