@@ -46,21 +46,24 @@ final class NetworkStore: NetworkStoreProtocol {
     }
     
     // for tests usage only
-//    @MainActor
-//    internal init(startMonitoring: Bool) {
-//        let (stream, continuation) = AsyncStream<Bool>.makeStream()
-//        statusStream = stream
-//        statusContinuation = continuation
-//        
-//        if startMonitoring {
-//            Task {
-//                await dispatch(.startMonitoring)
-//            }
-//        } else {
-//            // push initial state to prevent tests from hanging
-//            statusContinuation?.yield(state.isConnected)
-//        }
-//    }
+    @MainActor
+    internal init(startMonitoring: Bool) {
+        let (stream, continuation) = AsyncStream<Bool>.makeStream()
+        statusStream = stream
+        statusContinuation = continuation
+
+        reachability = InternetReachabilityService()
+        pathMonitor = ProductionPathMonitor()
+        
+        if startMonitoring {
+            Task {
+                await dispatch(.startMonitoring)
+            }
+        } else {
+            // push initial state to prevent tests from hanging
+            statusContinuation?.yield(state.isConnected)
+        }
+    }
 
     @MainActor
     deinit {
@@ -119,41 +122,53 @@ enum NetworkReducer {
             newState.connectionType = type
             return (newState, nil)
         case .startMonitoring:
-            return (newState, .execute({ monitor, reachabilityService in
-                
-                return AsyncStream<NetworkAction> { continuation in
-                    monitor.pathUpdateHandler = { path in
-                        Task { @MainActor in
-                            reachabilityService.stop()
-                            
-                            if path.status == .satisfied, let reachabilityStream = try? reachabilityService.run() {
-                                for await reachability in reachabilityStream {
-                                    continuation.yield(.statusChanged(reachability))
-                                }
-                            } else {
-                                continuation.yield(.statusChanged(false))
-                            }
-                        }
-                    }
-                    monitor.start(queue: DispatchQueue(label: "NetworkStore"))
-                    
-                    continuation.onTermination = { _ in
-                        Task { @MainActor in
-                            reachabilityService.stop()
-                            monitor.cancel()
-                        }
-                    }
-                }
-            }))
+            return (newState, .execute(makeMonitoringStream))
         // not really needed
         case .stopMonitoring:
             return (newState, .execute({ monitor, rechabilityService in
-                Task { @MainActor in
-                    rechabilityService.stop()
-                    monitor.cancel()
-                }
+                stopMonitoring(monitor: monitor, reachability: rechabilityService)
                 return nil
             }))
+        }
+    }
+}
+
+private extension NetworkReducer {
+    static func makeMonitoringStream(monitor: PathMonitorProtocol,
+                                     reachability: InternetReachabilityServiceProtocol) -> AsyncStream<NetworkAction> {
+        return AsyncStream<NetworkAction> { continuation in
+            monitor.pathUpdateHandler = { path in
+                handlePathUpdate(path, continuation: continuation, reachability: reachability)
+            }
+            monitor.start(queue: DispatchQueue(label: "NetworkStore"))
+
+            continuation.onTermination = { _ in
+                stopMonitoring(monitor: monitor, reachability: reachability)
+            }
+        }
+    }
+    
+    static func handlePathUpdate(_ path: NetworkPathWrapper,
+                                 continuation: AsyncStream<NetworkAction>.Continuation,
+                                 reachability: InternetReachabilityServiceProtocol) {
+        Task { @MainActor in
+            reachability.stop()
+            
+            guard path.status == .satisfied, let reachabilityStream = try? reachability.run() else {
+                continuation.yield(.statusChanged(false))
+                return
+            }
+            
+            for await reachability in reachabilityStream {
+                continuation.yield(.statusChanged(reachability))
+            }
+        }
+    }
+    
+    static func stopMonitoring(monitor: PathMonitorProtocol, reachability: InternetReachabilityServiceProtocol) {
+        Task { @MainActor in
+            reachability.stop()
+            monitor.cancel()
         }
     }
 }
