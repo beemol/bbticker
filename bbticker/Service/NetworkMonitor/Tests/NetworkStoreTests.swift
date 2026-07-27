@@ -22,7 +22,7 @@ struct NetworkStoreTests {
     }
     
     @Test func testNetworkChangeStream() async throws {
-        let store = NetworkStore(startMonitoring: false)
+        let store = NetworkStore(monitoringEngine: MonitoringEngine(), startMonitoring: false)
         
         var states: [Bool] = []
         
@@ -39,4 +39,41 @@ struct NetworkStoreTests {
         #expect(states == [false, false])
     }
 
+    @Test func testStartMonitoringDispatchReturnsPromptly() async throws {
+        let engine = HangingMonitoringEngine()
+        let store = NetworkStore(monitoringEngine: engine, startMonitoring: false)
+
+        var didReturn = false
+
+        let task = Task { @MainActor in
+            await store.dispatch(.startMonitoring)
+            didReturn = true
+        }
+
+        defer {
+            engine.stop()
+            task.cancel()
+        }
+
+        try? await Task.sleep(for: .milliseconds(100))
+
+        // dispatch should not stay inside the for-await loop forever even if Monitor is not responding for a long time
+        #expect(didReturn == true)
+    }
+}
+
+@MainActor
+private final class HangingMonitoringEngine: MonitoringEngineProtocol {
+    private var continuation: AsyncStream<NetworkAction>.Continuation?
+
+    func start() -> AsyncStream<NetworkAction> {
+        AsyncStream { continuation in
+            self.continuation = continuation
+        }
+    }
+
+    func stop() {
+        continuation?.finish()
+        continuation = nil
+    }
 }

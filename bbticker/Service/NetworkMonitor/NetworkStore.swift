@@ -49,7 +49,7 @@ final class NetworkStore: NetworkStoreProtocol {
     
     // for tests usage only
     @MainActor
-    internal init(startMonitoring: Bool) {
+    internal init(monitoringEngine: MonitoringEngineProtocol, startMonitoring: Bool) {
         let (stream, continuation) = AsyncStream<Bool>.makeStream()
         statusStream = stream
         statusContinuation = continuation
@@ -57,7 +57,7 @@ final class NetworkStore: NetworkStoreProtocol {
         reachability = InternetReachabilityService()
         pathMonitor = ProductionPathMonitor()
         
-        monitoringEngine = MonitoringEngine()
+        self.monitoringEngine = monitoringEngine
         
         if startMonitoring {
             Task {
