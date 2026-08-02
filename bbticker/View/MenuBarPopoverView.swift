@@ -31,15 +31,17 @@ struct MenuBarPopoverView: View {
             
             HStack {
                 VStack {
-                    Image(systemName: networkMonitor.state.connectionType.imageName)
-                        .foregroundColor(networkMonitor.state.isConnected ? .green : .red)
-                    Text("API: \(bybitClient.connectionStatus.description)")
-                        .font(.subheadline)
-                        .foregroundColor(bybitClient.connectionStatus.color)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
+                    NetworkStatusView(state: networkMonitor.state)
+                    
+                    VStack {
+                        Text("API: \(bybitClient.connectionStatus.description)")
+                            .font(.subheadline)
+                            .foregroundColor(bybitClient.connectionStatus.color)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
                 
                 Divider()
                 
