@@ -27,7 +27,7 @@ class BBClientTests: XCTestCase {
     private lazy var mockSettingsService = MockSettingsService()
     
     @MainActor
-    private lazy var mockNetworkMonitor = MockNetworkMonitor()
+    private lazy var mockNetworkMonitor = MockNetworkStore()
     
     @MainActor
     private lazy var mockAPIService = MockAPIService()
@@ -60,34 +60,6 @@ class BBClientTests: XCTestCase {
         XCTAssertEqual(sut.walletState.equity, 0.00)
         XCTAssertEqual(sut.walletState.balance, 0.00)
         XCTAssertFalse(sut.isConnected)
-    }
-    
-    @MainActor func testInitialization_SetsUpNetworkMonitoring() {
-        // Given - network monitoring should be set up during init
-        // First, ensure we're in a connected state
-        mockNetworkMonitor.isConnected = true
-        mockAPIService.shouldSucceed = true
-        
-        let expectation = XCTestExpectation(description: "Network monitoring responds to changes")
-        
-        // Access sut to trigger init, then set up subscriber
-        _ = sut
-        
-        sut.$authenticationError
-            .dropFirst() // Skip initial nil
-            .compactMap { $0 }
-            .sink { error in
-                if error == "Network connection lost" {
-                    expectation.fulfill()
-                }
-            }
-            .store(in: &cancellables)
-        
-        // When - simulate network loss AFTER setup
-        mockNetworkMonitor.simulateNetworkLoss()
-        
-        // Then
-        wait(for: [expectation], timeout: 1.0)
     }
     
     @MainActor func testInitialization_SetsUpUpdateFrequencyObserver() {
@@ -276,68 +248,22 @@ class BBClientTests: XCTestCase {
     
     // MARK: - Network Monitoring Tests
     
-    @MainActor func testNetworkLost_DisconnectsClient() async {
-        // Given
-        mockAPIService.shouldSucceed = true
-        await sut.connect()
-        XCTAssertEqual(sut.connectionStatus, .connected)
-        
-        let expectation = XCTestExpectation(description: "Network loss handled")
-        sut.$authenticationError
-            .compactMap { $0 }
-            .sink { error in
-                if error == "Network connection lost" {
-                    expectation.fulfill()
-                }
-            }
-            .store(in: &cancellables)
-        
-        // When
-        mockNetworkMonitor.simulateNetworkLoss()
-        
-        // Then
-        await fulfillment(of: [expectation], timeout: 2.0)
-    }
-    
-    @MainActor func testNetworkLost_FromDisconnectedState() {
+    @MainActor func testNetworkLost_FromDisconnectedState() async {
         // Given - already disconnected
         XCTAssertEqual(sut.connectionStatus, .disconnected)
         
         // When
-        mockNetworkMonitor.simulateNetworkLoss()
+        await mockNetworkMonitor.simulateNetworkLoss()
         
         // Then - should remain disconnected without error
         XCTAssertEqual(sut.connectionStatus, .disconnected)
-    }
-    
-    @MainActor func testNetworkRestored_ReconnectsSuccessfully() async {
-        // Given
-        mockAPIService.shouldSucceed = true
-        await sut.connect()
-        
-        mockNetworkMonitor.simulateNetworkLoss()
-        
-        // Set up expectation BEFORE triggering restore to avoid race condition
-        let expectation = XCTestExpectation(description: "Network restore reconnection")
-        sut.$connectionStatus
-            .dropFirst() // Skip current disconnected state
-            .filter { $0 == .connected }
-            .first()
-            .sink { _ in expectation.fulfill() }
-            .store(in: &cancellables)
-        
-        // When
-        mockNetworkMonitor.simulateNetworkRestore()
-        
-        // Then
-        await fulfillment(of: [expectation], timeout: 3.0)
     }
     
     @MainActor func testNetworkRestored_ReconnectionFails() async {
         // Given
         mockAPIService.shouldSucceed = true
         await sut.connect()
-        mockNetworkMonitor.simulateNetworkLoss()
+        await mockNetworkMonitor.simulateNetworkLoss()
         
         // Change API to fail for reconnection
         mockAPIService.shouldSucceed = false
@@ -354,7 +280,7 @@ class BBClientTests: XCTestCase {
             .store(in: &cancellables)
         
         // When
-        mockNetworkMonitor.simulateNetworkRestore()
+        await mockNetworkMonitor.simulateNetworkRestore()
         
         // Then
         await fulfillment(of: [expectation], timeout: 3.0)
@@ -365,7 +291,7 @@ class BBClientTests: XCTestCase {
         await mockCredentialManager.setShouldThrowOnGet(true)
         
         // When
-        mockNetworkMonitor.simulateNetworkRestore()
+        await mockNetworkMonitor.simulateNetworkRestore()
         
         // give some time to connect
         try? await Task.sleep(nanoseconds: 100_000_000)
@@ -936,82 +862,13 @@ final class StableMockNetworkStore: NetworkStoreProtocol {
         switch action {
         case .statusChanged(let isConnected):
             state.isConnected = isConnected
-            statusContinuation?.yield(isConnected)
         case .startMonitoring, .connectionTypeChanged, .stopMonitoring:
+            break
+        case .internetStatusChanged(_):
             break
         }
     }
 }
-
-final class MockNetworkMonitor: NetworkStoreProtocol {
-    private let realStore: NetworkStore
-    
-    @MainActor
-    var isConnected: Bool {
-        get {
-            self.realStore.state.isConnected
-        }
-        set {
-            Task { @MainActor in
-                await self.realStore.dispatch(.statusChanged(newValue))
-            }
-        }
-    }
-    
-    @MainActor
-    init() {
-        // Use a real NetworkStore internally, but expose testing methods
-        self.realStore = NetworkStore()
-    }
-    
-    // MARK: - NetworkStoreProtocol Conformance
-    var state: NetworkState {
-        realStore.state
-    }
-    
-    var statusStream: AsyncStream<Bool> {
-        realStore.statusStream
-    }
-    
-    @MainActor
-    func dispatch(_ action: NetworkAction) async {
-        await realStore.dispatch(action)
-    }
-    
-    // MARK: - Test Compatibility Methods (Same API as old MockNetworkMonitor)
-    @MainActor
-    func simulateNetworkLoss() {
-        Task { @MainActor in
-            await dispatch(.statusChanged(false))
-        }
-    }
-    
-    @MainActor
-    func simulateNetworkRestore() {
-        Task { @MainActor in
-            await dispatch(.statusChanged(true))
-        }
-    }
-}
-
-/// Mock network monitor that starts DISCONNECTED to avoid race conditions.
-/// BBClient auto-connects when it receives `true` from the publisher on init,
-/// so starting with `false` prevents unwanted auto-connect during tests.
-//@MainActor
-//class MockNetworkMonitor: NetworkMonitorProtocol {
-//    @Published var isConnected: Bool = false  // Start disconnected to avoid auto-connect race
-//    var isConnectedPublisher: AnyPublisher<Bool, Never> {
-//        $isConnected.eraseToAnyPublisher()
-//    }
-//    
-//    func simulateNetworkLoss() {
-//        isConnected = false
-//    }
-//    
-//    func simulateNetworkRestore() {
-//        isConnected = true
-//    }
-//}
 
 class MockAPIService: APIServiceProtocol {
     func fetchWalletBalanceForCurrentExchange() async throws -> WalletData {

@@ -1,5 +1,5 @@
 //
-//  MonitoringEngine.swift
+//  MonitoringEngineProtocol.swift
 //  bbticker
 //
 //  Created by Aleh Fiodarau on 7/27/26.
@@ -8,7 +8,7 @@
 import Foundation
 
 @MainActor
-protocol MonitoringEngineProtocol {
+protocol MonitoringEngineProtocol: Sendable {
     func start() -> AsyncStream<NetworkAction>
     func stop()
 }
@@ -56,16 +56,21 @@ final class MonitoringEngine: MonitoringEngineProtocol {
     func handlePathUpdate(_ path: NetworkPathWrapper,
                                  continuation: AsyncStream<NetworkAction>.Continuation,
                                  reachability: InternetReachabilityServiceProtocol) async {
-            reachability.stop()
-            
-            guard path.status == .satisfied, let reachabilityStream = try? reachability.run() else {
-                continuation.yield(.statusChanged(false))
-                return
-            }
-            
-            for await reachability in reachabilityStream {
-                continuation.yield(.statusChanged(reachability))
-            }
+        reachability.stop()
+        
+        guard path.status == .satisfied, let reachabilityStream = try? reachability.run() else {
+            continuation.yield(.statusChanged(false))
+            continuation.yield(.internetStatusChanged(.unavailable))
+            return
+        }
+        
+        continuation.yield(.statusChanged(true))
+        continuation.yield(.internetStatusChanged(.checking))
+        
+        for await reachability in reachabilityStream {
+            let internetStatus: InternetStatus = reachability == true ? .reachable : .unreachable
+            continuation.yield(.internetStatusChanged(internetStatus))
+        }
     }
     
     func stopMonitoring(monitor: PathMonitorProtocol, reachability: InternetReachabilityServiceProtocol) async {

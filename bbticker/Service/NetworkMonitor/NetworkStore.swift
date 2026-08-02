@@ -10,15 +10,17 @@ import Combine
 import Network
 
 @MainActor
-protocol NetworkStoreProtocol {
-    var statusStream: AsyncStream<Bool> { get }
+protocol NetworkStoreProtocol: AnyObject {
     var state: NetworkState { get }
+    
+    var statusStream: AsyncStream<Bool> { get }
 }
 
 @Observable
 final class NetworkStore: NetworkStoreProtocol {
-    let statusStream: AsyncStream<Bool>
-    
+    private(set) var statusStream: AsyncStream<Bool>
+    private var reachabilityContinuation: AsyncStream<Bool>.Continuation?
+
     // UDF section
     private(set) var state = NetworkState()
     private let reducer: (NetworkState, NetworkAction) -> (NetworkState, NetworkEffect?) = NetworkReducer.reduce
@@ -26,40 +28,31 @@ final class NetworkStore: NetworkStoreProtocol {
     // Internal network monitor
     private let reachability: InternetReachabilityServiceProtocol
     private let pathMonitor: PathMonitorProtocol
-    private var statusContinuation: AsyncStream<Bool>.Continuation?
     private let monitoringEngine: MonitoringEngineProtocol
     
     private var monitoringTask: Task<Void, Never>?
     
+    /// monitoringEngine and startMonitoring can be used for testing purposes
     @MainActor
     init(reachability: InternetReachabilityServiceProtocol = InternetReachabilityService(),
-         pathMonitor: PathMonitorProtocol = ProductionPathMonitor())
+         pathMonitor: PathMonitorProtocol = ProductionPathMonitor(),
+         monitoringEngine: MonitoringEngineProtocol? = nil,
+         startMonitoring: Bool = true)
     {
         
         self.reachability = reachability
         self.pathMonitor = pathMonitor
-        self.monitoringEngine = MonitoringEngine(reachability: reachability, pathMonitor: pathMonitor)
+        self.monitoringEngine = monitoringEngine ?? MonitoringEngine(reachability: reachability, pathMonitor: pathMonitor)
         
         let (stream, continuation) = AsyncStream<Bool>.makeStream()
         statusStream = stream
-        statusContinuation = continuation
+        reachabilityContinuation = continuation
         
-        Task {
-            await dispatch(.startMonitoring)
+        reachabilityContinuation?.onTermination = { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.reachabilityContinuation = nil
+            }
         }
-    }
-    
-    // for tests usage only
-    @MainActor
-    internal init(monitoringEngine: MonitoringEngineProtocol, startMonitoring: Bool) {
-        let (stream, continuation) = AsyncStream<Bool>.makeStream()
-        statusStream = stream
-        statusContinuation = continuation
-
-        reachability = InternetReachabilityService()
-        pathMonitor = ProductionPathMonitor()
-        
-        self.monitoringEngine = monitoringEngine
         
         if startMonitoring {
             Task {
@@ -67,22 +60,27 @@ final class NetworkStore: NetworkStoreProtocol {
             }
         } else {
             // push initial state to prevent tests from hanging
-            statusContinuation?.yield(state.isConnected)
+            reachabilityContinuation?.yield(state.isInternetReachable)
         }
     }
 
     @MainActor
     deinit {
-        statusContinuation?.finish()
+        reachabilityContinuation?.finish()
         monitoringEngine.stop()
     }
     
     @MainActor
     func dispatch(_ action: NetworkAction) async {
         let (newState, effect) = reducer(state, action)
-        state = newState
         
-        statusContinuation?.yield(newState.isConnected)
+        if state != newState {
+            if state.isInternetReachable != newState.isInternetReachable {
+                reachabilityContinuation?.yield(newState.isInternetReachable)
+            }
+            
+            state = newState
+        }
         
         switch effect {
         case .startMonitoring:
@@ -109,17 +107,23 @@ final class NetworkStore: NetworkStoreProtocol {
 
 enum InternetStatus: Equatable { case unavailable, checking, reachable, unreachable }
 
-struct NetworkState {
+struct NetworkState: Equatable {
+    // TODO: keeping for BC, replace with isPathAvaillble naming
+    var isConnected: Bool = false // isPathAvaillble, i.e NWPath.status == .satisfied
+    
     var internetStatus: InternetStatus = .unavailable
-    var isConnected: Bool = false
     var connectionType: NetworkStore.ConnectionType = .unknown
     
-    var isInternetReachable: Bool { internetStatus == .reachable }
+    var isInternetReachable: Bool {
+        isConnected && internetStatus == .reachable
+    }
 }
 
 enum NetworkAction: Equatable {
-    case statusChanged(Bool)
+    case statusChanged(Bool) // NWPath.status
+    case internetStatusChanged(InternetStatus)
     case connectionTypeChanged(NetworkStore.ConnectionType)
+    
     case startMonitoring
     case stopMonitoring
 }
@@ -145,6 +149,9 @@ enum NetworkReducer {
         // not really needed
         case .stopMonitoring:
             return (newState, .stopMonitoring)
+        case .internetStatusChanged(let status):
+            newState.internetStatus = status
+            return (newState, nil)
         }
     }
 }
@@ -164,26 +171,5 @@ extension NetworkStore {
             default: "wifi"
             }
         }
-    }
-    
-    // MARK: - Test Compatibility Methods
-    // These methods provide the same API as the old NetworkMonitor for existing tests
-    
-    /// Simulates network loss for testing - maintains compatibility with existing tests
-    @MainActor
-    func simulateNetworkLoss() async {
-        await dispatch(.statusChanged(false))
-    }
-    
-    /// Simulates network restoration for testing - maintains compatibility with existing tests
-    @MainActor
-    func simulateNetworkRestoration() async {
-        await dispatch(.statusChanged(true))
-    }
-    
-    /// Simulates network change to specific state - maintains compatibility with existing tests
-    @MainActor
-    func simulateNetworkChange(isConnected: Bool) async {
-        await dispatch(.statusChanged(isConnected))
     }
 }

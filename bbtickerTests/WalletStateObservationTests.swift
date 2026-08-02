@@ -27,7 +27,7 @@ class WalletStateObservationTests: XCTestCase {
     private lazy var mockSettingsService = MockSettingsService()
     
     @MainActor
-    private lazy var mockNetworkMonitor = MockNetworkMonitor()
+    private lazy var mockNetworkMonitor = MockNetworkStore()
     
     @MainActor
     private lazy var mockAPIService = MockAPIService()

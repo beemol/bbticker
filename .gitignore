@@ -1,6 +1,7 @@
 # Xcode
 .DS_Store
 /build
+buildServer.json
 
 # User-specific (never commit)
 **/xcuserdata/

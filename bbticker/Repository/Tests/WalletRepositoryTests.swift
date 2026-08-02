@@ -15,7 +15,7 @@ struct WalletRepositoryTests {
     let walletRepository = MockWalletRepository()
     
     lazy var bbClient = BBClient(settingsService: MockSettingsService(),
-                          networkMonitor: MockNetworkMonitor(),
+                          networkMonitor: MockNetworkStore(),
                           sharedDataManager: MockSharedDataManager(),
                           walletRepository: walletRepository)
 

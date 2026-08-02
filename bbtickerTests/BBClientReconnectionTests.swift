@@ -175,46 +175,6 @@ struct BBClientReconnectionTests {
         }
     }
     
-    @MainActor
-    class MockNetworkStore: NetworkStoreProtocol {
-        var state = NetworkState(isConnected: false)
-        private var statusContinuation: AsyncStream<Bool>.Continuation?
-        
-        lazy var statusStream: AsyncStream<Bool> = {
-            AsyncStream { continuation in
-                self.statusContinuation = continuation
-                continuation.yield(state.isConnected)
-            }
-        }()
-        
-        func dispatch(_ action: NetworkAction) async {
-            // Mock implementation - just update state
-            switch action {
-            case .statusChanged(let isConnected):
-                state.isConnected = isConnected
-                statusContinuation?.yield(isConnected)
-            case .startMonitoring:
-                break
-            case .connectionTypeChanged, .stopMonitoring:
-                break
-            }
-        }
-        
-        func simulateNetworkLoss() {
-            Task { @MainActor in
-                state.isConnected = false
-                statusContinuation?.yield(false)
-            }
-        }
-        
-        func simulateNetworkRestore() {
-            Task { @MainActor in
-                state.isConnected = true
-                statusContinuation?.yield(true)
-            }
-        }
-    }
-    
     // MARK: - Helper Methods
     
     @MainActor
@@ -473,10 +433,10 @@ struct BBClientReconnectionTests {
         await client.connect()
         
         // Simulate network loss and restoration
-        networkStore.simulateNetworkLoss()
+        await networkStore.simulateNetworkLoss()
         try await Task.sleep(for: .milliseconds(200))
         
-        networkStore.simulateNetworkRestore()
+        await networkStore.simulateNetworkRestore()
         try await Task.sleep(for: .milliseconds(500))
         
         #expect(client.connectionStatus == .connected, 
@@ -526,9 +486,9 @@ struct BBClientReconnectionTests {
         apiService.reset()
         
         // Network restoration should trigger reconnection
-        networkStore.simulateNetworkLoss()
-        try await Task.sleep(for: .milliseconds(100))
-        networkStore.simulateNetworkRestore()
+        await networkStore.simulateNetworkLoss()
+        //try await Task.sleep(for: .milliseconds(100))
+        await networkStore.simulateNetworkRestore()
         
         // Wait for reconnection attempt
         try await Task.sleep(for: .milliseconds(500))

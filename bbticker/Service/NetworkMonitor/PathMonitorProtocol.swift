@@ -8,8 +8,8 @@
 import Foundation
 import Network
 
-@preconcurrency
-protocol PathMonitorProtocol: AnyObject {  // AnyObject for reference semantics
+@MainActor @preconcurrency
+protocol PathMonitorProtocol: AnyObject, Sendable {  // AnyObject for reference semantics
     var pathUpdateHandler: (@Sendable (_ newPath: NetworkPathWrapper) -> Void)? { get set }
     
     func start(queue: DispatchQueue)
@@ -23,8 +23,10 @@ final class ProductionPathMonitor: PathMonitorProtocol {
     var pathUpdateHandler: (@Sendable (NetworkPathWrapper) -> Void)? {
         didSet {
             monitor.pathUpdateHandler = { [weak self] rawPath in
-                let wrapped = NetworkPathWrapper(rawValue: rawPath)
-                self?.pathUpdateHandler?(wrapped)
+                Task { @MainActor [weak self] in
+                    let wrapped = NetworkPathWrapper(rawValue: rawPath)
+                    self?.pathUpdateHandler?(wrapped)
+                }
             }
         }
     }

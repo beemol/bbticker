@@ -16,17 +16,13 @@ protocol InternetReachabilityServiceProtocol: Sendable {
 }
 
 final class InternetReachabilityService: InternetReachabilityServiceProtocol {
-    let statusStream: AsyncStream<Bool>
-    private let continuation: AsyncStream<Bool>.Continuation
+    private var continuation: AsyncStream<Bool>.Continuation?
     
     private let period: TimeInterval
     private var timer: Timer?
     private let urlSession: URLSession = URLSession.shared
     
     init(period: TimeInterval = 1) {
-        let (stream, continuation) = AsyncStream<Bool>.makeStream()
-        self.statusStream = stream
-        self.continuation = continuation
         self.period = period
     }
     
@@ -45,11 +41,17 @@ final class InternetReachabilityService: InternetReachabilityServiceProtocol {
             throw URLError(.badURL)
         }
         
+        let (stream, continuation) = AsyncStream<Bool>.makeStream()
+        let statusStream = stream
+        self.continuation = continuation
+
+        // emmit initial value
+        probe(url: url)
+        
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: period, repeats: true) { _ in
+        timer = Timer.scheduledTimer(withTimeInterval: period, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
-                let data = try await self?.urlSession.data(from: url)
-                self?.continuation.yield(data?.0.isEmpty == false)
+                self?.probe(url: url)
             }
 
         }
@@ -62,6 +64,13 @@ final class InternetReachabilityService: InternetReachabilityServiceProtocol {
         timer = nil
 
         // Finish the continuation to allow the for await loop to exit
-        continuation.finish()
+        continuation?.finish()
+    }
+    
+    private func probe(url: URL) {
+        Task { @MainActor [weak self] in
+            let data = try await self?.urlSession.data(from: url)
+            self?.continuation?.yield(data?.0.isEmpty == false)
+        }
     }
 }
