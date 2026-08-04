@@ -14,11 +14,7 @@ protocol ApiKeyInfo: Sendable {
     var createdAt: Date { get }
 }
 
-struct ByBitApiKeyInfo: ApiKeyInfo {
-    var expiredAt: Date?
-    var deadlineDay: Int?
-    var createdAt: Date
-}
+extension ApiKeyInfoData: ApiKeyInfo { }
 
 enum LoadingState {
     case idle, loading, success, failure

@@ -14,6 +14,7 @@ import LLCore
 protocol APIServiceProtocol {
     func fetchWalletBalance(for exchangeType: ExchangeType) async throws -> WalletData
     func fetchWalletBalanceForCurrentExchange() async throws -> WalletData
+    func fetchApiKeyInfo(for exchangeType: ExchangeType) async throws -> ApiKeyInfo
 }
 
 //class BBAPIService: APIServiceProtocol {

@@ -17,6 +17,10 @@ struct BBClientReconnectionTests {
     
     @MainActor
     class TestableAPIService: APIServiceProtocol {
+        func fetchApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any bbticker.ApiKeyInfo {
+            ApiKeyInfoData(createdAt: Date())
+        }
+        
         var shouldFail = false
         var failureCount = 0
         var maxFailures = 0

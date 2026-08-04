@@ -17,12 +17,16 @@ struct LLApiServiceBuilder<T> {
         
         let registry = exchange.registry
         
-        guard let requestBuilder = registry.requestBuilder(for: exchange, credentials: credentials) else {
-            throw APIError.invalidRequest
+        guard let requestBuilder = registry.requestBuilder(for: exchange, credentials: credentials, endpointType: endpointType) else {
+            throw NSError(domain: "LLApiServiceBuilder",
+                                 code: 1,
+                                 userInfo: [NSLocalizedDescriptionKey: "Not able to find request builder for exchange: \(exchange.identifier), endpoint: \(endpointType)"])
         }
         
         guard let parser: any LLResponseParserProtocol<T> = registry.parser(for: exchange.identifier, endpointType: endpointType) else {
-            throw APIError.invalidRequest
+            throw NSError(domain: "LLApiServiceBuilder",
+                          code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "Not able to find parser for exchange: \(exchange.identifier), endpoint: \(endpointType)"])
         }
         
         let errorDetector = registry.errorDetector(for: exchange.identifier)

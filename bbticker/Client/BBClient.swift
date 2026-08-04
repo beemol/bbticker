@@ -26,6 +26,8 @@ class BBClient: ObservableObject {
     @StaleTracked<WalletState>(wrappedValue: WalletState(), stale: true)
     var walletState: WalletState
     
+    let apiKeyExpirationStore: ApiKeyExpirationStateStore
+    
     @Published var connectionStatus: ConnectionStatus = .disconnected
     @Published var authenticationError: String?
 
@@ -56,6 +58,8 @@ class BBClient: ObservableObject {
         self.pollingConfiguration = pollingConfiguration
         self.walletRepository = walletRepository
         self.reconnectionDelayInSec = reconnectionDelayInSec
+        
+        self.apiKeyExpirationStore = ApiKeyExpirationStateStore(repository: walletRepository)
         
         $walletState.set(threshold: settingsService.state.updateFrequency + 1) // + 1 for a buffer
         

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E703FBCA2FD80C1500C7AAEE /* LLCore in Frameworks */ = {isa = PBXBuildFile; productRef = E703FBC92FD80C1500C7AAEE /* LLCore */; };
 		E7579BA82ECE5DF500BA30FC /* LLApiService in Frameworks */ = {isa = PBXBuildFile; productRef = E7579BA72ECE5DF500BA30FC /* LLApiService */; };
 		E782C1912EDF087E00733AC6 /* LLCore in Frameworks */ = {isa = PBXBuildFile; productRef = E782C1902EDF087E00733AC6 /* LLCore */; };
 		E791F3892E6FFCE3005B9BE8 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; platformFilters = (macos, ); productRef = E791F3842E6FFCE3005B9BE8 /* Sparkle */; };
@@ -21,6 +20,7 @@
 		E7FAB5DD2E33DFE80050B48D /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E7FAB5DC2E33DFE80050B48D /* WidgetKit.framework */; };
 		E7FAB5DF2E33DFE80050B48D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E7FAB5DE2E33DFE80050B48D /* SwiftUI.framework */; };
 		E7FAB5EE2E33DFEC0050B48D /* BybitWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E7FAB5DA2E33DFE80050B48D /* BybitWidgetExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F2E4892330207E8500D6A0E3 /* LLCore in Frameworks */ = {isa = PBXBuildFile; productRef = F2E4892230207E8500D6A0E3 /* LLCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -175,6 +175,7 @@
 				Settings/Tests/SettingsViewModelTests.swift,
 				Siri/BalanceAppIntent.swift,
 				Siri/SiriManager.swift,
+				View/ApiKeyExpirationView.swift,
 				View/ConnectionButton.swift,
 				View/ContentView.swift,
 				View/MenuBarPopoverView.swift,
@@ -262,7 +263,7 @@
 				E7E7B9A72E37AAAF00CBD9F4 /* FirebaseAnalytics in Frameworks */,
 				E7E1638D2E39584500B6BAC5 /* FirebaseRemoteConfig in Frameworks */,
 				E7579BA82ECE5DF500BA30FC /* LLApiService in Frameworks */,
-				E703FBCA2FD80C1500C7AAEE /* LLCore in Frameworks */,
+				F2E4892330207E8500D6A0E3 /* LLCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -416,7 +417,7 @@
 				E7A154BE2E51F7720096F8F0 /* FirebaseCrashlytics */,
 				E7579BA72ECE5DF500BA30FC /* LLApiService */,
 				E782C1902EDF087E00733AC6 /* LLCore */,
-				E703FBC92FD80C1500C7AAEE /* LLCore */,
+				F2E4892230207E8500D6A0E3 /* LLCore */,
 			);
 			productName = bbticker;
 			productReference = E7C513BE2E16C55700561E15 /* bbticker.app */;
@@ -483,7 +484,7 @@
 				E7E7B9A52E37AAAF00CBD9F4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				E7590AE32E411C3B00F1B7ED /* XCRemoteSwiftPackageReference "Sparkle" */,
 				E7579BA62ECE5DA000BA30FC /* XCRemoteSwiftPackageReference "LLApiService" */,
-				E703FBC82FD80C1500C7AAEE /* XCRemoteSwiftPackageReference "LLCore" */,
+				F2E4892130207E8500D6A0E3 /* XCLocalSwiftPackageReference "../LLCore" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E7C513BF2E16C55700561E15 /* Products */;
@@ -1187,15 +1188,14 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		E703FBC82FD80C1500C7AAEE /* XCRemoteSwiftPackageReference "LLCore" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/beemol/LLCore.git";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
+/* Begin XCLocalSwiftPackageReference section */
+		F2E4892130207E8500D6A0E3 /* XCLocalSwiftPackageReference "../LLCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../LLCore;
 		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
 		E7579BA62ECE5DA000BA30FC /* XCRemoteSwiftPackageReference "LLApiService" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/beemol/LLApiService.git";
@@ -1239,11 +1239,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		E703FBC92FD80C1500C7AAEE /* LLCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E703FBC82FD80C1500C7AAEE /* XCRemoteSwiftPackageReference "LLCore" */;
-			productName = LLCore;
-		};
 		E7579BA72ECE5DF500BA30FC /* LLApiService */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E7579BA62ECE5DA000BA30FC /* XCRemoteSwiftPackageReference "LLApiService" */;
@@ -1287,6 +1282,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E7E7B9A52E37AAAF00CBD9F4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
+		};
+		F2E4892230207E8500D6A0E3 /* LLCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LLCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

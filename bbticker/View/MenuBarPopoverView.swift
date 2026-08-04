@@ -45,19 +45,10 @@ struct MenuBarPopoverView: View {
                 
                 Divider()
                 
-                VStack {
-                    Text("API Key")
-                        .font(.subheadline)
-                        .foregroundColor(.yellow)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Text("n days left")
-                        .font(.subheadline)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
+                ApiKeyExpirationView(state: bybitClient.apiKeyExpirationStore.state)
+                    .onAppear {
+                        bybitClient.apiKeyExpirationStore.dispatch(.checkExpiration(settingsService.state.exchangeType))
+                    }
             }
             .frame(height: 40)
             
@@ -384,6 +375,10 @@ class Mocks {
     }
     
     class MockAPIService: APIServiceProtocol {
+        func fetchApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any ApiKeyInfo {
+            ApiKeyInfoData(createdAt: Date())
+        }
+        
         func fetchWalletBalanceForCurrentExchange() async throws -> WalletData {
             return WalletData(totalEquity: 1234.56, walletBalance: 789.01)
         }
@@ -394,6 +389,10 @@ class Mocks {
     }
     
     class MockWalletRepository: WalletRepositoryProtocol, @unchecked Sendable {
+        func getApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any ApiKeyInfo {
+            ApiKeyInfoData(createdAt: Date())
+        }
+        
         func getWalletData(for exchangeType: any LLCore.ExchangeType) async throws -> LLCore.WalletData {
             WalletData(totalEquity: 123.1, walletBalance: 32.1)
         }

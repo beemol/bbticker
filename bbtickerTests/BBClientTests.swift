@@ -871,6 +871,10 @@ final class StableMockNetworkStore: NetworkStoreProtocol {
 }
 
 class MockAPIService: APIServiceProtocol {
+    func fetchApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any bbticker.ApiKeyInfo {
+        ApiKeyInfoData(createdAt: Date())
+    }
+    
     func fetchWalletBalanceForCurrentExchange() async throws -> WalletData {
         throw NSError(domain: "MockError", code: 500, userInfo: nil)
     }

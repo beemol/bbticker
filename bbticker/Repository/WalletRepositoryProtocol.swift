@@ -13,14 +13,6 @@ protocol WalletRepositoryProtocol: Sendable {
     func getApiKeyInfo(for exchangeType: ExchangeType) async throws -> ApiKeyInfo
 }
 
-
-// mock implementation for now
-extension WalletRepositoryProtocol {
-    func getApiKeyInfo(for exchangeType: ExchangeType) async throws -> ApiKeyInfo {
-        throw APIDomainError.missingOrInvalidParams(context: APIErrorContext(exchange: exchangeType.identifier))
-    }
-}
-
 @MainActor
 final class WalletRepository: WalletRepositoryProtocol {
     
@@ -51,6 +43,8 @@ final class WalletRepository: WalletRepositoryProtocol {
             throw APIDomainError.missingOrInvalidParams(context: APIErrorContext(exchange: exchangeType.identifier))
         }
         
-        return ByBitApiKeyInfo(expiredAt: nil, deadlineDay: nil, createdAt: Date())
+        // Call the actual API instead of returning mock data
+        let data = try await apiService.fetchApiKeyInfo(for: exchangeType)
+        return data
     }
 }

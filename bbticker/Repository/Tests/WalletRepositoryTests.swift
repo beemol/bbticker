@@ -8,6 +8,7 @@
 import Testing
 import LLCore
 @testable import bbticker
+import Foundation
 
 @MainActor
 struct WalletRepositoryTests {
@@ -40,6 +41,10 @@ struct WalletRepositoryTests {
 }
 
 class MockWalletRepository: WalletRepositoryProtocol, @unchecked Sendable {
+    func getApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any bbticker.ApiKeyInfo {
+        ApiKeyInfoData(createdAt: Date())
+    }
+    
     var errorToThrow: Error? = nil
     
     private let apiService: APIServiceProtocol?

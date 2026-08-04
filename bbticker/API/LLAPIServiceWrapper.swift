@@ -12,6 +12,67 @@ import LLCore
 
 @MainActor
 class LLAPIServiceWrapper: APIServiceProtocol {
+    func fetchApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any ApiKeyInfo {
+        let endpoint = "api-key-info"
+        
+        do {
+            // LLApiService handles the entire error detection pipeline:
+            // 1. Network request (via LLNetworkService)
+            // 2. HTTP status check (via HTTPStatusErrorDetector)
+            // 3. Application-level error detection (via BybitErrorDetector, etc.)
+            // 4. Parsing (via ByBitApiKeyInfoParser)
+            
+            let endpointType = EndpointType.apiKeyInfo
+            let credentials = try await credentialManager.getCredentials(forAccount: exchangeType.displayName)
+            let service = try LLApiServiceBuilder<ApiKeyInfoData>.make(
+                for: exchangeType,
+                endpointType: endpointType,
+                credentials: credentials,
+                networkService: LLNetworkService(urlSession: urlSession)
+            )
+            let apiKeyInfo = try await service.execute()
+            
+            // Track success, but do not block result
+            Task.detached {
+                await AnalyticsManager.shared.track(.apiSuccess(endpoint: endpoint))
+            }
+            return apiKeyInfo
+            
+        } catch let domainError as APIDomainError {
+            // Domain error from error detector (HTTP or application-level)
+            print("LLAPIServiceWrapper: Domain error: \(domainError.userMessage)")
+            await AnalyticsManager.shared.track(.apiFailure(
+                endpoint: endpoint,
+                error: "domain_\(domainError.context.apiCode ?? "unknown")"
+            ))
+            throw domainError
+            
+        } catch let apiError as APIError {
+            // Simple API error (parse error, invalid request, etc.)
+            print("LLAPIServiceWrapper: API error: \(apiError.localizedDescription)")
+            await AnalyticsManager.shared.track(.apiFailure(
+                endpoint: endpoint,
+                error: "api_\(apiError.localizedDescription)"
+            ))
+            throw apiError
+            
+        } catch {
+            // Network or unknown error - map to domain error
+            print("LLAPIServiceWrapper: Network error: \(error.localizedDescription)")
+            await AnalyticsManager.shared.track(.apiFailure(
+                endpoint: endpoint,
+                error: error.localizedDescription
+            ))
+            
+            let mapped = APIErrorMapper.mapNetworkError(
+                error,
+                exchange: exchangeType.identifier,
+                endpoint: endpoint
+            )
+            throw mapped
+        }
+    }
+    
     private let credentialManager: CredentialManagerProtocol
     private let settingsService: any SettingsServiceProtocol
     private let urlSession: URLSessionProtocol
