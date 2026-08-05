@@ -484,7 +484,7 @@
 				E7E7B9A52E37AAAF00CBD9F4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				E7590AE32E411C3B00F1B7ED /* XCRemoteSwiftPackageReference "Sparkle" */,
 				E7579BA62ECE5DA000BA30FC /* XCRemoteSwiftPackageReference "LLApiService" */,
-				F2E4892130207E8500D6A0E3 /* XCLocalSwiftPackageReference "../LLCore" */,
+				F2041426302200E900B92C71 /* XCRemoteSwiftPackageReference "LLCore" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E7C513BF2E16C55700561E15 /* Products */;
@@ -1188,13 +1188,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		F2E4892130207E8500D6A0E3 /* XCLocalSwiftPackageReference "../LLCore" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../LLCore;
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCRemoteSwiftPackageReference section */
 		E7579BA62ECE5DA000BA30FC /* XCRemoteSwiftPackageReference "LLApiService" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -1234,6 +1227,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 12.0.0;
+			};
+		};
+		F2041426302200E900B92C71 /* XCRemoteSwiftPackageReference "LLCore" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:beemol/LLCore.git";
+			requirement = {
+				branch = main;
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
