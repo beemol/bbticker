@@ -1,5 +1,5 @@
 {
-  "originHash" : "986864f108aacd90ff417c807dbec9bd49785c0ae7c1ca0c0f778cf3ce391b0e",
+  "originHash" : "6e82ddd5b2356220ab4842c79937ea80bdfc3e6a26cc27a3c55dd923cc2ac04a",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -112,7 +112,7 @@
     {
       "identity" : "llcore",
       "kind" : "remoteSourceControl",
-      "location" : "git@github.com:beemol/LLCore.git",
+      "location" : "https://github.com/beemol/LLCore.git",
       "state" : {
         "branch" : "main",
         "revision" : "d62aee35921f8097a5aeefe8c1fa91a493326dff"

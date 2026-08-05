@@ -99,6 +99,7 @@
 				IAP/Tests/SpyIAPManager.swift,
 				IAP/Tests/StoreKitIntegrationTests.swift,
 				Repository/Tests/WalletRepositoryTests.swift,
+				Service/ApiKeyExpiration/Tests/ApiKeyExpirationTests.swift,
 				Service/NetworkMonitor/Tests/MockNetworkStore.swift,
 				Service/NetworkMonitor/Tests/NetworkStoreTests.swift,
 				Settings/Tests/MarginLevelDotIntegrationTests.swift,
@@ -117,6 +118,7 @@
 				"Info-MAS.plist",
 				"Info-STANDALONE.plist",
 				Repository/Tests/WalletRepositoryTests.swift,
+				Service/ApiKeyExpiration/Tests/ApiKeyExpirationTests.swift,
 				Service/NetworkMonitor/Tests/MockNetworkStore.swift,
 				Service/NetworkMonitor/Tests/NetworkStoreTests.swift,
 				Settings/Tests/MarginLevelDotIntegrationTests.swift,
@@ -150,6 +152,7 @@
 				"Info-MAS.plist",
 				"Info-STANDALONE.plist",
 				Repository/Tests/WalletRepositoryTests.swift,
+				Service/ApiKeyExpiration/Tests/ApiKeyExpirationTests.swift,
 				Service/BackgroundTaskManager.swift,
 				Service/CredentialManager.swift,
 				Service/DependencyContainer.swift,
@@ -1231,7 +1234,7 @@
 		};
 		F2041426302200E900B92C71 /* XCRemoteSwiftPackageReference "LLCore" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:beemol/LLCore.git";
+			repositoryURL = "https://github.com/beemol/LLCore.git";
 			requirement = {
 				branch = main;
 				kind = branch;
