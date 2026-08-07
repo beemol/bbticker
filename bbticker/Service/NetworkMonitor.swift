@@ -11,6 +11,7 @@ import Combine
 
 // MARK: - Protocols for Testable Dependencies
 
+@available(*, deprecated, renamed: "NetworkStore", message: "Use NetworkStore instead")
 @MainActor
 protocol NetworkMonitorProtocol: ObservableObject {
     var isConnected: Bool { get }
@@ -23,6 +24,7 @@ extension NetworkMonitor: NetworkMonitorProtocol {
     }
 }
 
+@available(*, deprecated, renamed: "NetworkStore", message: "Use NetworkStore instead")
 @MainActor
 class NetworkMonitor: ObservableObject {
     private let monitor = NWPathMonitor()
