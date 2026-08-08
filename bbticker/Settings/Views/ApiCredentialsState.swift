@@ -9,6 +9,25 @@ import SwiftUI
 import Observation
 import LLCore
 
+enum SaveStatus: Equatable {
+    case idle
+    case success(message: String)
+    case failure(message: String)
+
+    var message: String {
+        switch self {
+        case .idle: return ""
+        case .success(let msg): return msg
+        case .failure(let msg): return msg
+        }
+    }
+
+    var isShowing: Bool {
+        if case .idle = self { return false }
+        return true
+    }
+}
+
 @MainActor
 @Observable
 final class ApiCredentialsState {
@@ -16,7 +35,7 @@ final class ApiCredentialsState {
     var apiSecret: String = ""
     var apiPassphrase: String = ""
     var isSecureField: Bool = true
-    var saveStatus: String = ""
+    var saveStatus: SaveStatus = .idle
     
     let settingsService: any SettingsServiceProtocol
     let credentialManager: CredentialManagerProtocol
@@ -38,14 +57,6 @@ final class ApiCredentialsState {
         return hasKeyAndSecret
     }
     
-    var saveStatusColor: Color {
-        if saveStatus.contains("successfully") || saveStatus.contains("deleted") {
-            return .green
-        } else {
-            return .red
-        }
-    }
-    
     var requiresPassphrase: Bool {
         if settingsService.state.exchangeType.identifier == .kucoin {
             return true
@@ -64,10 +75,10 @@ final class ApiCredentialsState {
         )
         
         if status == errSecSuccess {
-            saveStatus = "Credentials saved successfully!"
+            saveStatus = .success(message: "Credentials saved successfully!")
             await AnalyticsManager.shared.track(.credentialsSaved)
         } else {
-            saveStatus = "Failed to save credentials (Error: \(status))."
+            saveStatus = .failure(message: "Failed to save credentials (Error: \(status)).")
             await AnalyticsManager.shared.track(.keychainError(operation: "save", status: status))
         }
     }
@@ -78,11 +89,11 @@ final class ApiCredentialsState {
         )
         
         if status == errSecSuccess {
-            saveStatus = "Credentials deleted!"
+            saveStatus = .success(message: "Credentials deleted!")
             clearFields()
             await AnalyticsManager.shared.track(.credentialsDeleted)
         } else {
-            saveStatus = "Failed to delete credentials (Error: \(status))."
+            saveStatus = .failure(message: "Failed to delete credentials (Error: \(status)).")
             await AnalyticsManager.shared.track(.keychainError(operation: "delete", status: status))
         }
     }
@@ -109,4 +120,3 @@ final class ApiCredentialsState {
         isSecureField.toggle()
     }
 }
-

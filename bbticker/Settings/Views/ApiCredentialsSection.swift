@@ -11,6 +11,8 @@ import LLCore
 struct ApiCredentialsSection: View {
     @State private var state: ApiCredentialsState
     
+    @State private var isShowingAlert = false
+    
     init(settingsService: any SettingsServiceProtocol,
          credentialManager: CredentialManagerProtocol) {
         self._state = State(wrappedValue: ApiCredentialsState(
@@ -55,14 +57,16 @@ struct ApiCredentialsSection: View {
             credentialButtonsSection
         }
         .onAppear {
-            Task {
-                await state.loadCredentials()
-            }
+            Task { await state.loadCredentials() }
         }
         .onChange(of: state.settingsService.state.exchangeType) {
-            Task {
-                await state.loadCredentials()
-            }
+            Task { await state.loadCredentials()}
+        }
+        .onChange(of: state.saveStatus.isShowing) { _, isShowing in
+            isShowingAlert = isShowing
+        }
+        .alert(state.saveStatus.message, isPresented: $isShowingAlert) {
+            Button("OK") { state.saveStatus = .idle }
         }
     }
     
