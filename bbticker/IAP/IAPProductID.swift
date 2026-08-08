@@ -16,5 +16,5 @@ enum IAPProductID {
     }
     
     /// Fixed ID used in Products.storekit and MAS builds.
-    static let masProUnlock = "com.afiodarau.bbticker.pro.unlock"
+    static let masProUnlock = "com.alehfiodarau.bbticker.pro.unlock"
 }

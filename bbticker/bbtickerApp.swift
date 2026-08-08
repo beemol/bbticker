@@ -148,16 +148,16 @@ struct bbtickerApp: App {
             )
         })
         .menuBarExtraStyle(.window)
+        #if os(macOS) && STANDALONE
         .commands {
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates…", action: {
-                    #if os(macOS) && STANDALONE
                     self.updaterController.checkForUpdates()
-                    #endif
                 })
                 .keyboardShortcut("U", modifiers: [.command, .shift])
             }
         }
+        #endif
         
         Window("Settings", id: "settings") {
             SettingsView_macOS(viewModel: settingsViewModel)
