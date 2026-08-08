@@ -112,6 +112,7 @@
 		E759BE8D2E1AD20600D1FE2B /* Exceptions for "bbticker" folder in "bbticker" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"Documentation/screenshot-menu.png",
 				IAP/Tests/ProEntitlementTests.swift,
 				IAP/Tests/SpyIAPManager.swift,
 				IAP/Tests/StoreKitIntegrationTests.swift,
@@ -141,6 +142,7 @@
 				Client/BBWebSocketClient.swift,
 				Client/ConnectionStatus.swift,
 				Client/WalletState.swift,
+				"Documentation/screenshot-menu.png",
 				Donation/DonationView.swift,
 				Donation/DonationViewModel.swift,
 				"GoogleService-Info.plist",
