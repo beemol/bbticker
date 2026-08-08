@@ -25,7 +25,7 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "com.afiodarau.bbticker.pro.unlock",
+      "productID" : "com.alehfiodarau.bbticker.pro.unlock",
       "referenceName" : "BBTicker Pro",
       "type" : "NonConsumable"
     }
@@ -48,7 +48,7 @@
 
   ],
   "version" : {
-    "major" : 4,
+    "major" : 5,
     "minor" : 0
   }
 }

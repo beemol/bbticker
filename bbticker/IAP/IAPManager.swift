@@ -36,6 +36,7 @@ actor IAPManager: IAPManagerProtocol {
 
     func purchasePro() async throws -> Bool {
         guard let product = try await Product.products(for: [proProductId]).first else {
+            print("IAP: product not found for \(proProductId)")
             return false
         }
 
