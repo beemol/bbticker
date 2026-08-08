@@ -27,7 +27,7 @@ struct ApiCredentialsSectionTests {
         #expect(state.canSaveCredentials == true)
         
         await state.saveCredentials()
-        #expect(state.saveStatus == "Credentials saved successfully!")
+        #expect(state.saveStatus == .success(message: "Credentials saved successfully!"))
         
         // Switch to KuCoin
         settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
@@ -42,7 +42,7 @@ struct ApiCredentialsSectionTests {
         #expect(state.canSaveCredentials == true)
         
         await state.saveCredentials()
-        #expect(state.saveStatus == "Credentials saved successfully!")
+        #expect(state.saveStatus == .success(message: "Credentials saved successfully!"))
         
         // Switch back to Bybit
         settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
@@ -69,7 +69,7 @@ struct ApiCredentialsSectionTests {
         #expect(state.apiSecret == "")
         #expect(state.apiPassphrase == "")
         #expect(state.isSecureField == true)
-        #expect(state.saveStatus == "")
+        #expect(state.saveStatus == .idle)
     }
     
     @Test("Can set and get credential fields")
@@ -246,8 +246,8 @@ struct ApiCredentialsSectionTests {
         
         await state.saveCredentials()
         
-        #expect(state.saveStatus == "Credentials saved successfully!")
-        #expect(state.saveStatusColor == .green)
+        #expect(state.saveStatus == .success(message: "Credentials saved successfully!"))
+        #expect(state.saveStatus.isShowing == true)
         
         // Verify credentials were actually saved
         let saved = try await credentialManager.getCredentials(forAccount: "bybit")
@@ -274,9 +274,9 @@ struct ApiCredentialsSectionTests {
         
         await state.saveCredentials()
         
-        #expect(state.saveStatus.contains("Failed to save credentials"))
-        #expect(state.saveStatus.contains("\(errSecAuthFailed)"))
-        #expect(state.saveStatusColor == .red)
+        #expect(state.saveStatus.message.contains("Failed to save credentials"))
+        #expect(state.saveStatus.message.contains("\(errSecAuthFailed)"))
+        #expect(state.saveStatus.isShowing == true)
     }
     
     @Test("Save KuCoin credentials with passphrase")
@@ -296,7 +296,7 @@ struct ApiCredentialsSectionTests {
         
         await state.saveCredentials()
         
-        #expect(state.saveStatus == "Credentials saved successfully!")
+        #expect(state.saveStatus == .success(message: "Credentials saved successfully!"))
         
         // Verify passphrase was saved
         let saved = try await credentialManager.getCredentials(forAccount: "kucoin")
@@ -326,11 +326,11 @@ struct ApiCredentialsSectionTests {
         // Now delete them
         await state.deleteCredentials()
         
-        #expect(state.saveStatus == "Credentials deleted!")
+        #expect(state.saveStatus == .success(message: "Credentials deleted!"))
         #expect(state.apiKey == "")
         #expect(state.apiSecret == "")
         #expect(state.apiPassphrase == "")
-        #expect(state.saveStatusColor == .green)
+        #expect(state.saveStatus.isShowing == true)
     }
     
     @Test("Delete credentials failure updates status with error")
@@ -352,9 +352,9 @@ struct ApiCredentialsSectionTests {
         
         await state.deleteCredentials()
         
-        #expect(state.saveStatus.contains("Failed to delete credentials"))
-        #expect(state.saveStatus.contains("\(errSecAuthFailed)"))
-        #expect(state.saveStatusColor == .red)
+        #expect(state.saveStatus.message.contains("Failed to delete credentials"))
+        #expect(state.saveStatus.message.contains("\(errSecAuthFailed)"))
+        #expect(state.saveStatus.isShowing == true)
         
         // Fields should NOT be cleared on failure
         #expect(state.apiKey == "test-key")
@@ -585,10 +585,10 @@ struct ApiCredentialsSectionTests {
         #expect(state.apiPassphrase == "")
     }
     
-    // MARK: - Status Color Tests
+    // MARK: - Save Status Semantics Tests
     
-    @Test("Save status color is green for success messages")
-    func saveStatusColorGreenForSuccess() async throws {
+    @Test("Save status success exposes message and is showing")
+    func saveStatusSuccessSemantics() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
         
@@ -597,15 +597,16 @@ struct ApiCredentialsSectionTests {
             credentialManager: credentialManager
         )
         
-        state.saveStatus = "Credentials saved successfully!"
-        #expect(state.saveStatusColor == .green)
+        state.saveStatus = .success(message: "Credentials saved successfully!")
+        #expect(state.saveStatus.isShowing == true)
+        #expect(state.saveStatus.message == "Credentials saved successfully!")
         
-        state.saveStatus = "Credentials deleted!"
-        #expect(state.saveStatusColor == .green)
+        state.saveStatus = .success(message: "Credentials deleted!")
+        #expect(state.saveStatus.message == "Credentials deleted!")
     }
     
-    @Test("Save status color is red for error messages")
-    func saveStatusColorRedForErrors() async throws {
+    @Test("Save status failure exposes message and idle hides it")
+    func saveStatusFailureSemantics() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
         
@@ -614,11 +615,16 @@ struct ApiCredentialsSectionTests {
             credentialManager: credentialManager
         )
         
-        state.saveStatus = "Failed to save credentials (Error: -25300)."
-        #expect(state.saveStatusColor == .red)
+        state.saveStatus = .failure(message: "Failed to save credentials (Error: -25300).")
+        #expect(state.saveStatus.isShowing == true)
+        #expect(state.saveStatus.message.contains("Failed to save credentials"))
         
-        state.saveStatus = "Failed to delete credentials (Error: -25300)."
-        #expect(state.saveStatusColor == .red)
+        state.saveStatus = .failure(message: "Failed to delete credentials (Error: -25300).")
+        #expect(state.saveStatus.message.contains("Failed to delete credentials"))
+        
+        state.saveStatus = .idle
+        #expect(state.saveStatus.isShowing == false)
+        #expect(state.saveStatus.message == "")
     }
     
     @Test("View can be initialized with state for testing")
