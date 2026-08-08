@@ -112,7 +112,6 @@
 		E759BE8D2E1AD20600D1FE2B /* Exceptions for "bbticker" folder in "bbticker" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Documentation/screenshot-menu.png",
 				IAP/Tests/ProEntitlementTests.swift,
 				IAP/Tests/SpyIAPManager.swift,
 				IAP/Tests/StoreKitIntegrationTests.swift,
@@ -142,7 +141,6 @@
 				Client/BBWebSocketClient.swift,
 				Client/ConnectionStatus.swift,
 				Client/WalletState.swift,
-				"Documentation/screenshot-menu.png",
 				Donation/DonationView.swift,
 				Donation/DonationViewModel.swift,
 				"GoogleService-Info.plist",
@@ -195,6 +193,20 @@
 			);
 			target = E7FAB5D92E33DFE80050B48D /* BybitWidgetExtension */;
 		};
+		F20842C2302777D200AA29B2 /* Exceptions for "Documentation" folder in "bbticker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"screenshot-menu.png",
+			);
+			target = E7C513BD2E16C55700561E15 /* bbticker */;
+		};
+		F20842C3302777D200AA29B2 /* Exceptions for "Documentation" folder in "bbticker-STANDALONE" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"screenshot-menu.png",
+			);
+			target = E791F37E2E6FFCE3005B9BE8 /* bbticker-STANDALONE */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -229,6 +241,15 @@
 				E7FAB5F22E33DFEC0050B48D /* Exceptions for "BybitWidget" folder in "BybitWidgetExtension" target */,
 			);
 			path = BybitWidget;
+			sourceTree = "<group>";
+		};
+		F20842C1302777D100AA29B2 /* Documentation */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F20842C2302777D200AA29B2 /* Exceptions for "Documentation" folder in "bbticker" target */,
+				F20842C3302777D200AA29B2 /* Exceptions for "Documentation" folder in "bbticker-STANDALONE" target */,
+			);
+			path = Documentation;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -287,6 +308,7 @@
 		E7C513B52E16C55700561E15 = {
 			isa = PBXGroup;
 			children = (
+				F20842C1302777D100AA29B2 /* Documentation */,
 				E76F05402E3D0ADB00133134 /* .github */,
 				E70EBA292E3A2233003B6CF2 /* bbticker.xctestplan */,
 				E7C513C02E16C55700561E15 /* bbticker */,
@@ -362,6 +384,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				E7C513C02E16C55700561E15 /* bbticker */,
+				F20842C1302777D100AA29B2 /* Documentation */,
 			);
 			name = "bbticker-STANDALONE";
 			packageProductDependencies = (
@@ -414,6 +437,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				E7C513C02E16C55700561E15 /* bbticker */,
+				F20842C1302777D100AA29B2 /* Documentation */,
 			);
 			name = bbticker;
 			packageProductDependencies = (
