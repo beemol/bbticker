@@ -14,14 +14,18 @@ struct ExchangeTypeSection: View {
 
         return Section {
             Picker("Exchange", selection: settingsService.selectedExchangeBinding) {
-                ForEach(ExchangeRegistry.shared.availableExchanges, id: \.self) { exchangeName in
+                ForEach(ExchangeRegistry.shared.availableExchanges
+                        // filter out the rest of the platforms for the first app store release.
+                    .filter { $0 == .bybit }, id: \.self) { exchangeName in
                     Text(exchangeName.rawValue.capitalized).tag(exchangeName)
                 }
             }
             .pickerStyle(.menu)
             
             Picker("Wallet Type", selection: settingsService.selectedWalletBinding) {
-                ForEach(walletTypes, id: \.self) { wallet in
+                ForEach(walletTypes
+                        // filter out the rest of the wallets for the first app store release.
+                    .filter { $0 == .unified }, id: \.self) { wallet in
                     Text(wallet.rawValue.capitalized).tag(wallet)
                 }
             }
