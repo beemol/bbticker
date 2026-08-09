@@ -37,7 +37,7 @@ struct ConnectionButton: View {
                 // Check kill-switch first
                 if disableCenter.isActive {
                     bybitClient.authenticationError = disableCenter.message
-                    print("🔥 Connection blocked by kill-switch: \(disableCenter.message)")
+                    AppLog.client.warning("Connection blocked by kill-switch: \(disableCenter.message)")
                     return
                 }
                 

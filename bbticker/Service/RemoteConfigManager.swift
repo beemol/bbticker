@@ -31,13 +31,12 @@ class RemoteConfigManager: RemoteConfigManagerProtocol, ObservableObject {
     /// Gets the major version number from the app's bundle
     private func getMajorAppVersionNumber() -> Int {
         guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
-            print("RemoteConfigManager: Warning - Could not retrieve app version, defaulting to 1")
+            AppLog.remoteConfig.warning("Could not retrieve app version, defaulting to 1")
             return 1
         }
         
         // Extract major version (e.g., "1.2.3" -> 1)
         let majorVersion = version.split(separator: ".").first.flatMap { Int(String($0)) } ?? 1
-        print("RemoteConfigManager: Detected major app version: \(majorVersion)")
         return majorVersion
     }
     
@@ -122,7 +121,7 @@ class RemoteConfigManager: RemoteConfigManagerProtocol, ObservableObject {
     
     init() {
         guard FirebaseBootstrap.isConfigured else {
-            print("RemoteConfigManager: FirebaseRemoteConfig not available, using local defaults only")
+            AppLog.remoteConfig.info("FirebaseRemoteConfig not available, using local defaults only")
             return
         }
         
@@ -156,30 +155,32 @@ class RemoteConfigManager: RemoteConfigManagerProtocol, ObservableObject {
         guard FirebaseBootstrap.isConfigured else { return }
         // Set Firebase Remote Config defaults (this is the intended Firebase pattern)
         remoteConfig?.setDefaults(ConfigKeys.allConfigs)
-        print("RemoteConfigManager: Set Firebase Remote Config defaults")
+        // print("RemoteConfigManager: Set Firebase Remote Config defaults")
     }
     
     func refreshAllConfigurations() async {
         guard FirebaseBootstrap.isConfigured else { return }
         
-        print("RemoteConfigManager: Starting background refresh of all configurations...")
+        // print("RemoteConfigManager: Starting background refresh of all configurations...")
         do {
             let status = try await remoteConfig?.fetchAndActivate()
             switch status {
             case .successFetchedFromRemote:
-                print("RemoteConfigManager: Successfully fetched new config from remote")
+                // print("RemoteConfigManager: Successfully fetched new config from remote")
+                break
             case .successUsingPreFetchedData:
-                print("RemoteConfigManager: Using pre-fetched config data")
+                // print("RemoteConfigManager: Using pre-fetched config data")
+                break
             case .error:
                 break
             case .none:
                 break
             @unknown default:
-                print("RemoteConfigManager: Unknown fetch status")
+                // print("RemoteConfigManager: Unknown fetch status")
+                break
             }
         } catch {
-            print("RemoteConfigManager: Error fetching remote config: \(error)")
-            print("RemoteConfigManager: Firebase will continue using cached/default values")
+            AppLog.remoteConfig.error("Error fetching remote config: \(error)")
         }
     }
     
@@ -239,7 +240,7 @@ class RemoteConfigManager: RemoteConfigManagerProtocol, ObservableObject {
         case .none: "unknown source"
         @unknown default: "unknown source"
         }
-        print("RemoteConfigManager: Retrieved donation wallet config from \(sourceDescription)")
+        // print("RemoteConfigManager: Retrieved donation wallet config from \(sourceDescription)")
         return config
     }
 }
@@ -271,11 +272,7 @@ class MockRemoteConfigManager: RemoteConfigManagerProtocol {
     """
     
     func refreshAllConfigurations() async {
-        if shouldFailRefresh {
-            print("MockRemoteConfigManager: Simulating refresh failure")
-        } else {
-            print("MockRemoteConfigManager: Simulating successful refresh")
-        }
+        // print("MockRemoteConfigManager: \(shouldFailRefresh ? "Simulating refresh failure" : "Simulating successful refresh")")
     }
     
 //    func getVersionedKillSwitchConfig() -> (isDisabled: Bool, message: String) {
@@ -300,7 +297,7 @@ class MockRemoteConfigManager: RemoteConfigManagerProtocol {
     }
     
     func setupDefaults() {
-        print("MockRemoteConfigManager: Setup defaults called")
+        // print("MockRemoteConfigManager: Setup defaults called")
     }
     
     // Helper methods for testing

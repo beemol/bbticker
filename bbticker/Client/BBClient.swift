@@ -191,7 +191,7 @@ class BBClient: ObservableObject {
     }
 
     func handlePollingError(_ error: Error) -> PollingStrategyAction {
-        print("[BBClient] handlePollingError called with error: \(error)")
+        // print("[BBClient] handlePollingError called with error: \(error)")
         
         if let apiError = error as? APIDomainError, case .network = apiError {
             authenticationError = apiError.userMessage
@@ -212,7 +212,7 @@ class BBClient: ObservableObject {
     }
     
     func handleConnectError(_ error: Error) {
-        print("[BBClient] handleConnectError: \(error), status: \(connectionStatus)")
+        AppLog.client.error("handleConnectError: \(String(describing: error)), status: \(self.connectionStatus.description)")
         
         // Permanent failure — always end session
         if isPermanentConnectError(error) {
@@ -236,7 +236,7 @@ class BBClient: ObservableObject {
     // normalizes message, setDisconnectedState, stopPolling, and optionally reconnect
     @discardableResult
     private func applyErrorAndDisconnectIfNeeded(_ error: Error) -> PollingStrategyAction {
-        print("[BBClient] applyErrorAndDisconnectIfNeeded called with error: \(error)")
+        // print("[BBClient] applyErrorAndDisconnectIfNeeded called with error: \(error)")
         
         if let apiError = error as? APIDomainError, case .network = apiError {
             authenticationError = apiError.userMessage
@@ -261,7 +261,7 @@ class BBClient: ObservableObject {
     }
     
     private func handleSuccessfulConnection(with walletData: WalletData) {
-        print("[BBClient] connection successful -> Total Equity: \(walletData.totalEquity), Wallet Balance (USDT): \(walletData.walletBalance)")
+        AppLog.client.info("Connection successful -> Total Equity: \(walletData.totalEquity), Wallet Balance (USDT): \(walletData.walletBalance)")
         
         Task {
             await AnalyticsManager.shared.track(.connectionSuccess)
@@ -276,7 +276,7 @@ class BBClient: ObservableObject {
     }
     
     private func setDisconnectedState(errorMessage: String? = nil) {
-        print("[BBClient]  setDisconnectedState \(errorMessage ?? "no data")")
+        AppLog.client.warning("setDisconnectedState \(errorMessage ?? "no data")")
         connectionStatus = .disconnected
         authenticationError = errorMessage
         

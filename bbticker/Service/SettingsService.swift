@@ -68,7 +68,7 @@ final class SettingsService: SettingsServiceProtocol {
     
     init(storage: UserDataStorageProtocol = UserDefaultsStorage()) {
         self.storage = storage
-        print("[SettingsService] initialized")
+        // print("[SettingsService] initialized")
         
         loadUpdateFrequency()
         loadExchangeType()
@@ -93,7 +93,7 @@ final class SettingsService: SettingsServiceProtocol {
     
     func setExchangeType(_ newExchangeType: Exchange) {
         if newExchangeType.availableWalletTypes.contains(newExchangeType.walletType) == false {
-            print("[SettingsService] Warning: Attempted to set unsupported exchange type: \(state.exchangeType.displayName). Falling back to a safe one.")
+            AppLog.settings.warning("Attempted to set unsupported exchange type: \(self.state.exchangeType.displayName). Falling back to a safe one.")
             
             // Attempted to set unsupported exchange type or wallet type, fallback to first avaialble option
             if let first = newExchangeType.availableWalletTypes.first {
@@ -102,14 +102,10 @@ final class SettingsService: SettingsServiceProtocol {
                 state.exchangeType = Exchange(.bybit, wallet: .unified)
             }
             
-            print("[SettingsService] Setting exchange type to: \(newExchangeType.displayName) : wallet \(newExchangeType.walletType.rawValue)" )
-            
             save(newExchangeType: state.exchangeType)
             
             return
         }
-        
-        print("[SettingsService] Setting exchange type to: \(newExchangeType.displayName) : wallet \(newExchangeType.walletType.rawValue)" )
         
         state.exchangeType = newExchangeType
         

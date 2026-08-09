@@ -9,9 +9,8 @@ class DisableCenter: ObservableObject {
     init() {}
     
     func apply(message: String) {
-        print("DisableCenter.apply called with message: \(message)")
+        AppLog.service.info("DisableCenter.apply called with message: \(message)")
         isActive = true
         self.message = message
-        print("DisableCenter.isActive is now: \(isActive)")
     }
 } 

@@ -38,14 +38,14 @@ class BackgroundTaskManager: ObservableObject {
         
         do {
             try BGTaskScheduler.shared.submit(request)
-            print("Background fetch scheduled successfully")
+            // print("Background fetch scheduled successfully")
         } catch {
-            print("Could not schedule background fetch: \(error)")
+            AppLog.background.error("Could not schedule background fetch: \(error)")
         }
     }
     
     private func handleBackgroundFetch(task: BGAppRefreshTask) {
-        print("Background fetch started")
+        // print("Background fetch started")
         
         // Schedule the next background fetch
         scheduleBackgroundTasks()
@@ -81,10 +81,10 @@ class BackgroundTaskManager: ObservableObject {
                 UserDefaults.standard.set(walletData.walletBalance, forKey: "background_wallet_balance")
                 UserDefaults.standard.set(Date(), forKey: "background_last_update")
                 
-                print("[Background] Updated -> Total Equity: \(walletData.totalEquity), Wallet Balance (USDT): \(walletData.walletBalance)")
+                AppLog.background.info("Updated -> Total Equity: \(walletData.totalEquity), Wallet Balance (USDT): \(walletData.walletBalance)")
                 completion(true)
             } catch {
-                print("Background API Error: \(error.localizedDescription)")
+                AppLog.background.error("Background API Error: \(error.localizedDescription)")
                 completion(false)
             }
         }

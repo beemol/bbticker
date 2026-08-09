@@ -65,7 +65,7 @@ final class ApiCredentialsState {
     }
     
     func saveCredentials() async {
-        print("ApiCredentialsState: Saving credentials for exchange: \(settingsService.state.exchangeType.displayName)")
+        // print("ApiCredentialsState: Saving credentials for exchange: \(settingsService.state.exchangeType.displayName)")
         
         let status = await credentialManager.saveCredentials(
             key: apiKey,

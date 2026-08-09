@@ -14,7 +14,7 @@ func getAppName() -> String {
 }
 
 func getBundleIdentifier() -> String {
-    return Bundle.main.bundleIdentifier ?? "com.afiodarau." + getAppName()
+    return Bundle.main.bundleIdentifier ?? "com.alehfiodarau." + getAppName()
 }
 
 extension Exchange {

@@ -46,7 +46,7 @@ final class DependencyContainer {
         }
         // Fallback: create new instance if not registered yet
         // This can happen if AppIntent is called before app fully initializes
-        print("[DependencyContainer] Warning: SettingsService not registered, creating fallback instance")
+        AppLog.service.warning("SettingsService not registered, creating fallback instance")
         let fallback = SettingsService()
         self.settingsService = fallback
         return fallback
@@ -57,7 +57,7 @@ final class DependencyContainer {
         if let manager = credentialManager {
             return manager
         }
-        print("[DependencyContainer] Warning: CredentialManager not registered, creating fallback instance")
+        AppLog.service.warning("CredentialManager not registered, creating fallback instance")
         let fallback = CredentialManager(keychainHelper: KeychainHelper.shared)
         self.credentialManager = fallback
         return fallback

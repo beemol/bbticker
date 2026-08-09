@@ -148,10 +148,10 @@ struct MenuBarPopoverView_Previews: PreviewProvider {
             disableCenter: Mocks.MockDisableCenter(),
             accountIdentifier: "previewUser",
             openSettings: {
-                print("Settings opened in preview")
+                // print("Settings opened in preview")
             },
             openDonation: {
-                print("Donation opened in preview")
+                // print("Donation opened in preview")
             }
         )
         .environmentObject(SettingsService())
@@ -263,11 +263,6 @@ class Mocks {
         
         func refreshAllConfigurations() async {
             refreshCallCount += 1
-            if shouldFailRefresh {
-                print("MockRemoteConfigManager: Simulating refresh failure")
-            } else {
-                print("MockRemoteConfigManager: Simulating successful refresh")
-            }
         }
         
         func getDonationWalletConfig() -> String? {
@@ -276,7 +271,6 @@ class Mocks {
         
         func setupDefaults() {
             setupDefaultsCallCount += 1
-            print("MockRemoteConfigManager: Setup defaults called")
         }
         
         // Helper methods for testing

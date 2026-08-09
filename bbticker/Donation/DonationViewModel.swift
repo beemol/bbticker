@@ -90,7 +90,7 @@ class DonationViewModel: ObservableObject {
     
     func loadWalletConfiguration() {
         // Instead of making a remote config call, use cached data from RemoteConfigManager
-        print("DonationViewModel: Loading wallet configuration from cache...")
+        // print("DonationViewModel: Loading wallet configuration from cache...")
         
         let cachedConfig = remoteConfigManager.getDonationWalletConfig()
         parseWalletConfiguration(jsonString: cachedConfig)
@@ -117,7 +117,7 @@ class DonationViewModel: ObservableObject {
         guard let jsonString = jsonString,
               !jsonString.isEmpty,
               let jsonData = jsonString.data(using: .utf8) else {
-            print("DonationViewModel: Invalid JSON string, using fallback wallets")
+            AppLog.donation.warning("Invalid JSON string, using fallback wallets")
             wallets = fallbackWallets
             instructions = fallbackInstructions
             return
@@ -133,14 +133,14 @@ class DonationViewModel: ObservableObject {
             
             // Validate that we have at least one wallet
             if wallets.isEmpty {
-                print("DonationViewModel: No networks found in cached config, using fallbacks")
+                AppLog.donation.warning("No networks found in cached config, using fallbacks")
                 wallets = fallbackWallets
                 instructions = fallbackInstructions
             }
             
-            print("DonationViewModel: Successfully loaded \(wallets.count) wallets from cache")
+            // print("DonationViewModel: Successfully loaded \(wallets.count) wallets from cache")
         } catch {
-            print("DonationViewModel: Failed to decode wallet configuration: \(error)")
+            AppLog.donation.error("Failed to decode wallet configuration: \(error)")
             wallets = fallbackWallets
             instructions = fallbackInstructions
         }

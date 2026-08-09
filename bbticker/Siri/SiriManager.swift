@@ -27,40 +27,37 @@ class SiriManager {
         INPreferences.requestSiriAuthorization { status in
             switch status {
             case .authorized:
-                print("✅ Siri authorization granted")
+                AppLog.siri.info("Siri authorization granted")
                 
                 // Donate the shortcut to help Siri learn the phrases
                 Task {
                     do {
                         let intent = GetBalanceIntent()
                         try await intent.donate()
-                        print("✅ Siri intent donated successfully")
+                        // print("✅ Siri intent donated successfully")
                         
                     } catch {
-                        print("❌ Failed to donate Siri intent: \(error)")
+                        AppLog.siri.error("Failed to donate Siri intent: \(error)")
                     }
                 }
-                
-                print("Siri setup complete - you can now say:")
-                print("• 'Hey Siri, what's my \(getAppName()) balance?'")
-                print("• 'Hey Siri, check my balance in \(getAppName())'")
-                print("• 'Hey Siri, get my \(getAppName()) balance'")
                 
                 AnalyticsManager.shared.track(.other(msg: "siri_shortcut_setup"))
                 
             case .denied:
-                print("❌ Siri authorization denied")
+                AppLog.siri.warning("Siri authorization denied")
                 AnalyticsManager.shared.track(.other(msg: "siri_authorization_denied"))
                 
             case .restricted:
-                print("❌ Siri authorization restricted")
+                AppLog.siri.warning("Siri authorization restricted")
                 AnalyticsManager.shared.track(.other(msg: "siri_authorization_restricted"))
                 
             case .notDetermined:
-                print("⚠️ Siri authorization not determined")
+                // print("⚠️ Siri authorization not determined")
+                break
                 
             @unknown default:
-                print("⚠️ Unknown Siri authorization status")
+                // print("⚠️ Unknown Siri authorization status")
+                break
             }
         }
     }

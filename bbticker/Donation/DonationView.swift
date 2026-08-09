@@ -317,7 +317,7 @@ struct QRCodeView: View {
                     do {
                         try pngData.write(to: url)
                     } catch {
-                        print("Failed to save QR code: \(error)")
+                        AppLog.donation.error("Failed to save QR code: \(error)")
                     }
                 }
             }

@@ -75,10 +75,10 @@ final class KeychainHelper: KeychainHelperProtocol {
                 } else {
                     // Don't log error for passphrase if it doesn't exist, as this is normal for some exchanges
                     if attribute == .passphrase && status == errSecItemNotFound {
-                        print("KeychainHelper: Passphrase not found for \(forAccount) (this is normal for exchanges that don't use passphrases)")
+                        // print("KeychainHelper: Passphrase not found for \(forAccount) (this is normal for exchanges that don't use passphrases)")
                     } else {
-                        print("KeychainHelper: Failed to retrieve item for \(forAccount + attribute.rawValue): \(status)")
-                        print("KeychainHelper: Query used: \(query)")
+                        AppLog.keychain.error("Failed to retrieve item for \(forAccount + attribute.rawValue): \(status)")
+                        // print("KeychainHelper: Query used: \(query)")
                     }
                     continuation.resume(returning: nil)
                 }

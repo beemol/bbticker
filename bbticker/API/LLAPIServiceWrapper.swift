@@ -40,7 +40,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             
         } catch let domainError as APIDomainError {
             // Domain error from error detector (HTTP or application-level)
-            print("LLAPIServiceWrapper: Domain error: \(domainError.userMessage)")
+            AppLog.api.error("Domain error: \(domainError.userMessage)")
             await AnalyticsManager.shared.track(.apiFailure(
                 endpoint: endpoint,
                 error: "domain_\(domainError.context.apiCode ?? "unknown")"
@@ -49,7 +49,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             
         } catch let apiError as APIError {
             // Simple API error (parse error, invalid request, etc.)
-            print("LLAPIServiceWrapper: API error: \(apiError.localizedDescription)")
+            AppLog.api.error("API error: \(apiError.localizedDescription)")
             await AnalyticsManager.shared.track(.apiFailure(
                 endpoint: endpoint,
                 error: "api_\(apiError.localizedDescription)"
@@ -58,7 +58,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             
         } catch {
             // Network or unknown error - map to domain error
-            print("LLAPIServiceWrapper: Network error: \(error.localizedDescription)")
+            AppLog.api.error("Network error: \(error.localizedDescription)")
             await AnalyticsManager.shared.track(.apiFailure(
                 endpoint: endpoint,
                 error: error.localizedDescription
@@ -111,7 +111,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             
         } catch let domainError as APIDomainError {
             // Domain error from error detector (HTTP or application-level)
-            print("LLAPIServiceWrapper: Domain error: \(domainError.userMessage)")
+            AppLog.api.error("Domain error: \(domainError.userMessage)")
             await AnalyticsManager.shared.track(.apiFailure(
                 endpoint: endpoint,
                 error: "domain_\(domainError.context.apiCode ?? "unknown")"
@@ -120,7 +120,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             
         } catch let apiError as APIError {
             // Simple API error (parse error, invalid request, etc.)
-            print("LLAPIServiceWrapper: API error: \(apiError.localizedDescription)")
+            AppLog.api.error("API error: \(apiError.localizedDescription)")
             await AnalyticsManager.shared.track(.apiFailure(
                 endpoint: endpoint,
                 error: "api_\(apiError.localizedDescription)"
@@ -129,7 +129,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             
         } catch {
             // Network or unknown error - map to domain error
-            print("LLAPIServiceWrapper: Network error: \(error.localizedDescription)")
+            AppLog.api.error("Network error: \(error.localizedDescription)")
             await AnalyticsManager.shared.track(.apiFailure(
                 endpoint: endpoint,
                 error: error.localizedDescription
