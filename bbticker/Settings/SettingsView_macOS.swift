@@ -45,6 +45,7 @@ struct SettingsView_macOS: View {
                 apiKeyCreationSection
                 proSection
                 analyticsSection
+                securitySection
                 //importantNotesSection
                 contactSection
             }
@@ -237,6 +238,37 @@ struct SettingsView_macOS: View {
                 }
             }
             .toggleStyle(.switch)
+            
+            if let privacyURL = URL(string: "https://beemol.github.io/bbticker-releases/privacy.html") {
+                Link("Privacy Policy", destination: privacyURL)
+            }
+        }
+    }
+    
+    private var securitySection: some View {
+        Section("Security & Disclaimer") {
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Read-only access", systemImage: "eye")
+                    .font(.callout)
+                    .fontWeight(.medium)
+                Text("BBTicker uses read-only API keys. It can never place trades or withdraw funds. Create keys with read-only permissions only.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Label("Secure storage", systemImage: "lock")
+                    .font(.callout)
+                    .fontWeight(.medium)
+                Text("Your API keys are stored encrypted in the macOS Keychain and are sent only to your exchange over HTTPS.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Label("Not financial advice", systemImage: "exclamationmark.shield")
+                    .font(.callout)
+                    .fontWeight(.medium)
+                Text("BBTicker is a monitoring tool and does not provide financial advice. Trading cryptocurrencies involves risk.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
     }
 

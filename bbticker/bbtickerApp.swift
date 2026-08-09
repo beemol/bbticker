@@ -46,7 +46,9 @@ struct bbtickerApp: App {
     
     private let bybitClient: BBClient
     private let settingsViewModel: SettingsViewModel
+    #if !APP_STORE
     private let donationViewModel: DonationViewModel
+    #endif
     private let disableCenter = DisableCenter()
 
     init() {
@@ -105,7 +107,9 @@ struct bbtickerApp: App {
             }
         }
         
+        #if !APP_STORE
         donationViewModel = DonationViewModel(remoteConfigManager: remoteConfig)
+        #endif
         
         #if !os(macOS)
         backgroundTaskManager = BackgroundTaskManager(apiService: apiService)
@@ -167,6 +171,7 @@ struct bbtickerApp: App {
         }
         .windowResizability(.contentSize)
         
+        #if !APP_STORE
         Window("Support BBTicker", id: "donation") {
             DonationView(viewModel: donationViewModel)
                 .frame(minWidth: 600, minHeight: 550)
@@ -176,6 +181,7 @@ struct bbtickerApp: App {
                 }
         }
         .windowResizability(.contentSize)
+        #endif
         #else
         WindowGroup {
             ContentView()
