@@ -44,6 +44,7 @@ struct SettingsView_macOS: View {
                 ApiCredentialsSection (settingsService: viewModel.settingsService, credentialManager: viewModel.credentialManager)
                 apiKeyCreationSection
                 proSection
+                analyticsSection
                 //importantNotesSection
                 contactSection
             }
@@ -223,6 +224,22 @@ struct SettingsView_macOS: View {
         .padding(.top, 4)
     }
     
+    private var analyticsSection: some View {
+        Section("Privacy & Analytics") {
+            Toggle(isOn: viewModel.analyticsEnabledBinding) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("Anonymous usage data", systemImage: "chart.bar")
+                        .font(.callout)
+                        .fontWeight(.medium)
+                    Text("Help improve BBTicker by sharing anonymous app usage data. No personal or exchange information is ever collected. You can turn this off at any time.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .toggleStyle(.switch)
+        }
+    }
+
     private var contactSection: some View {
         Section("Contact Support") {
             VStack(alignment: .leading, spacing: 8) {

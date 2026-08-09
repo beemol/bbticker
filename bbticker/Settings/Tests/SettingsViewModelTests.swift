@@ -15,6 +15,11 @@ class SettingsViewModelTests: XCTestCase {
     
     private var cancellables: Set<AnyCancellable> = Set<AnyCancellable>()
     
+    override func setUp() {
+        super.setUp()
+        UserDefaults.standard.removeObject(forKey: "analytics_enabled")
+    }
+    
     private func makeViewModel(iap: MockIAPManager? = nil) -> SettingsViewModel {
         return SettingsViewModel(
             settingsService: mockSettingsService,
@@ -159,6 +164,50 @@ class SettingsViewModelTests: XCTestCase {
         XCTAssertTrue(mockSharedDataService.setWidgetRefreshIntervalCalled)
     }
     
+    // MARK: - Analytics Settings Tests
+    
+    func testAnalyticsDefaultsToFalse() {
+        viewModel = makeViewModel()
+        XCTAssertFalse(viewModel.analyticsEnabled)
+    }
+    
+    func testSetAnalyticsEnabled_True() {
+        // Given
+        viewModel = makeViewModel()
+        
+        // When
+        viewModel.setAnalyticsEnabled(true)
+        
+        // Then
+        XCTAssertTrue(viewModel.analyticsEnabled)
+    }
+    
+    func testSetAnalyticsEnabled_ThenDisabled() {
+        // Given
+        viewModel = makeViewModel()
+        viewModel.setAnalyticsEnabled(true)
+        XCTAssertTrue(viewModel.analyticsEnabled)
+        
+        // When
+        viewModel.setAnalyticsEnabled(false)
+        
+        // Then
+        XCTAssertFalse(viewModel.analyticsEnabled)
+    }
+    
+    func testAnalyticsEnabledBinding() {
+        // Given
+        viewModel = makeViewModel()
+        let binding = viewModel.analyticsEnabledBinding
+        XCTAssertFalse(binding.wrappedValue)
+        
+        // When
+        binding.wrappedValue = true
+        
+        // Then
+        XCTAssertTrue(viewModel.analyticsEnabled)
+    }
+
     // MARK: - Exchange Type Reactive Tests
     
 //    func testExchangeTypeChange_ReloadsCredentials() async {

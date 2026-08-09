@@ -19,7 +19,7 @@ BBTicker is a lightweight macOS menu bar app that shows your exchange wallet bal
 - **Stale data indicator** — dimmed display when the connection drops, so you know the number is not current
 - **Pro refresh speeds** — upgrade to 1-second, 5-second, or 10-second polling (free tier: 15 seconds)
 - **Extendable exchange support** — currently supports Bybit; built on a protocol-driven architecture so new exchanges can be added easily
-- **Wallet type selection** — spot, unified, or futures wallets per exchange
+- **Wallet type selection** — unified trading account support
 - **Secure keychain storage** — API keys are encrypted in the macOS Keychain
 - **Auto-reconnection** — exponential backoff on network failures with smart retry logic
 - **iOS companion app** — also available on iPhone with Siri voice commands ("Hey Siri, what's my BBTicker balance?")
@@ -30,7 +30,7 @@ BBTicker is a lightweight macOS menu bar app that shows your exchange wallet bal
 
 | Exchange | Wallet Types |
 |---|---|
-| **Bybit** | Spot, Unified, Futures |
+| **Bybit** | Unified |
 
 BBTicker is built on a **protocol-driven exchange registry** (via [LLCore](https://github.com/beemol/LLCore)). Adding a new exchange means implementing a request builder and response parser — the rest of the app works without changes. KuCoin and Binance support is in progress.
 
@@ -96,7 +96,7 @@ The margin level dot requires **BBTicker Pro** and can be toggled in Settings.
 
 ### Settings
 
-- **Exchange & Wallet Type** — switch between exchanges and wallet types (Spot, Unified, Futures)
+- **Exchange & Wallet Type** — switch between exchanges and wallet types
 - **API Credentials** — enter or delete exchange API keys
 - **How to create an API key** — step-by-step instructions inside the app
 - **Widget Settings** (iOS) — configure the home screen widget refresh interval
@@ -124,7 +124,7 @@ Restore a previous purchase: **Settings → Restore**.
 - **API keys are stored in the macOS Keychain** — encrypted at rest and never transmitted except directly to your exchange over HTTPS
 - **Read‑only permissions only** — the app cannot trade or withdraw from your account
 - **No data leaves your device** except to the exchange APIs you configure
-- **No ads, no third‑party trackers** — Firebase Analytics collects anonymized app usage data (you can opt out in Settings)
+- **Analytics off by default** — Firebase Analytics is included but disabled until explicit consent is granted; no usage data is collected without your permission
 - **App Sandbox** — the Mac App Store build runs in macOS sandbox for defense-in-depth
 - See [PrivacyInfo.xcprivacy](bbticker/PrivacyInfo.xcprivacy) for the full privacy manifest
 

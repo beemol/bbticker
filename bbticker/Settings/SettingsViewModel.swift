@@ -15,6 +15,7 @@ class SettingsViewModel: ObservableObject {
     
     @Published var widgetEnabled: Bool = false
     @Published var widgetRefreshInterval: Double = 5.0
+    @Published var analyticsEnabled: Bool = false
     
     //@Published var updateFrequency: Double = 5.0 // Update frequency in seconds
     // @Published private(set) var isUpdateFrequencyUnlocked: Bool = false
@@ -51,6 +52,7 @@ class SettingsViewModel: ObservableObject {
         }
         
         loadWidgetSettings()
+        self.analyticsEnabled = UserDefaults.standard.bool(forKey: "analytics_enabled")
     }
     
     func performInitialLoad() async {
@@ -87,7 +89,25 @@ class SettingsViewModel: ObservableObject {
         widgetRefreshInterval = sharedDataService.getWidgetRefreshInterval()
     }
     
+    // MARK: - Analytics Settings
+    
+    func setAnalyticsEnabled(_ enabled: Bool) {
+        analyticsEnabled = enabled
+        Task {
+            await AnalyticsManager.shared.setEnabled(enabled)
+            // Only tracked if analytics is being turned on
+            await AnalyticsManager.shared.track(.settingsChange(key: "analytics", newValue: String(enabled)))
+        }
+    }
+    
     // MARK: - Binding Helpers
+    var analyticsEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { self.analyticsEnabled },
+            set: { self.setAnalyticsEnabled($0) }
+        )
+    }
+
     var widgetEnabledBinding: Binding<Bool> {
         Binding(
             get: { self.widgetEnabled },

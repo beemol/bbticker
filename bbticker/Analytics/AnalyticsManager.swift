@@ -146,6 +146,10 @@ actor AnalyticsManager: AnalyticsManagerProtocol {
         }
     }
     
+    func setEnabled(_ enabled: Bool) {
+        isEnabled = enabled
+    }
+
     func track(_ event: AnalyticsEvent) {
         guard FirebaseBootstrap.isConfigured, _enabled else { return }
         Analytics.logEvent(event.name, parameters: event.parameters)
