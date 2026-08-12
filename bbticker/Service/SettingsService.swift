@@ -2,6 +2,12 @@ import Foundation
 import Combine
 import LLCore
 
+extension APIEnvironment: @retroactive CaseIterable {
+    public static var allCases: [APIEnvironment] {
+        [.production, .testnet, .demo]
+    }
+}
+
 @MainActor
 protocol SettingsServiceProtocol: ObservableObject {
     var state: SettingsState { get }
@@ -11,10 +17,12 @@ protocol SettingsServiceProtocol: ObservableObject {
     func setUpdateFrequency(_ frequency: Double)
     func setShowMarginLevelDot(_ enabled: Bool)
     func applyProStatus(_ unlocked: Bool)
+    func setAPIEnvironment(_ environment: APIEnvironment)
     
     // UI-facing bridge bindings
     var selectedExchangeBinding: Binding<ExchangeIdentifier> { get }
     var selectedWalletBinding: Binding<WalletType> { get }
+    var selectedAPIEnvironmentBinding: Binding<APIEnvironment> { get }
 }
 
 extension SettingsServiceProtocol {
@@ -39,6 +47,15 @@ extension SettingsServiceProtocol {
             }
         )
     }
+
+    var selectedAPIEnvironmentBinding: Binding<APIEnvironment> {
+        Binding(
+            get: { self.state.apiEnvironment },
+            set: { [weak self] newEnvironment in
+                self?.setAPIEnvironment(newEnvironment)
+            }
+        )
+    }
 }
 
 import SwiftUI
@@ -50,6 +67,7 @@ final class SettingsState {
     var exchangeType: Exchange = Exchange(.bybit, wallet: .unified)
     var isProActive: Bool = false
     var showMarginLevelDot: Bool = true
+    var apiEnvironment: APIEnvironment = .production
 }
 
 /// Shared service for app settings that can be observed reactively
@@ -60,6 +78,7 @@ final class SettingsService: SettingsServiceProtocol {
         static let selectExchangeType: String = "selected_exchange_type"
         static let updateFrequency: String = "update_frequency"
         static let showMarginLevelDot: String = "pro_margin_level_dot"
+        static let apiEnvironment: String = "api_environment"
     }
     
     let state = SettingsState()
@@ -73,6 +92,7 @@ final class SettingsService: SettingsServiceProtocol {
         loadUpdateFrequency()
         loadExchangeType()
         loadShowMarginLevelDot()
+        loadAPIEnvironment()
         
         // Load cached IAP unlock state for fast UI reflect
         let cached = storage.value(forKey: StorageKey.isProActive) as? Bool ?? false
@@ -89,6 +109,14 @@ final class SettingsService: SettingsServiceProtocol {
     func setShowMarginLevelDot(_ enabled: Bool) {
         state.showMarginLevelDot = enabled
         storage.save(key: StorageKey.showMarginLevelDot, value: enabled)
+    }
+
+    func setAPIEnvironment(_ environment: APIEnvironment) {
+        state.apiEnvironment = environment
+        storage.save(key: StorageKey.apiEnvironment, value: environment.rawValue)
+        Task.detached {
+            await AnalyticsManager.shared.track(.settingsChange(key: "api_environment_changed_to", newValue: environment.rawValue))
+        }
     }
     
     func setExchangeType(_ newExchangeType: Exchange) {
@@ -134,6 +162,15 @@ final class SettingsService: SettingsServiceProtocol {
         if let stored = storage.value(forKey: StorageKey.showMarginLevelDot) as? Bool {
             state.showMarginLevelDot = stored
         }
+    }
+
+    private func loadAPIEnvironment() {
+        guard let rawValue = storage.value(forKey: StorageKey.apiEnvironment) as? String,
+              let environment = APIEnvironment(rawValue: rawValue) else {
+            state.apiEnvironment = .production
+            return
+        }
+        state.apiEnvironment = environment
     }
     
     private func loadExchangeType() {

@@ -193,9 +193,11 @@ class Mocks {
         private(set) var setUpdateFrequencyCalled = false
         private(set) var setExchangeTypeCalled = false
         private(set) var setUpdateFrequencyUnlockedCalled = false
+        private(set) var setAPIEnvironmentCalled = false
 
         private(set) var lastUpdateFrequency: Double?
         private(set) var lastExchangeType: ExchangeType?
+        private(set) var lastAPIEnvironment: APIEnvironment?
 
         // MARK: - Init
         init(
@@ -236,13 +238,21 @@ class Mocks {
             state.showMarginLevelDot = enabled
         }
 
+        func setAPIEnvironment(_ environment: APIEnvironment) {
+            setAPIEnvironmentCalled = true
+            lastAPIEnvironment = environment
+            state.apiEnvironment = environment
+        }
+
         // MARK: - Test helper
         func reset() {
             setUpdateFrequencyCalled = false
             setExchangeTypeCalled = false
             setUpdateFrequencyUnlockedCalled = false
+            setAPIEnvironmentCalled = false
             lastUpdateFrequency = nil
             lastExchangeType = nil
+            lastAPIEnvironment = nil
 
             state.updateFrequency = 5.0
             state.exchangeType = Exchange(.bybit, wallet: .unified)

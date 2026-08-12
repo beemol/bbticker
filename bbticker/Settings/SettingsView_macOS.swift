@@ -1,4 +1,5 @@
 import SwiftUI
+import LLCore
 
 import Combine
 
@@ -40,6 +41,7 @@ struct SettingsView_macOS: View {
             
             // Content
             Form {
+                apiEnvironmentSection
                 ExchangeTypeSection(settingsService: viewModel.settingsService)
                 ApiCredentialsSection (settingsService: viewModel.settingsService, credentialManager: viewModel.credentialManager)
                 apiKeyCreationSection
@@ -94,7 +96,20 @@ struct SettingsView_macOS: View {
             .frame(maxWidth: 420, alignment: .leading)
         }
     }
-    
+
+    private var apiEnvironmentSection: some View {
+        Section {
+            Picker("API Environment", selection: viewModel.settingsService.selectedAPIEnvironmentBinding) {
+                ForEach(APIEnvironment.allCases, id: \.self) { env in
+                    Text(env.rawValue.capitalized).tag(env)
+                }
+            }
+            .pickerStyle(.menu)
+        } footer: {
+            Text("Select which environment to connect to. Production is the live trading environment. Testnet is for testing with simulated funds.")
+        }
+    }
+
     private var apiKeyCreationSection: some View {
         Section {
             DisclosureGroup(

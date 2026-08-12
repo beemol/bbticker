@@ -1,4 +1,5 @@
 import SwiftUI
+import LLCore
 import Intents
 
 #if !os(macOS)
@@ -24,6 +25,7 @@ struct SettingsView_iOS: View {
                     settingsService: viewModel.settingsService
                 )
                 ApiCredentialsSection (state: apiCredentialsState)
+                apiEnvironmentSection
                 //apiCredentialsSection
                 //importantNotesSection
                 //credentialButtonsSection
@@ -49,6 +51,20 @@ struct SettingsView_iOS: View {
     }
 
     // MARK: - View Components
+
+    private var apiEnvironmentSection: some View {
+        Section {
+            Picker("API Environment", selection: viewModel.settingsService.selectedAPIEnvironmentBinding) {
+                ForEach(APIEnvironment.allCases, id: \.self) { env in
+                    Text(env.rawValue.capitalized).tag(env)
+                }
+            }
+        } header: {
+            Text("API Environment")
+        } footer: {
+            Text("Select which environment to connect to.")
+        }
+    }
 
     private var importantNotesSection: some View {
         Section("Important Notes") {
