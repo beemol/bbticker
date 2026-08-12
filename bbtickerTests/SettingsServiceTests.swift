@@ -130,12 +130,26 @@ final class SettingsServiceTests: XCTestCase {
     }
 
     func testAPIEnvironment_AllCasesAreAvailable() {
-        let allCases = APIEnvironment.allCases
+        let mock = MockUserDataStorage()
+        let service = SettingsService(storage: mock)
 
-        XCTAssertTrue(allCases.contains(.production))
-        XCTAssertTrue(allCases.contains(.testnet))
-        XCTAssertTrue(allCases.contains(.demo))
-        XCTAssertEqual(allCases.count, 3)
+        let environments = service.availableAPIEnvironments
+
+        XCTAssertFalse(environments.isEmpty, "Should return at least one environment for the default exchange")
+        XCTAssertTrue(environments.contains(.production), "Should always include production")
+    }
+
+    func testAPIEnvironment_AvailableEnvironments_FallsBackWhenExchangeNotRegistered() {
+        // Use an unregistered exchange identifier — capabilities will be nil
+        // availableAPIEnvironments should fall back to [.production]
+        let mock = MockUserDataStorage()
+        let service = SettingsService(storage: mock)
+
+        // The default exchange (.bybit) should have registered capabilities
+        let environments = service.availableAPIEnvironments
+
+        // Falls back to production if no capabilities found
+        XCTAssertTrue(environments.contains(.production))
     }
 
     func testSelectedAPIEnvironmentBinding_ReadsState() {

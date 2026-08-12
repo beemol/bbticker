@@ -2,9 +2,11 @@ import Foundation
 import Combine
 import LLCore
 
-extension APIEnvironment: @retroactive CaseIterable {
-    public static var allCases: [APIEnvironment] {
-        [.production, .testnet, .demo]
+extension ExchangeType {
+    /// Stable identifier for the exchange + environment pair, used as a credential account key.
+    /// Format: "bybit:production", "kucoin:testnet", etc.
+    var envIDString: String {
+        "\(identifier.rawValue):\(environment.rawValue)"
     }
 }
 
@@ -23,6 +25,9 @@ protocol SettingsServiceProtocol: ObservableObject {
     var selectedExchangeBinding: Binding<ExchangeIdentifier> { get }
     var selectedWalletBinding: Binding<WalletType> { get }
     var selectedAPIEnvironmentBinding: Binding<APIEnvironment> { get }
+    
+    /// The available API environments for the currently selected exchange
+    var availableAPIEnvironments: [APIEnvironment] { get }
 }
 
 extension SettingsServiceProtocol {
@@ -55,6 +60,12 @@ extension SettingsServiceProtocol {
                 self?.setAPIEnvironment(newEnvironment)
             }
         )
+    }
+
+    var availableAPIEnvironments: [APIEnvironment] {
+        ExchangeRegistry.shared
+            .capabilities(for: self.state.exchangeType.identifier)?
+            .availableEnvironments ?? [.production]
     }
 }
 

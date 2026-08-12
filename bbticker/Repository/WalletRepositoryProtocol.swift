@@ -26,8 +26,7 @@ final class WalletRepository: WalletRepositoryProtocol {
     }
     
     func getWalletData(for exchangeType: ExchangeType) async throws -> WalletData {
-        
-        let credentials = try await credentialManager.getCredentials(forAccount: exchangeType.displayName)
+        let credentials = try await credentialManager.getCredentials(forAccount: exchangeType.envIDString)
         
         if credentials.apiKey.isEmpty || credentials.apiSecret.isEmpty {
             throw APIDomainError.missingOrInvalidParams(context: APIErrorContext(exchange: exchangeType.identifier))
@@ -37,13 +36,12 @@ final class WalletRepository: WalletRepositoryProtocol {
     }
     
     func getApiKeyInfo(for exchangeType: ExchangeType) async throws -> ApiKeyInfo {
-        let credentials = try await credentialManager.getCredentials(forAccount: exchangeType.displayName)
+        let credentials = try await credentialManager.getCredentials(forAccount: exchangeType.envIDString)
         
         if credentials.apiKey.isEmpty || credentials.apiSecret.isEmpty {
             throw APIDomainError.missingOrInvalidParams(context: APIErrorContext(exchange: exchangeType.identifier))
         }
         
-        // Call the actual API instead of returning mock data
         let data = try await apiService.fetchApiKeyInfo(for: exchangeType)
         return data
     }

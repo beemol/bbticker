@@ -23,7 +23,8 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             // 4. Parsing (via ByBitApiKeyInfoParser)
             
             let endpointType = EndpointType.apiKeyInfo
-            let credentials = try await credentialManager.getCredentials(forAccount: exchangeType.displayName)
+            let account = exchangeType.envIDString
+            let credentials = try await credentialManager.getCredentials(forAccount: account)
             let service = try LLApiServiceBuilder<ApiKeyInfoData>.make(
                 for: exchangeType,
                 endpointType: endpointType,
@@ -99,7 +100,8 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             // 4. Parsing (via WalletDataParserFactory)
             
             let endpointType = EndpointType.wallet(exchangeType.walletType)
-            let credentials = try await credentialManager.getCredentials(forAccount: exchangeType.displayName)
+            let account = exchangeType.envIDString
+            let credentials = try await credentialManager.getCredentials(forAccount: account)
             let service = try LLApiServiceBuilder<WalletData>.make(for: exchangeType, endpointType: endpointType, credentials: credentials, networkService: LLNetworkService(urlSession: urlSession))
             let walletData = try await service.execute()
             

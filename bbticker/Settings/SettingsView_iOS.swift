@@ -55,7 +55,7 @@ struct SettingsView_iOS: View {
     private var apiEnvironmentSection: some View {
         Section {
             Picker("API Environment", selection: viewModel.settingsService.selectedAPIEnvironmentBinding) {
-                ForEach(APIEnvironment.allCases, id: \.self) { env in
+                ForEach(viewModel.settingsService.availableAPIEnvironments, id: \.self) { env in
                     Text(env.rawValue.capitalized).tag(env)
                 }
             }

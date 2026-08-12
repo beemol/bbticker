@@ -250,7 +250,7 @@ struct ApiCredentialsSectionTests {
         #expect(state.saveStatus.isShowing == true)
         
         // Verify credentials were actually saved
-        let saved = try await credentialManager.getCredentials(forAccount: "bybit")
+        let saved = try await credentialManager.getCredentials(forAccount: "bybit:production")
         #expect(saved.apiKey == "test-key")
         #expect(saved.apiSecret == "test-secret")
     }
@@ -299,7 +299,7 @@ struct ApiCredentialsSectionTests {
         #expect(state.saveStatus == .success(message: "Credentials saved successfully!"))
         
         // Verify passphrase was saved
-        let saved = try await credentialManager.getCredentials(forAccount: "kucoin")
+        let saved = try await credentialManager.getCredentials(forAccount: "kucoin:production")
         #expect(saved.apiKey == "kucoin-key")
         #expect(saved.apiSecret == "kucoin-secret")
         #expect(saved.passphrase == "kucoin-passphrase")
@@ -374,7 +374,7 @@ struct ApiCredentialsSectionTests {
             key: "saved-key",
             secret: "saved-secret",
             passphrase: "",
-            forAccount: "bybit"
+            forAccount: "bybit:production"
         )
         
         let state = ApiCredentialsState(
@@ -424,7 +424,7 @@ struct ApiCredentialsSectionTests {
             key: "kucoin-key",
             secret: "kucoin-secret",
             passphrase: "kucoin-passphrase",
-            forAccount: "kucoin"
+            forAccount: "kucoin:production"
         )
         
         let state = ApiCredentialsState(
@@ -452,7 +452,7 @@ struct ApiCredentialsSectionTests {
             key: "bybit-key",
             secret: "bybit-secret",
             passphrase: "",
-            forAccount: "bybit"
+            forAccount: "bybit:production"
         )
         
         // Save KuCoin credentials
@@ -461,7 +461,7 @@ struct ApiCredentialsSectionTests {
             key: "kucoin-key",
             secret: "kucoin-secret",
             passphrase: "kucoin-passphrase",
-            forAccount: "kucoin"
+            forAccount: "kucoin:production"
         )
         
         // Start with Bybit
@@ -498,7 +498,7 @@ struct ApiCredentialsSectionTests {
             key: "bybit-key",
             secret: "bybit-secret",
             passphrase: "",
-            forAccount: "bybit"
+            forAccount: "bybit:production"
         )
         
         let state = ApiCredentialsState(
@@ -529,7 +529,7 @@ struct ApiCredentialsSectionTests {
             key: "bybit-key",
             secret: "bybit-secret",
             passphrase: "",
-            forAccount: "bybit"
+            forAccount: "bybit:production"
         )
         
         settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
@@ -537,7 +537,7 @@ struct ApiCredentialsSectionTests {
             key: "kucoin-key",
             secret: "kucoin-secret",
             passphrase: "kucoin-passphrase",
-            forAccount: "kucoin"
+            forAccount: "kucoin:production"
         )
         
         // Start with Bybit

@@ -65,13 +65,13 @@ final class ApiCredentialsState {
     }
     
     func saveCredentials() async {
-        // print("ApiCredentialsState: Saving credentials for exchange: \(settingsService.state.exchangeType.displayName)")
+        let account = settingsService.state.exchangeType.envIDString
         
         let status = await credentialManager.saveCredentials(
             key: apiKey,
             secret: apiSecret,
             passphrase: apiPassphrase,
-            forAccount: settingsService.state.exchangeType.displayName
+            forAccount: account
         )
         
         if status == errSecSuccess {
@@ -84,8 +84,10 @@ final class ApiCredentialsState {
     }
     
     func deleteCredentials() async {
+        let account = settingsService.state.exchangeType.envIDString
+        
         let status = await credentialManager.deleteCredentials(
-            forAccount: settingsService.state.exchangeType.displayName
+            forAccount: account
         )
         
         if status == errSecSuccess {
@@ -99,7 +101,7 @@ final class ApiCredentialsState {
     }
     
     func loadCredentials() async {
-        let account = settingsService.state.exchangeType.displayName
+        let account = settingsService.state.exchangeType.envIDString
         
         if let credentials = try? await credentialManager.getCredentials(forAccount: account) {
             apiKey = credentials.apiKey

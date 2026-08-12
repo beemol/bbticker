@@ -700,7 +700,7 @@ class BBClientTests: XCTestCase {
     
     // MARK: - Credential Account Name Tests
     
-    @MainActor func testCredentialAccountName_UsesExchangeDisplayName() async {
+    @MainActor func testCredentialAccountName_UsesEnvIDString() async {
         // Given
         mockSettingsService.setExchangeType(Exchange(.bybit, wallet: .spot))
         
@@ -711,10 +711,10 @@ class BBClientTests: XCTestCase {
         let getCredentialsCalled = await mockCredentialManager.wasGetCredentialsCalled()
         let lastAccountRequested = await mockCredentialManager.getLastAccountRequested()
         XCTAssertTrue(getCredentialsCalled)
-        XCTAssertEqual(lastAccountRequested, Exchange(.bybit, wallet: .spot).displayName)
+        XCTAssertEqual(lastAccountRequested, Exchange(.bybit, wallet: .spot).envIDString)
     }
     
-    @MainActor func testCredentialAccountName_KuCoinUsesDisplayName() async {
+    @MainActor func testCredentialAccountName_KuCoinUsesEnvIDString() async {
         // Given
         mockSettingsService.setExchangeType(Exchange(.kucoin, wallet: .spot))
         
@@ -725,7 +725,7 @@ class BBClientTests: XCTestCase {
         let getCredentialsCalled = await mockCredentialManager.wasGetCredentialsCalled()
         let lastAccountRequested = await mockCredentialManager.getLastAccountRequested()
         XCTAssertTrue(getCredentialsCalled)
-        XCTAssertEqual(lastAccountRequested, Exchange(.kucoin, wallet: .spot).displayName)
+        XCTAssertEqual(lastAccountRequested, Exchange(.kucoin, wallet: .spot).envIDString)
     }
     
     // MARK: - Kill Switch Edge Cases

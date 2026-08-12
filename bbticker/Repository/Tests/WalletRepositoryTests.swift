@@ -58,7 +58,7 @@ class MockWalletRepository: WalletRepositoryProtocol, @unchecked Sendable {
     func getWalletData(for exchangeType: any LLCore.ExchangeType) async throws -> LLCore.WalletData {
         if let credentialsManager = credentialsManager {
             do {
-                _ = try await credentialsManager.getCredentials(forAccount: exchangeType.displayName)
+                _ = try await credentialsManager.getCredentials(forAccount: exchangeType.envIDString)
             } catch {
                 throw error
             }
