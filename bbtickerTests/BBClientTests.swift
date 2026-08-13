@@ -679,6 +679,72 @@ class BBClientTests: XCTestCase {
         XCTAssertEqual(mockAPIService.lastExchangeType?.displayName, Exchange(.kucoin, wallet: .futures).displayName)
     }
     
+    // MARK: - Exchange / Environment Change Reconnection
+    
+    @MainActor func testExchangeTypeChange_TriggersReconnect() async {
+        // Given
+        mockAPIService.shouldSucceed = true
+        await sut.connect()
+        XCTAssertEqual(sut.connectionStatus, .connected)
+        let initialCallCount = mockAPIService.callCount
+        
+        // When - switch exchange (environment is intrinsic to exchangeType)
+        mockSettingsService.setExchangeType(Exchange(.kucoin, wallet: .spot))
+        
+        // Wait for the observation to fire and the reconnect to complete
+        try? await Task.sleep(nanoseconds: 400_000_000) // 0.4s
+        
+        // Then
+        XCTAssertGreaterThan(mockAPIService.callCount, initialCallCount, "Switching exchange should trigger a reconnect")
+        XCTAssertEqual(mockAPIService.lastExchangeType?.identifier, .kucoin)
+        XCTAssertEqual(sut.connectionStatus, .connected)
+    }
+    
+    @MainActor func testEnvironmentChange_TriggersReconnect() async {
+        // Given
+        mockAPIService.shouldSucceed = true
+        await sut.connect()
+        XCTAssertEqual(sut.connectionStatus, .connected)
+        let initialCallCount = mockAPIService.callCount
+        
+        // When - switch environment (reconstructs the exchange with the new environment)
+        mockSettingsService.setExchangeType(Exchange(.bybit, environment: .testnet, wallet: .unified))
+        
+        // Wait for the observation to fire and the reconnect to complete
+        try? await Task.sleep(nanoseconds: 400_000_000) // 0.4s
+        
+        // Then
+        XCTAssertGreaterThan(mockAPIService.callCount, initialCallCount, "Switching environment should trigger a reconnect")
+        XCTAssertEqual(mockAPIService.lastExchangeType?.environment, .testnet)
+        XCTAssertEqual(sut.connectionStatus, .connected)
+    }
+    
+    @MainActor func testExchangeTypeChange_SetsConnectingStateDuringReconnect() async {
+        // Given
+        mockAPIService.shouldSucceed = true
+        await sut.connect()
+        XCTAssertEqual(sut.connectionStatus, .connected)
+        
+        var observedStatuses: [ConnectionStatus] = [sut.connectionStatus]
+        
+        // When - switch exchange
+        mockSettingsService.setExchangeType(Exchange(.kucoin, wallet: .spot))
+        
+        // Poll connection status while the async reconnect runs
+        for _ in 0..<25 {
+            try? await Task.sleep(nanoseconds: 20_000_000) // 20ms
+            if observedStatuses.last != sut.connectionStatus {
+                observedStatuses.append(sut.connectionStatus)
+            }
+        }
+        
+        // Then - reconnect should pass through .connecting
+        XCTAssertTrue(
+            observedStatuses.contains(.connecting),
+            "Expected .connecting during reconnect, observed: \(observedStatuses.map(\.rawValue))"
+        )
+    }
+    
     // MARK: - State Persistence Tests
     
     @MainActor func testStateClearing_OnConnectionFailure() async {

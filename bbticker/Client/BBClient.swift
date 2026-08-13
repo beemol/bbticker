@@ -10,6 +10,7 @@ import Combine
 import Network
 import SwiftUI
 import LLCore
+import Observation
 
 /*
  GET /v5/account/wallet-balance?accountType=UNIFIED&coin=BTC HTTP/1.1
@@ -64,6 +65,7 @@ class BBClient: ObservableObject {
         $walletState.set(threshold: settingsService.state.updateFrequency + 1) // + 1 for a buffer
         
         setupNetworkMonitoring()
+        observeExchangeTypeChanges()
     }
     
     // keep for tests
@@ -323,6 +325,33 @@ class BBClient: ObservableObject {
     private func onNetworkRestored() {
         guard !isConnected else { return }
         
+        Task { [weak self] in
+            await self?.connect()
+        }
+    }
+    
+    // MARK: - Exchange / Environment Change Handling
+    
+    private func observeExchangeTypeChanges() {
+        withObservationTracking {
+            _ = self.settingsService.state.exchangeType
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.handleExchangeTypeChanged()
+                
+                //re-arm
+                self.observeExchangeTypeChanges()
+            }
+        }
+    }
+    
+    private func handleExchangeTypeChanged() {
+        guard isConnected else { return }
+        
+        AppLog.client.info("Exchange/environment changed — reconnecting")
+        
+        pollingStrategy?.stop()
         Task { [weak self] in
             await self?.connect()
         }
