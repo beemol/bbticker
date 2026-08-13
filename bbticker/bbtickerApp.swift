@@ -165,11 +165,15 @@ struct bbtickerApp: App {
         
         Window("Settings", id: "settings") {
             SettingsView_macOS(viewModel: settingsViewModel)
-                .onAppear {
-                    keepWindowOnTop(withTitle: "Settings")
-                }
+            .onAppear {
+                bringWindowOnTop(withTitle: "Settings")
+            }
+            .onDisappear {
+                NSApp.setActivationPolicy(.accessory)
+            }
         }
         .windowResizability(.contentSize)
+        //.windowLevel(.floating)
         
         #if !APP_STORE
         Window("Support BBTicker", id: "donation") {
@@ -206,12 +210,13 @@ struct bbtickerApp: App {
     
     // MARK: - Window Management Methods
     #if os(macOS)
-    private func keepWindowOnTop(withTitle: String) {
+    private func bringWindowOnTop(withTitle: String) {
         DispatchQueue.main.async {
             if let settingsWindow = NSApp.windows.first(where: { $0.title == withTitle }) {
                 settingsWindow.level = .floating
                 settingsWindow.makeKeyAndOrderFront(nil)
-                settingsWindow.orderFrontRegardless()
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate(ignoringOtherApps: true)
             }
         }
     }
