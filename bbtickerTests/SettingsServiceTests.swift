@@ -59,7 +59,7 @@ final class SettingsServiceTests: XCTestCase {
         service.setExchangeType(Exchange(.kucoin, wallet: .futures))
 
         XCTAssertEqual(service.state.exchangeType, Exchange(.kucoin, wallet: .futures))
-        XCTAssertEqual(mock.value(forKey: "selected_exchange_type") as? String, "kucoin:futures")
+        XCTAssertEqual(mock.value(forKey: "selected_exchange_type") as? String, "kucoin:futures:production")
     }
 
     func testSetUpdateFrequencyUnlocked_SavesValue() {
@@ -87,49 +87,58 @@ final class SettingsServiceTests: XCTestCase {
         let mock = MockUserDataStorage()
         let service = SettingsService(storage: mock)
 
-        XCTAssertEqual(service.state.apiEnvironment, .production)
+        XCTAssertEqual(service.state.exchangeType.environment, .production)
     }
 
     func testAPIEnvironment_SetToTestnet_SavesValue() {
         let mock = MockUserDataStorage()
         let service = SettingsService(storage: mock)
 
-        service.setAPIEnvironment(.testnet)
+        service.setExchangeType(Exchange(.bybit, environment: .testnet, wallet: .unified))
 
-        XCTAssertEqual(service.state.apiEnvironment, .testnet)
-        XCTAssertEqual(mock.value(forKey: "api_environment") as? String, "testnet")
+        XCTAssertEqual(service.state.exchangeType.environment, .testnet)
+        XCTAssertEqual(mock.value(forKey: "selected_exchange_type") as? String, "bybit:unified:testnet")
     }
 
     func testAPIEnvironment_SetToProduction_SavesValue() {
         let mock = MockUserDataStorage()
         let service = SettingsService(storage: mock)
 
-        service.setAPIEnvironment(.testnet)
-        service.setAPIEnvironment(.production)
+        service.setExchangeType(Exchange(.bybit, environment: .testnet, wallet: .unified))
+        service.setExchangeType(Exchange(.bybit, environment: .production, wallet: .unified))
 
-        XCTAssertEqual(service.state.apiEnvironment, .production)
-        XCTAssertEqual(mock.value(forKey: "api_environment") as? String, "production")
+        XCTAssertEqual(service.state.exchangeType.environment, .production)
+        XCTAssertEqual(mock.value(forKey: "selected_exchange_type") as? String, "bybit:unified:production")
     }
 
     func testAPIEnvironment_LoadsStoredTestnetValue() {
         let mock = MockUserDataStorage()
-        mock.save(key: "api_environment", value: "testnet")
+        mock.save(key: "selected_exchange_type", value: "bybit:unified:testnet")
 
         let service = SettingsService(storage: mock)
 
-        XCTAssertEqual(service.state.apiEnvironment, .testnet)
+        XCTAssertEqual(service.state.exchangeType.environment, .testnet)
+    }
+
+    func testAPIEnvironment_LegacyTwoPartValueDefaultsToProduction() {
+        let mock = MockUserDataStorage()
+        mock.save(key: "selected_exchange_type", value: "bybit:unified")
+
+        let service = SettingsService(storage: mock)
+
+        XCTAssertEqual(service.state.exchangeType.environment, .production)
     }
 
     func testAPIEnvironment_InvalidStoredValueFallsBackToProduction() {
         let mock = MockUserDataStorage()
-        mock.save(key: "api_environment", value: "invalid_env")
+        mock.save(key: "selected_exchange_type", value: "bybit:unified:invalid_env")
 
         let service = SettingsService(storage: mock)
 
-        XCTAssertEqual(service.state.apiEnvironment, .production)
+        XCTAssertEqual(service.state.exchangeType.environment, .production)
     }
 
-    func testAPIEnvironment_AllCasesAreAvailable() {
+    func testAPIEnvironment_AvailableEnvironments_FromRegistry() {
         let mock = MockUserDataStorage()
         let service = SettingsService(storage: mock)
 
@@ -139,22 +148,9 @@ final class SettingsServiceTests: XCTestCase {
         XCTAssertTrue(environments.contains(.production), "Should always include production")
     }
 
-    func testAPIEnvironment_AvailableEnvironments_FallsBackWhenExchangeNotRegistered() {
-        // Use an unregistered exchange identifier — capabilities will be nil
-        // availableAPIEnvironments should fall back to [.production]
-        let mock = MockUserDataStorage()
-        let service = SettingsService(storage: mock)
-
-        // The default exchange (.bybit) should have registered capabilities
-        let environments = service.availableAPIEnvironments
-
-        // Falls back to production if no capabilities found
-        XCTAssertTrue(environments.contains(.production))
-    }
-
     func testSelectedAPIEnvironmentBinding_ReadsState() {
         let mock = MockUserDataStorage()
-        mock.save(key: "api_environment", value: "testnet")
+        mock.save(key: "selected_exchange_type", value: "bybit:unified:testnet")
         let service = SettingsService(storage: mock)
 
         let binding = service.selectedAPIEnvironmentBinding
@@ -169,7 +165,7 @@ final class SettingsServiceTests: XCTestCase {
         let binding = service.selectedAPIEnvironmentBinding
         binding.wrappedValue = .testnet
 
-        XCTAssertEqual(service.state.apiEnvironment, .testnet)
-        XCTAssertEqual(mock.value(forKey: "api_environment") as? String, "testnet")
+        XCTAssertEqual(service.state.exchangeType.environment, .testnet)
+        XCTAssertEqual(mock.value(forKey: "selected_exchange_type") as? String, "bybit:unified:testnet")
     }
 }

@@ -60,7 +60,7 @@ struct ApiCredentialsSection: View {
             Task { await state.loadCredentials() }
         }
         .onChange(of: state.settingsService.state.exchangeType) {
-            Task { await state.loadCredentials()}
+            Task { await state.loadCredentials() }
         }
         .onChange(of: state.saveStatus.isShowing) { _, isShowing in
             isShowingAlert = isShowing

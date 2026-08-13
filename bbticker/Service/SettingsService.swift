@@ -19,7 +19,6 @@ protocol SettingsServiceProtocol: ObservableObject {
     func setUpdateFrequency(_ frequency: Double)
     func setShowMarginLevelDot(_ enabled: Bool)
     func applyProStatus(_ unlocked: Bool)
-    func setAPIEnvironment(_ environment: APIEnvironment)
     
     // UI-facing bridge bindings
     var selectedExchangeBinding: Binding<ExchangeIdentifier> { get }
@@ -36,9 +35,9 @@ extension SettingsServiceProtocol {
         Binding(
             get: { self.state.exchangeType.identifier },
             set: { [weak self] newExchangeName in
-                // use current wallet type. if doesn't match, service will fallback to available or default option
-                let wallet = self?.state.exchangeType.walletType ?? .unified
-                self?.setExchangeType(Exchange(newExchangeName, wallet: wallet))
+                guard let self else { return }
+                let current = self.state.exchangeType
+                self.setExchangeType(Exchange(newExchangeName, environment: current.environment, wallet: current.walletType))
             }
         )
     }
@@ -47,17 +46,20 @@ extension SettingsServiceProtocol {
         Binding(
             get: { self.state.exchangeType.walletType },
             set: { [weak self] newWalletType in
-                let exchangeName = self?.state.exchangeType.identifier ?? .bybit
-                self?.setExchangeType(Exchange(exchangeName, wallet: newWalletType))
+                guard let self else { return }
+                let current = self.state.exchangeType
+                self.setExchangeType(Exchange(current.identifier, environment: current.environment, wallet: newWalletType))
             }
         )
     }
 
     var selectedAPIEnvironmentBinding: Binding<APIEnvironment> {
         Binding(
-            get: { self.state.apiEnvironment },
+            get: { self.state.exchangeType.environment },
             set: { [weak self] newEnvironment in
-                self?.setAPIEnvironment(newEnvironment)
+                guard let self else { return }
+                let current = self.state.exchangeType
+                self.setExchangeType(Exchange(current.identifier, environment: newEnvironment, wallet: current.walletType))
             }
         )
     }
@@ -78,7 +80,6 @@ final class SettingsState {
     var exchangeType: Exchange = Exchange(.bybit, wallet: .unified)
     var isProActive: Bool = false
     var showMarginLevelDot: Bool = true
-    var apiEnvironment: APIEnvironment = .production
 }
 
 /// Shared service for app settings that can be observed reactively
@@ -89,7 +90,6 @@ final class SettingsService: SettingsServiceProtocol {
         static let selectExchangeType: String = "selected_exchange_type"
         static let updateFrequency: String = "update_frequency"
         static let showMarginLevelDot: String = "pro_margin_level_dot"
-        static let apiEnvironment: String = "api_environment"
     }
     
     let state = SettingsState()
@@ -103,7 +103,6 @@ final class SettingsService: SettingsServiceProtocol {
         loadUpdateFrequency()
         loadExchangeType()
         loadShowMarginLevelDot()
-        loadAPIEnvironment()
         
         // Load cached IAP unlock state for fast UI reflect
         let cached = storage.value(forKey: StorageKey.isProActive) as? Bool ?? false
@@ -121,41 +120,39 @@ final class SettingsService: SettingsServiceProtocol {
         state.showMarginLevelDot = enabled
         storage.save(key: StorageKey.showMarginLevelDot, value: enabled)
     }
-
-    func setAPIEnvironment(_ environment: APIEnvironment) {
-        state.apiEnvironment = environment
-        storage.save(key: StorageKey.apiEnvironment, value: environment.rawValue)
-        Task.detached {
-            await AnalyticsManager.shared.track(.settingsChange(key: "api_environment_changed_to", newValue: environment.rawValue))
-        }
-    }
     
     func setExchangeType(_ newExchangeType: Exchange) {
-        if newExchangeType.availableWalletTypes.contains(newExchangeType.walletType) == false {
-            AppLog.settings.warning("Attempted to set unsupported exchange type: \(self.state.exchangeType.displayName). Falling back to a safe one.")
-            
-            // Attempted to set unsupported exchange type or wallet type, fallback to first avaialble option
-            if let first = newExchangeType.availableWalletTypes.first {
-                state.exchangeType = Exchange(newExchangeType.identifier, wallet: first)
-            } else {
-                state.exchangeType = Exchange(.bybit, wallet: .unified)
-            }
-            
-            save(newExchangeType: state.exchangeType)
-            
-            return
-        }
-        
-        state.exchangeType = newExchangeType
-        
+        state.exchangeType = normalized(newExchangeType)
         save(newExchangeType: state.exchangeType)
     }
     
-    private func save(newExchangeType: ExchangeType) {
-        let exchangeName = newExchangeType.displayName
-        let wt: String = newExchangeType.walletType.rawValue
+    /// Returns an exchange with supported wallet type and environment, falling back to safe values otherwise.
+    private func normalized(_ exchange: Exchange) -> Exchange {
+        var result = exchange
         
-        let serializedValue: String = exchangeName + ":" + wt
+        if result.availableWalletTypes.contains(result.walletType) == false {
+            AppLog.settings.warning("Attempted to set unsupported wallet type. Falling back to a safe one.")
+            if let first = result.availableWalletTypes.first {
+                result = Exchange(result.identifier, environment: result.environment, wallet: first)
+            } else {
+                result = Exchange(.bybit, environment: result.environment, wallet: .unified)
+            }
+        }
+        
+        if result.availableEnvironments.contains(result.environment) == false {
+            AppLog.settings.warning("Attempted to set unsupported environment. Falling back to a safe one.")
+            if let first = result.availableEnvironments.first {
+                result = Exchange(result.identifier, environment: first, wallet: result.walletType)
+            } else {
+                result = Exchange(result.identifier, environment: .production, wallet: result.walletType)
+            }
+        }
+        
+        return result
+    }
+    
+    private func save(newExchangeType: ExchangeType) {
+        let serializedValue = "\(newExchangeType.identifier.rawValue):\(newExchangeType.walletType.rawValue):\(newExchangeType.environment.rawValue)"
         
         storage.save(key: StorageKey.selectExchangeType, value: serializedValue)
 
@@ -174,27 +171,22 @@ final class SettingsService: SettingsServiceProtocol {
             state.showMarginLevelDot = stored
         }
     }
-
-    private func loadAPIEnvironment() {
-        guard let rawValue = storage.value(forKey: StorageKey.apiEnvironment) as? String,
-              let environment = APIEnvironment(rawValue: rawValue) else {
-            state.apiEnvironment = .production
-            return
-        }
-        state.apiEnvironment = environment
-    }
     
     private func loadExchangeType() {
-        guard let parts = (storage.value(forKey: StorageKey.selectExchangeType) as? String)?.split(separator: ":"),
-              parts.count == 2,
-              let walletType = WalletType(rawValue: String(parts[1])) else {
-            
+        guard let stored = storage.value(forKey: StorageKey.selectExchangeType) as? String else {
+            state.exchangeType = Exchange(.bybit, wallet: .unified)
+            return
+        }
+        
+        let parts = stored.split(separator: ":").map(String.init)
+        guard parts.count >= 2,
+              let walletType = WalletType(rawValue: parts[1]) else {
             // Fallback for legacy values or unknown formats
             state.exchangeType = Exchange(.bybit, wallet: .unified)
             return
         }
         
-        let identifier = ExchangeIdentifier(rawValue: String(parts[0]))
+        let identifier = ExchangeIdentifier(rawValue: parts[0])
         
         // Validate if this exchange registered
         guard ExchangeRegistry.shared.capabilities(for: identifier) != nil else {
@@ -202,7 +194,13 @@ final class SettingsService: SettingsServiceProtocol {
             return
         }
         
-        state.exchangeType = Exchange(identifier, wallet: walletType)
+        // Environment was introduced later; legacy values use a 2-part format without it.
+        var environment: APIEnvironment = .production
+        if parts.count >= 3, let parsed = APIEnvironment(rawValue: parts[2]) {
+            environment = parsed
+        }
+        
+        state.exchangeType = normalized(Exchange(identifier, environment: environment, wallet: walletType))
     }
 
     // MARK: - IAP

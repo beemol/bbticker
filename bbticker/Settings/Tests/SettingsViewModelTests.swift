@@ -322,10 +322,8 @@ class MockSettingsService: SettingsServiceProtocol {
     var setUpdateFrequencyCalled = false
     var setExchangeTypeCalled = false
     var setUpdateFrequencyUnlockedCalled = false
-    var setAPIEnvironmentCalled = false
     var lastUpdateFrequency: Double?
     var lastExchangeType: ExchangeType?
-    var lastAPIEnvironment: APIEnvironment?
     
     var state: SettingsState {
         realService.state
@@ -368,20 +366,12 @@ class MockSettingsService: SettingsServiceProtocol {
         realService.setShowMarginLevelDot(enabled)
     }
 
-    func setAPIEnvironment(_ environment: APIEnvironment) {
-        setAPIEnvironmentCalled = true
-        lastAPIEnvironment = environment
-        realService.setAPIEnvironment(environment)
-    }
-
     func reset() {
         setUpdateFrequencyCalled = false
         setExchangeTypeCalled = false
         setUpdateFrequencyUnlockedCalled = false
-        setAPIEnvironmentCalled = false
         lastUpdateFrequency = nil
         lastExchangeType = nil
-        lastAPIEnvironment = nil
         
         // Reset storage and reinitialize to defaults
         mockStorage.reset()
