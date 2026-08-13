@@ -82,8 +82,14 @@ class BBClient: ObservableObject {
         return settingsService.state.exchangeType
     }
     
+    // light weight protection for a stale data comming through
+    private var connectGeneration = 0
+    
     // MARK: - Connection Management
     func connect() async {
+        connectGeneration &+= 1 // & makes it crash-safe
+        let generation = connectGeneration
+        
         await AnalyticsManager.shared.track(.connectionAttempt)
         
         if connectionStatus != .connected {
@@ -92,9 +98,14 @@ class BBClient: ObservableObject {
         
         do {
             let walletData = try await walletRepository.getWalletData(for: currentExchangeType)
+            
+            guard generation == connectGeneration else { return }
+            
             setupPollingStrategy(with: self.settingsService.state.updateFrequency)
             handleSuccessfulConnection(with: walletData)
         } catch {
+            guard generation == connectGeneration else { return }
+            
             handleConnectError(error)
         }
     }
@@ -347,11 +358,13 @@ class BBClient: ObservableObject {
     }
     
     private func handleExchangeTypeChanged() {
-        guard isConnected else { return }
-        
         AppLog.client.info("Exchange/environment changed — reconnecting")
         
-        pollingStrategy?.stop()
+        if isConnected || connectionStatus == .connecting  {
+            pollingStrategy?.stop()
+            setDisconnectedState()
+        }
+        
         Task { [weak self] in
             await self?.connect()
         }

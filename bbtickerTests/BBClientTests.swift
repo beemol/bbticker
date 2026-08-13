@@ -745,6 +745,68 @@ class BBClientTests: XCTestCase {
         )
     }
     
+    @MainActor func testExchangeChange_ReconnectsAfterFailedChange() async {
+        // Given - connected to bybit
+        mockAPIService.shouldSucceed = true
+        await sut.connect()
+        XCTAssertEqual(sut.connectionStatus, .connected)
+        let callsAfterInitialConnect = mockAPIService.callCount
+        
+        // When - switch to kucoin, which fails to connect
+        mockAPIService.shouldSucceed = false
+        mockAPIService.mockError = NSError(domain: "TestError", code: 401, userInfo: [NSLocalizedDescriptionKey: "Unauthorized"])
+        mockSettingsService.setExchangeType(Exchange(.kucoin, wallet: .spot))
+        try? await Task.sleep(nanoseconds: 400_000_000) // 0.4s
+        
+        XCTAssertEqual(sut.connectionStatus, .disconnected)
+        let callsAfterFailedChange = mockAPIService.callCount
+        XCTAssertGreaterThan(callsAfterFailedChange, callsAfterInitialConnect)
+        
+        // When - switch back to bybit, which succeeds
+        mockAPIService.shouldSucceed = true
+        mockAPIService.mockError = nil
+        mockSettingsService.setExchangeType(Exchange(.bybit, wallet: .spot))
+        try? await Task.sleep(nanoseconds: 400_000_000) // 0.4s
+        
+        // Then - should reconnect to bybit
+        XCTAssertGreaterThan(mockAPIService.callCount, callsAfterFailedChange, "Switching back to a working exchange should trigger a reconnect")
+        XCTAssertEqual(sut.connectionStatus, .connected)
+    }
+    
+    @MainActor func testStaleConnectResult_IsDiscarded() async {
+        // Given - a client whose first fetch blocks until released
+        let api = ControllableAPIService()
+        let repository = MockWalletRepository(apiService: api)
+        let client = BBClient(
+            settingsService: mockSettingsService,
+            networkMonitor: mockNetworkMonitor,
+            sharedDataManager: mockSharedDataManager,
+            walletRepository: repository
+        )
+        
+        // Start the first connect; it will block on the first fetch
+        let firstConnect = Task { await client.connect() }
+        
+        // Wait until the first fetch has started (and is blocked)
+        for _ in 0..<100 {
+            if api.callCount == 1 { break }
+            try? await Task.sleep(nanoseconds: 10_000_000) // 10ms
+        }
+        XCTAssertEqual(api.callCount, 1, "First connect should have started its fetch")
+        
+        // Second connect (newer generation) completes immediately
+        await client.connect()
+        XCTAssertEqual(client.connectionStatus, .connected)
+        XCTAssertEqual(client.walletState.equity, 222.0, accuracy: 0.001)
+        
+        // Release the first (now stale) connect; it must be discarded
+        api.blockFirstCall = false
+        await firstConnect.value
+        
+        // Then - stale result must NOT overwrite the newer connect's data
+        XCTAssertEqual(client.walletState.equity, 222.0, accuracy: 0.001, "Stale connect result should be discarded")
+    }
+    
     // MARK: - State Persistence Tests
     
     @MainActor func testStateClearing_OnConnectionFailure() async {
@@ -985,6 +1047,34 @@ class MockAPIService: APIServiceProtocol {
     
     func getCallTimestamps() -> [Date] {
         return callTimestamps
+    }
+}
+
+/// API mock that lets a test control the completion order of `fetchWalletBalance` calls,
+/// so we can force a stale (older) connect to finish after a newer one.
+@MainActor
+final class ControllableAPIService: APIServiceProtocol {
+    var blockFirstCall = true
+    private(set) var callCount = 0
+
+    func fetchApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any bbticker.ApiKeyInfo {
+        ApiKeyInfoData(createdAt: Date())
+    }
+
+    func fetchWalletBalanceForCurrentExchange() async throws -> WalletData {
+        throw NSError(domain: "MockError", code: 500, userInfo: nil)
+    }
+
+    func fetchWalletBalance(for exchangeType: ExchangeType) async throws -> WalletData {
+        callCount += 1
+        if callCount == 1 {
+            // Hold the first call until the test releases it, yielding so newer connects can run.
+            while blockFirstCall {
+                try? await Task.sleep(nanoseconds: 1_000_000) // 1ms
+            }
+            return WalletData(totalEquity: 111, walletBalance: 11)
+        }
+        return WalletData(totalEquity: 222, walletBalance: 22)
     }
 }
 
