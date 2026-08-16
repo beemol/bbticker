@@ -166,7 +166,7 @@ struct bbtickerApp: App {
         Window("Settings", id: "settings") {
             SettingsView_macOS(viewModel: settingsViewModel)
             .onAppear {
-                bringWindowOnTop(withTitle: "Settings")
+                keepWindowOnTop(withTitle: "Settings")
             }
             .onDisappear {
                 NSApp.setActivationPolicy(.accessory)
@@ -210,11 +210,11 @@ struct bbtickerApp: App {
     
     // MARK: - Window Management Methods
     #if os(macOS)
-    private func bringWindowOnTop(withTitle: String) {
+    private func keepWindowOnTop(withTitle: String) {
         DispatchQueue.main.async {
             if let settingsWindow = NSApp.windows.first(where: { $0.title == withTitle }) {
-                settingsWindow.level = .floating
                 settingsWindow.makeKeyAndOrderFront(nil)
+                settingsWindow.orderFrontRegardless()
                 NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
             }

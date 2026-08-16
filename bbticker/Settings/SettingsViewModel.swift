@@ -137,7 +137,7 @@ class SettingsViewModel: ObservableObject {
     }
 
     // MARK: - IAP
-    enum PurchaseState {
+    enum PurchaseState: Equatable {
         case idle
         case purchasing
         case restoring

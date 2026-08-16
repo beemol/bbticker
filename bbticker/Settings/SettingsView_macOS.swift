@@ -7,7 +7,7 @@ import Combine
 struct SettingsView_macOS: View {
     @ObservedObject var viewModel: SettingsViewModel
     
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.dismissWindow) private var dismissWindow
     @State private var isAPIKeyCreationExpanded = false
     @State private var isImportantNotesExpanded = false
     @State private var apiKeySteps: [String] = []
@@ -31,7 +31,7 @@ struct SettingsView_macOS: View {
                     .bold()
                 Spacer()
                 Button("Done") {
-                    dismiss()
+                    dismissWindow(id: "settings")
                 }
             }
             .padding()
@@ -62,7 +62,13 @@ struct SettingsView_macOS: View {
                 apiKeyNotes = steps.notes
             }
         }
-
+        .onChange(of: viewModel.purchaseState) { _, state in
+            // in case of failing operation we need to manually dump left overs of the NSRemoteView
+            // which mac os could possibly left behind and block all the mouse clicks
+            if case .failed = state {
+                purgeGhostViews()
+            }
+        }
     }
     
     // MARK: - View Components
@@ -305,6 +311,35 @@ struct SettingsView_macOS: View {
         }
     }
 
+    @MainActor
+    private func purgeGhostViews() {
+        #if os(macOS)
+        DispatchQueue.main.async {
+            guard let window = NSApp.windows.first(where: { $0.title == "Settings" }) else { return }
+
+            // Clear any stuck sheet tracking object
+            if let sheet = window.attachedSheet {
+                window.endSheet(sheet)
+            }
+
+            // Recursively remove any remote view bridge components
+            @MainActor func removeRemoteViews(from view: NSView) {
+                for subview in view.subviews {
+                    let className = String(describing: type(of: subview))
+                    if className.contains("RemoteView") || className.contains("ViewBridge") {
+                        subview.removeFromSuperview()
+                    } else {
+                        removeRemoteViews(from: subview)
+                    }
+                }
+            }
+
+            if let contentView = window.contentView {
+                removeRemoteViews(from: contentView)
+            }
+        }
+        #endif
+    }
 }
 
 #if DEBUG
