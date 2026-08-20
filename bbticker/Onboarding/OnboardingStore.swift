@@ -9,7 +9,8 @@ import Foundation
 import Observation
 
 /// Coordinates the first-run onboarding flow.
-/// Owns presentation state (whether the tutorial is visible) and the one-time "has the user completed onboarding" flag persisted in UserDefaults.
+/// Owns presentation state (whether the tutorial is visible) and the
+/// one-time "has the user completed onboarding" flag persisted in UserDefaults.
 @MainActor
 @Observable
 final class OnboardingStore {
@@ -41,30 +42,41 @@ final class OnboardingStore {
     // MARK: - Presentation
 
     func presentIfNeeded() {
-        // TODO: guard needsOnboarding, then set isPresented = true
+        guard needsOnboarding else { return }
+        currentPage = 0
+        isPresented = true
     }
 
     func dismiss() {
-        // TODO: set isPresented = false
+        isPresented = false
     }
 
     // MARK: - Actions
 
+    /// Marks onboarding as done, persists it, and hides the tutorial.
     func complete() {
-        // TODO: persist hasCompleted, dismiss
+        hasCompleted = true
+        storage.save(key: Self.storageKey, value: true)
+        isPresented = false
         // TODO: track onboarding completed via AnalyticsManager
     }
 
+    /// Same as `complete()`, used when the user bails out early so the
+    /// tutorial never nags again.
     func skip() {
-        // TODO: persist hasCompleted, dismiss
+        hasCompleted = true
+        storage.save(key: Self.storageKey, value: true)
+        isPresented = false
         // TODO: track onboarding skipped via AnalyticsManager
     }
 
     func next() {
-        // TODO: advance currentPage, clamped to pageCount
+        guard currentPage < pageCount - 1 else { return }
+        currentPage += 1
     }
 
     func previous() {
-        // TODO: go back one page, clamped to 0
+        guard currentPage > 0 else { return }
+        currentPage -= 1
     }
 }
