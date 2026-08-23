@@ -19,7 +19,7 @@ struct TutorialPopoverView: View {
             ForEach(OnboardingPage.allCases) { page in
                 VStack(spacing: 16) {
                     header(for: page)          // ← uses title, subtitle, systemImage, accentColor
-                    //uniqueContent(for: page)   // ← the page-specific view
+                    uniqueContent(for: page)   // ← the page-specific view
                 }
                 .tag(page.rawValue)
             }
@@ -66,6 +66,14 @@ private func header(for page: OnboardingPage) -> some View {
             .font(.subheadline)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
+    }
+}
+
+@MainActor @ViewBuilder
+private func uniqueContent(for page: OnboardingPage) -> some View {
+    switch page {
+        case .welcome: WelcomeHeroView()
+    default: EmptyView()
     }
 }
 
