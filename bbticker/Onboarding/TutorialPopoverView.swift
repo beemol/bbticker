@@ -15,9 +15,62 @@ struct TutorialPopoverView: View {
     let onOpenSettings: () -> Void
 
     var body: some View {
-        EmptyView()
-        // TODO: present OnboardingView when store.needsOnboarding,
-        // fall back to the regular popover content otherwise
+        TabView(selection: $store.currentPage) {
+            ForEach(OnboardingPage.allCases) { page in
+                VStack(spacing: 16) {
+                    header(for: page)          // ← uses title, subtitle, systemImage, accentColor
+                    //uniqueContent(for: page)   // ← the page-specific view
+                }
+                .tag(page.rawValue)
+            }
+        }
+        
+        Divider()
+        
+        HStack {
+            Button {
+                store.previous()
+            } label: {
+                Label("Back", systemImage: "chevron.left")
+            }
+            .disabled(store.currentPage == 0)
+            
+            Spacer()
+            
+            Text("\(store.currentPage + 1) / \(store.pageCount)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            
+            Spacer()
+            
+            Button {
+                store.next()
+            } label: {
+                Label("Next", systemImage: "chevron.right")
+            }
+            .disabled(store.currentPage == store.pageCount - 1)
+        }
     }
 }
 #endif
+
+@ViewBuilder
+private func header(for page: OnboardingPage) -> some View {
+    VStack(spacing: 8) {
+        Image(systemName: page.systemImage)
+            .font(.system(size: 40))
+            .foregroundStyle(page.accentColor)
+        Text(page.title)
+            .font(.title2).bold()
+        Text(page.subtitle)
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+    }
+}
+
+#Preview("Tutorial Popover") {
+    TutorialPopoverView(store: OnboardingStore()) {
+    }
+    .padding()
+}
