@@ -20,6 +20,7 @@ BBTicker is a lightweight macOS menu bar app that shows your exchange wallet bal
 - **Pro refresh speeds** — upgrade to 1-second, 5-second, or 10-second polling (free tier: 15 seconds)
 - **Extendable exchange support** — currently supports Bybit; built on a protocol-driven architecture so new exchanges can be added easily
 - **Wallet type selection** — unified trading account support
+- **API environment selection** — switch between production, testnet, and demo environments without touching your keys
 - **Secure keychain storage** — API keys are encrypted in the macOS Keychain
 - **Auto-reconnection** — exponential backoff on network failures with smart retry logic
 - **iOS companion app** — also available on iPhone with Siri voice commands ("Hey Siri, what's my BBTicker balance?")
@@ -63,9 +64,12 @@ BBTicker only needs **read access** to your account. Never grant trade or withdr
 
 1. Click the BBTicker menu bar icon → **Settings**
 2. Select your exchange from the dropdown
-3. Paste your **API Key** and **API Secret**
-4. Click **Save Credentials**
-5. You'll see a success popup — your balance now appears in the menu bar!
+3. Choose the **API Environment** (production is the default; use testnet for simulated funds)
+4. Paste your **API Key** and **API Secret**
+5. Click **Save Credentials**
+6. You'll see a success popup — your balance now appears in the menu bar!
+
+> API keys are stored per exchange **and** environment — so you can keep separate production and testnet keys and switch between them from Settings.
 
 ---
 
@@ -97,6 +101,7 @@ The margin level dot requires **BBTicker Pro** and can be toggled in Settings.
 ### Settings
 
 - **Exchange & Wallet Type** — switch between exchanges and wallet types
+- **API Environment** — switch between production, testnet, and demo environments
 - **API Credentials** — enter or delete exchange API keys
 - **How to create an API key** — step-by-step instructions inside the app
 - **Widget Settings** (iOS) — configure the home screen widget refresh interval
