@@ -54,7 +54,12 @@ struct ApiCredentialsSection: View {
                 }
             }
             
-            credentialButtonsSection
+            CredentialButtonsSection(
+                canSave: state.canSaveCredentials,
+                onSave: { await state.saveCredentials() },
+                onDelete: { await state.deleteCredentials() }
+            )
+
         }
         .onAppear {
             Task { await state.loadCredentials() }
@@ -69,25 +74,27 @@ struct ApiCredentialsSection: View {
             Button("OK") { state.saveStatus = .idle }
         }
     }
+}
+
+private struct CredentialButtonsSection: View {
+    let canSave: Bool
+    let onSave: () async -> Void
+    let onDelete: () async -> Void
     
-    private var credentialButtonsSection: some View {
+    var body: some View {
         Section {
             HStack(spacing: 8) {
                 Button {
-                    Task {
-                        await state.saveCredentials()
-                    }
+                    Task { await onSave() }
                 } label: {
                     Text("Save Credentials")
                         .lineLimit(1)
                 }
-                .disabled(!state.canSaveCredentials)
+                .disabled(!canSave)
                 .buttonStyle(.borderedProminent)
                 
                 Button {
-                    Task {
-                        await state.deleteCredentials()
-                    }
+                    Task { await onDelete() }
                 } label: {
                     Text("Delete Credentials")
                         .lineLimit(1)
