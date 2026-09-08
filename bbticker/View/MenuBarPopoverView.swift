@@ -91,10 +91,13 @@ struct MenuBarPopoverView: View {
             HStack {
                 Image(systemName: "power")
                 ConnectionButton(
-                    bybitClient: bybitClient,
                     disableCenter: disableCenter,
                     accountIdentifier: accountIdentifier,
-                    style: .plain
+                    style: .plain,
+                    connectionStatus: bybitClient.connectionStatus,
+                    isNetworkConnected: bybitClient.isNetworkConnected,
+                    onConnect: { await bybitClient.connect() },
+                    onDisconnect: { bybitClient.disconnect() }
                 )
             }
             

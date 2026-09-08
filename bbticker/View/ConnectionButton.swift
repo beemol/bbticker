@@ -3,7 +3,12 @@ import Combine
 import LLCore
 
 struct ConnectionButton: View {
-    @ObservedObject var bybitClient: BBClient
+    let connectionStatus: ConnectionStatus
+    let isNetworkConnected: Bool
+    
+    let onConnect: () async -> Void
+    let onDisconnect: () -> Void
+    
     @ObservedObject var disableCenter: DisableCenter
     
     let accountIdentifier: String
@@ -19,35 +24,36 @@ struct ConnectionButton: View {
     }
     
     init(
-        bybitClient: BBClient,
         disableCenter: DisableCenter,
         accountIdentifier: String,
-        style: ConnectionButtonStyle = .prominent
+        style: ConnectionButtonStyle = .prominent,
+        connectionStatus: ConnectionStatus = .disconnected,
+        isNetworkConnected: Bool = false,
+        onConnect: @escaping () async -> Void,
+        onDisconnect: @escaping () -> Void
     ) {
-        self.bybitClient = bybitClient
         self.disableCenter = disableCenter
         self.accountIdentifier = accountIdentifier
         self.buttonStyle = style
+        self.connectionStatus = connectionStatus
+        self.isNetworkConnected = isNetworkConnected
+        self.onConnect = onConnect
+        self.onDisconnect = onDisconnect
     }
     
     var body: some View {
-        switch bybitClient.connectionStatus {
+        switch connectionStatus {
         case .disconnected:
             Button(action: {
+                // TODO: this should not be here
                 // Check kill-switch first
                 if disableCenter.isActive {
-                    bybitClient.authenticationError = disableCenter.message
                     AppLog.client.warning("Connection blocked by kill-switch: \(disableCenter.message)")
                     return
                 }
                 
-                if !bybitClient.isNetworkConnected {
-                    bybitClient.authenticationError = "No network connection available."
-                    return
-                }
-                
                 Task {
-                    await bybitClient.connect()
+                    await onConnect()
                 }
             }) {
                 Text("Connect")
@@ -57,14 +63,14 @@ struct ConnectionButton: View {
                     .cornerRadius(8)
             }
             .buttonStyle(.plain)
-            .disabled(!bybitClient.isNetworkConnected || disableCenter.isActive)
+            .disabled(!isNetworkConnected || disableCenter.isActive)
             #if os(iOS)
             .controlSize(.large)
             #endif
             
         case .connected:
             Button(action: {
-                bybitClient.disconnect()
+                onDisconnect()
             }) {
                 Text("Disconnect")
                     .foregroundColor(buttonStyle == .prominent ? .white : .red)
@@ -209,29 +215,24 @@ struct ConnectionButton_Previews: PreviewProvider {
         }
     }
     
-    class MockNetworkMonitor: NetworkMonitor {
-        override init() {
-            super.init()
-            self.isConnected = true
-        }
-    }
-    
     static var previews: some View {
         VStack(spacing: 20) {
             Text("Prominent Style")
             ConnectionButton(
-                bybitClient: MockBybitClient(),
                 disableCenter: DisableCenter(),
                 accountIdentifier: "preview",
-                style: .prominent
+                style: .prominent,
+                onConnect: {},
+                onDisconnect: {}
             )
             
             Text("Plain Style")
             ConnectionButton(
-                bybitClient: MockBybitClient(),
                 disableCenter: DisableCenter(),
                 accountIdentifier: "preview",
-                style: .plain
+                style: .plain,
+                onConnect: {},
+                onDisconnect: {}
             )
         }
         .padding()
