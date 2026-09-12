@@ -101,23 +101,6 @@ struct ConnectionButton: View {
             .controlSize(.large)
             #endif
             
-        case .disconnecting:
-            Button(action: {}) {
-                HStack(spacing: 4) {
-//                    ProgressView()
-//                        .scaleEffect(buttonStyle == .prominent ? 0.6 : 0.5)
-                    Text("Disconnecting")
-                        .font(.system(size: buttonStyle == .prominent ? 16 : 14))
-                }
-                .paddedIfProminent(buttonStyle == .prominent, h: self.horizontalPadding, v: self.verticalPadding)
-                .background(buttonStyle == .prominent ? Color.red.opacity(0.6) : Color.clear)
-                .cornerRadius(8)
-            }
-            .buttonStyle(.plain)
-            .disabled(true)
-            #if os(iOS)
-            .controlSize(.large)
-            #endif
         }
     }
 }

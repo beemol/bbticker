@@ -12,7 +12,6 @@ enum ConnectionStatus: String, Sendable {
     case connected
     case disconnected
     case connecting
-    case disconnecting
     
     var description: String {
         return self.rawValue.capitalized
@@ -24,7 +23,6 @@ extension ConnectionStatus {
         switch self {
         case .connected: return .green
         case .connecting: return .yellow
-        case .disconnecting: return .orange
         case .disconnected: return .red
         }
     }

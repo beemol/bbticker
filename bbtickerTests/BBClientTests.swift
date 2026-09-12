@@ -572,7 +572,6 @@ class BBClientTests: XCTestCase {
         // Test ConnectionStatus color property
         XCTAssertEqual(ConnectionStatus.connected.color, .green)
         XCTAssertEqual(ConnectionStatus.connecting.color, .yellow)
-        XCTAssertEqual(ConnectionStatus.disconnecting.color, .orange)
         XCTAssertEqual(ConnectionStatus.disconnected.color, .red)
     }
     
@@ -580,7 +579,6 @@ class BBClientTests: XCTestCase {
         // Test ConnectionStatus description property
         XCTAssertEqual(ConnectionStatus.connected.description, "Connected")
         XCTAssertEqual(ConnectionStatus.connecting.description, "Connecting")
-        XCTAssertEqual(ConnectionStatus.disconnecting.description, "Disconnecting")
         XCTAssertEqual(ConnectionStatus.disconnected.description, "Disconnected")
     }
     
