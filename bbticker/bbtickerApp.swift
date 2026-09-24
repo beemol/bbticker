@@ -113,7 +113,9 @@ struct bbtickerApp: App {
         
         #if !os(macOS)
         backgroundTaskManager = BackgroundTaskManager(apiService: apiService)
-        SiriManager.shared.setupModernSiri()
+        Task {
+            await SiriManager.shared.setupModernSiri()
+        }
         #endif
         
         let launchDuration = Date().timeIntervalSince(appLaunchStartTime)
@@ -188,22 +190,21 @@ struct bbtickerApp: App {
         #endif
         #else
         WindowGroup {
-            ContentView()
-                .environmentObject(bybitClient)
-                .environmentObject(networkMonitor)
-                .environmentObject(settingsService)
-                .environmentObject(settingsViewModel)
-                .onAppear {
-                    
-                    backgroundTaskManager.scheduleBackgroundTasks()
-                    
-                    Task {
-                        await remoteConfigManager.refreshAllConfigurations()
-                    }
+            ContentView(
+                networkMonitor: networkMonitor,
+                disableCenter: disableCenter,
+                accountIdentifier: accountIdentifier
+            )
+            .environmentObject(bybitClient)
+            .environmentObject(settingsService)
+            .environmentObject(settingsViewModel)
+            .onAppear {
+                backgroundTaskManager.scheduleBackgroundTasks()
+                
+                Task {
+                    await remoteConfigManager.refreshAllConfigurations()
                 }
-                .sheet(isPresented: $showSettings) {
-                    SettingsView_iOS(viewModel: settingsViewModel)
-                }
+            }
         }
         #endif
     }

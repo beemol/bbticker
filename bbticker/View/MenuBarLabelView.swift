@@ -4,7 +4,7 @@
 //
 //  Created by Aleh Fiodarau on 01/12/2025.
 //
-
+#if os(macOS)
 import SwiftUI
 import AppKit
 
@@ -276,4 +276,5 @@ struct MenuBarLabelViewPreview: View {
         }
     }
 }
+#endif
 #endif

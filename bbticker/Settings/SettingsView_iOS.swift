@@ -1,14 +1,14 @@
 import SwiftUI
 import LLCore
-import Intents
 
 #if !os(macOS)
 struct SettingsView_iOS: View {
     @ObservedObject private var viewModel: SettingsViewModel
     @Environment(\.dismiss) var dismiss
     @State private var didInitialLoad = false
-    @State private var siriAuthorizationStatus: INSiriAuthorizationStatus = .notDetermined
     @State private var apiCredentialsState: ApiCredentialsState
+    @State private var shortcutsStatusMessage: String?
+    @State private var isConfiguringShortcuts = false
         
     init(viewModel: SettingsViewModel) {
         self.viewModel = viewModel
@@ -32,11 +32,14 @@ struct SettingsView_iOS: View {
                 saveStatusSection
                 //widgetSettingsSection
                 siriSettingsSection
+                balanceNotificationsSection
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
-                AnalyticsManager.shared.track(.settingsOpened)
+                Task {
+                    await AnalyticsManager.shared.track(.settingsOpened)
+                }
                 if didInitialLoad == false {
                     didInitialLoad = true
                     Task { await viewModel.performInitialLoad() }
@@ -77,9 +80,9 @@ struct SettingsView_iOS: View {
 
     private var saveStatusSection: some View {
         Group {
-            if !apiCredentialsState.saveStatus.isEmpty {
-                Text(apiCredentialsState.saveStatus)
-                    .foregroundColor(apiCredentialsState.saveStatusColor)
+            if !apiCredentialsState.saveStatus.message.isEmpty {
+                Text(apiCredentialsState.saveStatus.message)
+                    //.foregroundColor(apiCredentialsState.)
             }
         }
     }
@@ -107,76 +110,58 @@ struct SettingsView_iOS: View {
         }
     }
 
+    private var balanceNotificationsSection: some View {
+        Section {
+            Toggle("Balance Notifications", isOn: viewModel.balanceNotificationsEnabledBinding)
+            Text("Receive a notification with your current equity whenever the app refreshes in the background.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        } header: {
+            Text("Notifications")
+        }
+    }
+
     private var siriSettingsSection: some View {
-        Section("Voice Commands") {
-            // Show authorization status
-            HStack {
-                Text("Siri Status:")
-                    .foregroundColor(.secondary)
-                Spacer()
-                Text(siriStatusText)
-                    .foregroundColor(siriStatusColor)
-            }
-            
-            Button("Set up \"Hey Siri\" Commands") {
-                SiriManager.shared.setupModernSiri()
-                // Update status after a short delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    siriAuthorizationStatus = INPreferences.siriAuthorizationStatus()
-                }
-            }
-            
-            if siriAuthorizationStatus == .denied {
-                Button("Open Settings") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(url)
+        Section("Voice Commands & Shortcuts") {
+            Button(isConfiguringShortcuts ? "Updating..." : "Update \"Hey Siri\" Shortcuts") {
+                isConfiguringShortcuts = true
+                Task {
+                    let result = await SiriManager.shared.setupModernSiri()
+                    isConfiguringShortcuts = false
+                    switch result {
+                    case .success:
+                        shortcutsStatusMessage = "Shortcuts successfully registered with Siri!"
+                    case .failure(let err):
+                        shortcutsStatusMessage = "Setup error: \(err)"
                     }
                 }
-                .foregroundColor(.blue)
+            }
+            .disabled(isConfiguringShortcuts)
+
+            if let message = shortcutsStatusMessage {
+                Text(message)
+                    .font(.caption)
+                    .foregroundColor(.green)
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Try saying:")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                Text("• \"Hey Siri, what's my \(getAppName()) balance?\"")
+                Text("• \"Hey Siri, what's my \(getAppName()) balance\"")
                     .font(.caption)
                     .italic()
                 Text("• \"Hey Siri, check my balance in \(getAppName())\"")
                     .font(.caption)
                     .italic()
+                Text("• \"Hey Siri, get my \(getAppName()) balance\"")
+                    .font(.caption)
+                    .italic()
             }
-        }
-        .onAppear {
-            siriAuthorizationStatus = INPreferences.siriAuthorizationStatus()
-        }
-    }
-    
-    private var siriStatusText: String {
-        switch siriAuthorizationStatus {
-        case .authorized:
-            return "Enabled"
-        case .denied:
-            return "Denied"
-        case .restricted:
-            return "Restricted"
-        case .notDetermined:
-            return "Not Set Up"
-        @unknown default:
-            return "Unknown"
-        }
-    }
-    
-    private var siriStatusColor: Color {
-        switch siriAuthorizationStatus {
-        case .authorized:
-            return .green
-        case .denied, .restricted:
-            return .red
-        case .notDetermined:
-            return .orange
-        @unknown default:
-            return .gray
+            
+            Text("Tip: You can also open the iOS Shortcuts app and search for \"\(getAppName())\" to run the balance action directly.")
+                .font(.caption2)
+                .foregroundColor(.secondary)
         }
     }
 }

@@ -12,6 +12,7 @@ import LLApiService
 
 #if !os(macOS)
 
+@MainActor
 class BackgroundTaskManager: ObservableObject {
     private let backgroundTaskIdentifier = getBundleIdentifier() + ".background-fetch"
     
@@ -19,78 +20,92 @@ class BackgroundTaskManager: ObservableObject {
     @Published var backgroundFetchCount: Int = 0
     
     private let apiService: APIServiceProtocol
+    private let notificationService: NotificationService
     
-    init(apiService: APIServiceProtocol) {
+    init(apiService: APIServiceProtocol, notificationService: NotificationService = .shared) {
         self.apiService = apiService
+        self.notificationService = notificationService
         
         registerBackgroundTasks()
     }
     
     func registerBackgroundTasks() {
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
-            self.handleBackgroundFetch(task: task as! BGAppRefreshTask)
+        let registered = BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: backgroundTaskIdentifier,
+            using: .main
+        ) { [weak self] task in
+            guard let self = self, let refreshTask = task as? BGAppRefreshTask else {
+                task.setTaskCompleted(success: false)
+                return
+            }
+            self.handleBackgroundFetch(task: refreshTask)
         }
+        AppLog.background.info("Registered BGTask '\(self.backgroundTaskIdentifier)': \(registered)")
     }
     
     func scheduleBackgroundTasks() {
         let request = BGAppRefreshTaskRequest(identifier: backgroundTaskIdentifier)
-        request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60) // 15 minutes minimum
+        request.earliestBeginDate = Date(timeIntervalSinceNow: 60 * 60) // 1 hour
         
         do {
             try BGTaskScheduler.shared.submit(request)
-            // print("Background fetch scheduled successfully")
+            AppLog.background.info("Successfully submitted BGTask '\(self.backgroundTaskIdentifier)' with earliestBeginDate in 1 hour")
         } catch {
             AppLog.background.error("Could not schedule background fetch: \(error)")
         }
     }
     
     private func handleBackgroundFetch(task: BGAppRefreshTask) {
-        // print("Background fetch started")
+        AppLog.background.info("BGTaskScheduler fired task '\(self.backgroundTaskIdentifier)'")
         
         // Schedule the next background fetch
         scheduleBackgroundTasks()
         
-        // Set up task expiration
+        var fetchTask: Task<Void, Never>?
+        
+        // Set up task expiration immediately and synchronously
         task.expirationHandler = {
+            AppLog.background.warning("BGTask expired before completing")
+            fetchTask?.cancel()
             task.setTaskCompleted(success: false)
         }
         
-        // Perform the background fetch
-        performBackgroundDataFetch { success in
-            DispatchQueue.main.async {
-                self.lastBackgroundFetch = Date()
-                self.backgroundFetchCount += 1
-            }
+        // Perform the background fetch on MainActor
+        fetchTask = Task { @MainActor in
+            let success = await self.performBackgroundDataFetch()
+            self.lastBackgroundFetch = Date()
+            self.backgroundFetchCount += 1
             task.setTaskCompleted(success: success)
         }
     }
     
-    private func performBackgroundDataFetch(completion: @escaping (Bool) -> Void) {
-        fetchBalanceInBackground() { success in
-            completion(success)
-        }
-    }
-    
-    private func fetchBalanceInBackground(completion: @escaping (Bool) -> Void) {
-        Task {
-            do {
-                let walletData = try await apiService.fetchWalletBalanceForCurrentExchange()
-                
-                // Store the data for when app becomes active
-                UserDefaults.standard.set(walletData.totalEquity, forKey: "background_total_equity")
-                UserDefaults.standard.set(walletData.walletBalance, forKey: "background_wallet_balance")
-                UserDefaults.standard.set(Date(), forKey: "background_last_update")
-                
-                AppLog.background.info("Updated -> Total Equity: \(walletData.totalEquity), Wallet Balance (USDT): \(walletData.walletBalance)")
-                completion(true)
-            } catch {
-                AppLog.background.error("Background API Error: \(error.localizedDescription)")
-                completion(false)
+    private func performBackgroundDataFetch() async -> Bool {
+        do {
+            let walletData = try await apiService.fetchWalletBalanceForCurrentExchange()
+            
+            // Store the data for when app becomes active
+            UserDefaults.standard.set(walletData.totalEquity, forKey: "background_total_equity")
+            UserDefaults.standard.set(walletData.walletBalance, forKey: "background_wallet_balance")
+            UserDefaults.standard.set(Date(), forKey: "background_last_update")
+            
+            // Notify the user with the fresh balance, if enabled in Settings
+            let notificationsEnabled = UserDefaults.standard.bool(forKey: SettingsService.StorageKey.balanceNotificationsEnabled)
+            if notificationsEnabled {
+                AppLog.background.info("Notifications enabled; posting balance notification for equity: \(walletData.totalEquity)")
+                notificationService.postBalanceNotification(totalEquity: walletData.totalEquity)
+            } else {
+                AppLog.background.info("Balance notifications toggle is OFF; skipping notification")
             }
+            
+            AppLog.background.info("Updated -> Total Equity: \(walletData.totalEquity), Wallet Balance (USDT): \(walletData.walletBalance)")
+            return true
+        } catch {
+            AppLog.background.error("Background API Error: \(error.localizedDescription)")
+            return false
         }
     }
     
-    func getBackgroundData() -> (totalEquity: String, walletBalance: String, lastUpdate: Date?)? {
+    func getSavedBackgroundData() -> (totalEquity: String, walletBalance: String, lastUpdate: Date?)? {
         guard let totalEquity = UserDefaults.standard.string(forKey: "background_total_equity"),
               let walletBalance = UserDefaults.standard.string(forKey: "background_wallet_balance"),
               let lastUpdate = UserDefaults.standard.object(forKey: "background_last_update") as? Date else {

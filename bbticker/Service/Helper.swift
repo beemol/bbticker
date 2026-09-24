@@ -10,7 +10,7 @@ import SwiftUI
 import LLCore
 
 func getAppName() -> String {
-    return Bundle.main.localizedInfoDictionary?["CFBundleName"] as? String ?? "BTicker"
+    return Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "bbticker"
 }
 
 func getBundleIdentifier() -> String {

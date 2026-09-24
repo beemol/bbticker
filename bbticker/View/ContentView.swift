@@ -15,13 +15,9 @@ struct ContentView: View {
     @EnvironmentObject var settingsService: SettingsService
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     
-    @StateObject private var networkMonitor = NetworkMonitor()
-    @StateObject private var disableCenter = DisableCenter()
-
-    @State private var inputApiKey: String = ""
-    @State private var inputApiSecret: String = ""
-    @State private var inputPassphrase: String = "" // Passphrase is optional for Bybit
-    @State private var accountIdentifier: String = "defaultUser" // Use a unique identifier for Keychain
+    var networkMonitor: any NetworkStoreProtocol
+    @ObservedObject var disableCenter: DisableCenter
+    let accountIdentifier: String
 
     @State private var showSettings = false
 
@@ -37,19 +33,11 @@ struct ContentView: View {
                     Divider()
 
                     HStack {
-                        Text(networkMonitor.isConnected ? "Connected" : "Disconnected")
+                        NetworkStatusView(state: networkMonitor.state)
+                        Text("API: \(bybitClient.connectionStatus.description)")
                             .font(.headline)
-                            .foregroundColor(networkMonitor.isConnected ? .green : .red)
-                        if networkMonitor.isConnected {
-                            Text("(\(networkMonitor.connectionType.rawValue))")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
+                            .foregroundColor(bybitClient.isConnected ? .green : .red)
                     }
-                    
-                    Text("Connection Status: \(bybitClient.connectionStatus)")
-                        .font(.headline)
-                        .foregroundColor(bybitClient.isConnected ? .green : .red)
 
                     if let authError = bybitClient.authenticationError {
                         Text(authError)
@@ -64,7 +52,7 @@ struct ContentView: View {
                     HStack {
                         Text("Total Equity:")
                         Spacer()
-                        Text(bybitClient.totalEquity)
+                        Text(String(format: "%.1f", bybitClient.walletState.equity))
                             .font(.title2)
                             .bold()
                     }
@@ -73,7 +61,7 @@ struct ContentView: View {
                     HStack {
                         Text("Wallet Balance:")
                         Spacer()
-                        Text(bybitClient.walletBalance)
+                        Text(String(format: "%.1f", bybitClient.walletState.balance))
                             .font(.title2)
                             .bold()
                     }
@@ -82,7 +70,7 @@ struct ContentView: View {
                     HStack {
                         Text("Maintenance Margin:")
                         Spacer()
-                        Text(bybitClient.maintenanceMargin)
+                        Text(String(format: "%.1f", bybitClient.walletState.maintenanceMarginPercentage))
                             .font(.title2)
                             .bold()
                             .foregroundColor(bybitClient.walletState.maintenanceMarginColor)
@@ -93,10 +81,13 @@ struct ContentView: View {
 
                     // Single dynamic connection button
                     ConnectionButton(
-                        bybitClient: bybitClient,
                         disableCenter: disableCenter,
                         accountIdentifier: accountIdentifier,
-                        style: .prominent
+                        style: .prominent,
+                        connectionStatus: bybitClient.connectionStatus,
+                        isNetworkConnected: bybitClient.isNetworkConnected,
+                        onConnect: { await bybitClient.connect() },
+                        onDisconnect: { bybitClient.disconnect() }
                     )
                     
                     Spacer() // Pushes content to top
@@ -109,13 +100,7 @@ struct ContentView: View {
                         }
                     }
                 }
-                //.navigationTitle("App Settings")
-                #if !os(macOS)
                 .navigationBarTitleDisplayMode(.inline)
-                #endif
-                #if os(macOS)
-                .frame(minWidth: 350, minHeight: 400)
-                #endif
             }
         }
         .sheet(isPresented: $showSettings) {
@@ -125,29 +110,24 @@ struct ContentView: View {
 }
 
 // For Xcode Previews
-private final class PreviewAPIService: APIServiceProtocol {
-    func fetchWalletBalance(for exchangeType: ExchangeType) async throws -> WalletData {
-        WalletData(totalEquity: 1234.56, walletBalance: 789.01)
-    }
-    func fetchWalletBalanceForCurrentExchange() async throws -> WalletData {
-        WalletData(totalEquity: 1234.56, walletBalance: 789.01)
-    }
-}
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         let settings = SettingsService()
-        let apiService = PreviewAPIService()
         let client = BBClient(
             settingsService: settings,
-            networkMonitor: NetworkMonitorAdapter(),
-            apiService: apiService,
+            networkMonitor: Mocks.MockNetworkMonitor(),
             sharedDataManager: SharedDataManager.shared,
-            credentialManager: Mocks.MockCredentialManager()
+            walletRepository: Mocks.MockWalletRepository()
         )
-        return ContentView()
-            .environmentObject(client)
-            .environmentObject(settings)
+        let settingsViewModel = Mocks.MockSettingsViewModel()
+        return ContentView(
+            networkMonitor: Mocks.MockNetworkMonitor(),
+            disableCenter: Mocks.MockDisableCenter(),
+            accountIdentifier: "previewUser"
+        )
+        .environmentObject(client)
+        .environmentObject(settings)
+        .environmentObject(settingsViewModel)
     }
 }
 #endif

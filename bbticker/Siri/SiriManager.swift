@@ -1,65 +1,46 @@
+//
+//  SiriManager.swift
+//  bbticker
+//
+//  Created by Aleh Fiodarau on 15/09/2026.
+//
+
 import Foundation
 import AppIntents
-import Intents
 
-// MARK: - Simple Siri Manager
 #if !os(macOS)
-class SiriManager {
+@MainActor
+final class SiriManager: Sendable {
     static let shared = SiriManager()
+    
+    enum SetupResult: Equatable {
+        case success
+        case failure(String)
+    }
     
     private init() {}
     
-    func setupModernSiri() {
-        // Force update app shortcuts with the system
-        // This is crucial after app reinstall or updates
-        
+    @discardableResult
+    func setupModernSiri() async -> SetupResult {
         BalanceShortcutsProvider.updateAppShortcutParameters()
-//        Task {
-//            do {
-//                try await BalanceShortcutsProvider.updateAppShortcutParameters()
-//                print("✅ App shortcuts updated successfully")
-//            } catch {
-//                print("⚠️ Failed to update app shortcuts: \(error)")
-//            }
-//        }
         
-        // Request Siri authorization first
-        INPreferences.requestSiriAuthorization { status in
-            switch status {
-            case .authorized:
-                AppLog.siri.info("Siri authorization granted")
-                
-                // Donate the shortcut to help Siri learn the phrases
-                Task {
-                    do {
-                        let intent = GetBalanceIntent()
-                        try await intent.donate()
-                        // print("✅ Siri intent donated successfully")
-                        
-                    } catch {
-                        AppLog.siri.error("Failed to donate Siri intent: \(error)")
-                    }
-                }
-                
-                AnalyticsManager.shared.track(.other(msg: "siri_shortcut_setup"))
-                
-            case .denied:
-                AppLog.siri.warning("Siri authorization denied")
-                AnalyticsManager.shared.track(.other(msg: "siri_authorization_denied"))
-                
-            case .restricted:
-                AppLog.siri.warning("Siri authorization restricted")
-                AnalyticsManager.shared.track(.other(msg: "siri_authorization_restricted"))
-                
-            case .notDetermined:
-                // print("⚠️ Siri authorization not determined")
-                break
-                
-            @unknown default:
-                // print("⚠️ Unknown Siri authorization status")
-                break
+        do {
+            let intent = GetBalanceIntent()
+            try await intent.donate()
+            
+            AppLog.siri.info("Siri App Shortcut parameters updated and GetBalanceIntent donated successfully")
+            Task.detached {
+                await AnalyticsManager.shared.track(.other(msg: "siri_shortcut_setup_success"))
             }
+            return .success
+        } catch {
+            let errorMsg = error.localizedDescription
+            AppLog.siri.error("Failed to donate GetBalanceIntent: \(errorMsg)")
+            Task.detached {
+                await AnalyticsManager.shared.track(.unexpectedError(context: "siri_setup", description: errorMsg))
+            }
+            return .failure(errorMsg)
         }
     }
-} 
+}
 #endif

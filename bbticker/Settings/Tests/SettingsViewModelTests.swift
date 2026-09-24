@@ -366,6 +366,10 @@ class MockSettingsService: SettingsServiceProtocol {
         realService.setShowMarginLevelDot(enabled)
     }
 
+    func setBalanceNotificationsEnabled(_ enabled: Bool) {
+        realService.setBalanceNotificationsEnabled(enabled)
+    }
+
     func reset() {
         setUpdateFrequencyCalled = false
         setExchangeTypeCalled = false

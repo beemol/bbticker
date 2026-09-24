@@ -18,6 +18,7 @@ protocol SettingsServiceProtocol: ObservableObject {
     func setExchangeType(_ exchangeType: Exchange)
     func setUpdateFrequency(_ frequency: Double)
     func setShowMarginLevelDot(_ enabled: Bool)
+    func setBalanceNotificationsEnabled(_ enabled: Bool)
     func applyProStatus(_ unlocked: Bool)
     
     // UI-facing bridge bindings
@@ -80,6 +81,7 @@ final class SettingsState {
     var exchangeType: Exchange = Exchange(.bybit, wallet: .unified)
     var isProActive: Bool = false
     var showMarginLevelDot: Bool = true
+    var balanceNotificationsEnabled: Bool = false
 }
 
 /// Shared service for app settings that can be observed reactively
@@ -90,6 +92,7 @@ final class SettingsService: SettingsServiceProtocol {
         static let selectExchangeType: String = "selected_exchange_type"
         static let updateFrequency: String = "update_frequency"
         static let showMarginLevelDot: String = "pro_margin_level_dot"
+        static let balanceNotificationsEnabled: String = "balance_notifications_enabled"
     }
     
     let state = SettingsState()
@@ -103,6 +106,7 @@ final class SettingsService: SettingsServiceProtocol {
         loadUpdateFrequency()
         loadExchangeType()
         loadShowMarginLevelDot()
+        loadBalanceNotificationsEnabled()
         
         // Load cached IAP unlock state for fast UI reflect
         let cached = storage.value(forKey: StorageKey.isProActive) as? Bool ?? false
@@ -119,6 +123,11 @@ final class SettingsService: SettingsServiceProtocol {
     func setShowMarginLevelDot(_ enabled: Bool) {
         state.showMarginLevelDot = enabled
         storage.save(key: StorageKey.showMarginLevelDot, value: enabled)
+    }
+    
+    func setBalanceNotificationsEnabled(_ enabled: Bool) {
+        state.balanceNotificationsEnabled = enabled
+        storage.save(key: StorageKey.balanceNotificationsEnabled, value: enabled)
     }
     
     func setExchangeType(_ newExchangeType: Exchange) {
@@ -169,6 +178,12 @@ final class SettingsService: SettingsServiceProtocol {
     private func loadShowMarginLevelDot() {
         if let stored = storage.value(forKey: StorageKey.showMarginLevelDot) as? Bool {
             state.showMarginLevelDot = stored
+        }
+    }
+    
+    private func loadBalanceNotificationsEnabled() {
+        if let stored = storage.value(forKey: StorageKey.balanceNotificationsEnabled) as? Bool {
+            state.balanceNotificationsEnabled = stored
         }
     }
     

@@ -239,6 +239,10 @@ class Mocks {
             state.showMarginLevelDot = enabled
         }
 
+        func setBalanceNotificationsEnabled(_ enabled: Bool) {
+            state.balanceNotificationsEnabled = enabled
+        }
+
         // MARK: - Test helper
         func reset() {
             setUpdateFrequencyCalled = false

@@ -66,6 +66,17 @@ class SettingsViewModel: ObservableObject {
         }
     }
     
+    func setBalanceNotificationsEnabled(_ enabled: Bool) {
+        settingsService.setBalanceNotificationsEnabled(enabled)
+        #if !os(macOS)
+        if enabled {
+            Task {
+                await NotificationService.shared.requestAuthorization()
+            }
+        }
+        #endif
+    }
+    
     // MARK: - Widget Settings
     
     func setWidgetEnabled(_ enabled: Bool) {
@@ -133,6 +144,13 @@ class SettingsViewModel: ObservableObject {
         Binding(
             get: { self.settingsService.state.showMarginLevelDot },
             set: { self.settingsService.setShowMarginLevelDot($0) }
+        )
+    }
+
+    var balanceNotificationsEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { self.settingsService.state.balanceNotificationsEnabled },
+            set: { self.setBalanceNotificationsEnabled($0) }
         )
     }
 

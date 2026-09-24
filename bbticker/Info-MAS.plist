@@ -8,5 +8,21 @@
 	<string>public.app-category.finance</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>GetBalanceIntent</string>
+	</array>
+	<key>NSSiriUsageDescription</key>
+	<string>This app uses Siri to let you check your balance with voice commands.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.alehfiodarau.bbticker.background-fetch</string>
+		<string>com.alehfiodarau.bbticker.standalone.background-fetch</string>
+	</array>
 </dict>
 </plist>
