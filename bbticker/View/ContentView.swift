@@ -7,10 +7,13 @@
 
 import SwiftUI
 import LLCore
+import OSLog
 
 // Used for iOS only
 #if !os(macOS)
 struct ContentView: View {
+    @State private var router = IOSRouter()
+    
     @EnvironmentObject var bybitClient: BBClient
     @EnvironmentObject var settingsService: SettingsService
     @EnvironmentObject var settingsViewModel: SettingsViewModel
@@ -18,8 +21,6 @@ struct ContentView: View {
     var networkMonitor: any NetworkStoreProtocol
     @ObservedObject var disableCenter: DisableCenter
     let accountIdentifier: String
-
-    @State private var showSettings = false
 
     var body: some View {
         NavigationView {
@@ -95,7 +96,9 @@ struct ContentView: View {
                 .padding()
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button { showSettings = true } label: {
+                        Button {
+                            router.navigate(to: .settings(section: nil))
+                        } label: {
                             Image(systemName: "gearshape.fill")
                         }
                     }
@@ -103,8 +106,18 @@ struct ContentView: View {
                 .navigationBarTitleDisplayMode(.inline)
             }
         }
-        .sheet(isPresented: $showSettings) {
-            SettingsView_iOS(viewModel: settingsViewModel)
+        .sheet(item: $router.presentedSheet) { sheet in
+            switch sheet {
+            case .settings(_):
+                SettingsView_iOS(viewModel: settingsViewModel)
+            }
+        }
+        .onOpenURL { url in
+            guard let route = DeepLinkParser.parse(url) else {
+                AppLog.remoteConfig.error("Failed to parse URL: \(url)")
+                return
+            }
+            router.navigate(to: RouteResolver.resolve(route))
         }
     }
 }

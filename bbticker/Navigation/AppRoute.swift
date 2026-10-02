@@ -1,5 +1,5 @@
 //
-//  SettingsSection.swift
+//  AppRoute.swift
 //  bbticker
 //
 //  Created by Aleh Fiodarau on 9/29/26.

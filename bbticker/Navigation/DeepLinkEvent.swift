@@ -7,25 +7,6 @@
 
 import Foundation
 
-final class DeepLinkRouter: Sendable {
-    static let shared = DeepLinkRouter()
-
-    func handle(_ url: URL) {
-        guard let route = DeepLinkParser.parse(url) else {
-            return
-        }
-
-        switch route {
-        case .bybitConnectionCompleted:
-            openBybitConnection()
-        }
-    }
-
-    private func openBybitConnection() {
-        // TODO: navigate to Bybit connection flow
-    }
-}
-
 enum DeepLinkEvent: Sendable {
     case bybitConnectionCompleted
 }
