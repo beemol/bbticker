@@ -53,7 +53,7 @@ struct BybitWidgetSmallView: View {
     
     var body: some View {
         VStack(spacing: 4) {
-            Text(entry.totalEquity)
+            Text(CompactBalanceFormatter.display(rawValue: entry.totalEquity))
                 .font(.title2)
                 .bold()
                 .lineLimit(1)
@@ -88,7 +88,7 @@ struct BybitWidgetMediumView: View {
             
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(entry.totalEquity)
+                    Text(CompactBalanceFormatter.display(rawValue: entry.totalEquity))
                         .font(.title)
                         .bold()
                         .lineLimit(1)
@@ -102,7 +102,7 @@ struct BybitWidgetMediumView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Text(entry.walletBalance)
+                    Text(CompactBalanceFormatter.display(rawValue: entry.walletBalance))
                         .font(.headline)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)

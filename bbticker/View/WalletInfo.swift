@@ -18,7 +18,7 @@ struct WalletInfo: View {
                         .font(.subheadline)
                     .foregroundColor(.gray)
                     Spacer()
-                    Text(String(format: "%.1f", walletState.wrappedValue.equity))
+                    Text(CompactBalanceFormatter.display(walletState.wrappedValue.equity))
                     .font(.subheadline)
                     .foregroundColor(.gray)
                 }
@@ -29,7 +29,7 @@ struct WalletInfo: View {
                     .font(.subheadline)
                     .foregroundColor(.gray)
                     Spacer()
-                    Text(String(format: "%.1f", walletState.wrappedValue.balance))
+                    Text(CompactBalanceFormatter.display(walletState.wrappedValue.balance))
                     .font(.subheadline)
                     .foregroundColor(.gray)
                          

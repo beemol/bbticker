@@ -53,7 +53,7 @@ struct ContentView: View {
                     HStack {
                         Text("Total Equity:")
                         Spacer()
-                        Text(String(format: "%.1f", bybitClient.walletState.equity))
+                        Text(CompactBalanceFormatter.display(bybitClient.walletState.equity))
                             .font(.title2)
                             .bold()
                     }
@@ -62,7 +62,7 @@ struct ContentView: View {
                     HStack {
                         Text("Wallet Balance:")
                         Spacer()
-                        Text(String(format: "%.1f", bybitClient.walletState.balance))
+                        Text(CompactBalanceFormatter.display(bybitClient.walletState.balance))
                             .font(.title2)
                             .bold()
                     }

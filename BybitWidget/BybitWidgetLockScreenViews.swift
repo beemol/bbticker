@@ -8,18 +8,6 @@ import WidgetKit
 
 // MARK: - Helper Functions
 
-private func formatCompact(_ value: String) -> String {
-    guard let doubleValue = Double(value) else { return value }
-    
-    if doubleValue >= 1_000_000 {
-        return String(format: "%.1fM", doubleValue / 1_000_000)
-    } else if doubleValue >= 1_000 {
-        return String(format: "%.1fK", doubleValue / 1_000)
-    } else {
-        return String(format: "%.0f", doubleValue)
-    }
-}
-
 private func formatTimeAgo(_ date: Date) -> String {
     let seconds = Int(Date().timeIntervalSince(date))
     if seconds < 60 { return "\(seconds)s" }
@@ -40,7 +28,7 @@ struct BybitCircularLockScreenView: View {
                 .font(.system(size: 18))
                 .foregroundColor(entry.connectionStatus == "Connected" ? .green : .red)
             
-            Text(formatCompact(entry.totalEquity))
+            Text(CompactBalanceFormatter.display(rawValue: entry.totalEquity))
                 .font(.system(size: 13, weight: .bold))
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
@@ -66,7 +54,7 @@ struct BybitRectangularLockScreenView: View {
             }
             .foregroundColor(.secondary)
             
-            Text("$\(entry.totalEquity)")
+            Text("$\(CompactBalanceFormatter.display(rawValue: entry.totalEquity))")
                 .font(.system(size: 18, weight: .bold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -96,7 +84,7 @@ struct BybitInlineLockScreenView: View {
             Image(systemName: entry.connectionStatus == "Connected" ? "dollarsign.circle.fill" : "exclamationmark.circle.fill")
                 .font(.system(size: 12))
                 .foregroundColor(entry.connectionStatus == "Connected" ? .green : .red)
-            Text("$\(formatCompact(entry.totalEquity))")
+            Text("$\(CompactBalanceFormatter.display(rawValue: entry.totalEquity))")
                 .font(.system(size: 13, weight: .semibold))
         }
         .containerBackground(for: .widget) {

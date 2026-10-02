@@ -25,7 +25,7 @@ struct MenuBarLabelView: View {
     }
     
     private func generateMenuBarImage(showMarginLevelDot: Bool) -> NSImage {
-        let text = String(format: "%.1f", walletState.equity)
+        let text = CompactBalanceFormatter.display(walletState.equity)
         let font = NSFont.systemFont(ofSize: 12, weight: .medium)
         
         // Determine text color based on connection and stale state
