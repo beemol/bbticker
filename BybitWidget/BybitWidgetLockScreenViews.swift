@@ -28,7 +28,7 @@ struct BybitCircularLockScreenView: View {
                 .font(.system(size: 18))
                 .foregroundColor(entry.connectionStatus == "Connected" ? .green : .red)
             
-            Text(CompactBalanceFormatter.display(rawValue: entry.totalEquity))
+            CompactBalanceText(rawValue: entry.totalEquity)
                 .font(.system(size: 13, weight: .bold))
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
@@ -54,7 +54,7 @@ struct BybitRectangularLockScreenView: View {
             }
             .foregroundColor(.secondary)
             
-            Text("$\(CompactBalanceFormatter.display(rawValue: entry.totalEquity))")
+            CompactBalanceText(rawValue: entry.totalEquity, prefix: "$")
                 .font(.system(size: 18, weight: .bold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -84,7 +84,7 @@ struct BybitInlineLockScreenView: View {
             Image(systemName: entry.connectionStatus == "Connected" ? "dollarsign.circle.fill" : "exclamationmark.circle.fill")
                 .font(.system(size: 12))
                 .foregroundColor(entry.connectionStatus == "Connected" ? .green : .red)
-            Text("$\(CompactBalanceFormatter.display(rawValue: entry.totalEquity))")
+            CompactBalanceText(rawValue: entry.totalEquity, prefix: "$")
                 .font(.system(size: 13, weight: .semibold))
         }
         .containerBackground(for: .widget) {
