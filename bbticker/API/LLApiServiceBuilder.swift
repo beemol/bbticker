@@ -9,24 +9,24 @@ import Foundation
 import LLApiService
 import LLCore
 
-struct LLApiServiceBuilder<T> {
-    static func make(for exchange: ExchangeType,
-                     endpointType: EndpointType,
-                     credentials: Credentials,
-                     networkService: LLNetworkServiceProtocol) throws -> LLApiService<T> {
+struct LLApiServiceBuilder {
+    static func make<E: Endpoint>(for exchange: ExchangeType,
+                                      endpoint: E,
+                                   credentials: Credentials,
+                                networkService: LLNetworkServiceProtocol) throws -> LLApiService<E.Output> {
         
         let registry = exchange.registry
         
-        guard let requestBuilder = registry.requestBuilder(for: exchange, credentials: credentials, endpointType: endpointType) else {
+        guard let requestBuilder = registry.requestBuilder(for: exchange, credentials: credentials, endpointType: endpoint.id) else {
             throw NSError(domain: "LLApiServiceBuilder",
                                  code: 1,
-                                 userInfo: [NSLocalizedDescriptionKey: "Not able to find request builder for exchange: \(exchange.identifier), endpoint: \(endpointType)"])
+                                 userInfo: [NSLocalizedDescriptionKey: "Not able to find request builder for exchange: \(exchange.identifier), endpoint: \(endpoint)"])
         }
         
-        guard let parser: any LLResponseParserProtocol<T> = registry.parser(for: exchange.identifier, endpointType: endpointType) else {
+        guard let parser = registry.parser(for: exchange.identifier, endpoint: endpoint) else {
             throw NSError(domain: "LLApiServiceBuilder",
                           code: 1,
-                          userInfo: [NSLocalizedDescriptionKey: "Not able to find parser for exchange: \(exchange.identifier), endpoint: \(endpointType)"])
+                          userInfo: [NSLocalizedDescriptionKey: "Not able to find parser for exchange: \(exchange.identifier), endpoint: \(endpoint)"])
         }
         
         let errorDetector = registry.errorDetector(for: exchange.identifier)

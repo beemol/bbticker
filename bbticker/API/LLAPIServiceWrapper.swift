@@ -13,7 +13,7 @@ import LLCore
 @MainActor
 class LLAPIServiceWrapper: APIServiceProtocol {
     func fetchApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any ApiKeyInfo {
-        let endpoint = "api-key-info"
+        let endpointString = "api-key-info"
         
         do {
             // LLApiService handles the entire error detection pipeline:
@@ -22,12 +22,12 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             // 3. Application-level error detection (via BybitErrorDetector, etc.)
             // 4. Parsing (via ByBitApiKeyInfoParser)
             
-            let endpointType = EndpointType.apiKeyInfo
+            let endpoint = APIKeyInfoEndpoint()
             let account = exchangeType.envIDString
             let credentials = try await credentialManager.getCredentials(forAccount: account)
-            let service = try LLApiServiceBuilder<ApiKeyInfoData>.make(
+            let service = try LLApiServiceBuilder.make(
                 for: exchangeType,
-                endpointType: endpointType,
+                endpoint: endpoint,
                 credentials: credentials,
                 networkService: LLNetworkService(urlSession: urlSession)
             )
@@ -35,7 +35,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             
             // Track success, but do not block result
             Task.detached {
-                await AnalyticsManager.shared.track(.apiSuccess(endpoint: endpoint))
+                await AnalyticsManager.shared.track(.apiSuccess(endpoint: endpointString))
             }
             return apiKeyInfo
             
@@ -43,7 +43,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             // Domain error from error detector (HTTP or application-level)
             AppLog.api.error("Domain error: \(domainError.userMessage)")
             await AnalyticsManager.shared.track(.apiFailure(
-                endpoint: endpoint,
+                endpoint: endpointString,
                 error: "domain_\(domainError.context.apiCode ?? "unknown")"
             ))
             throw domainError
@@ -52,7 +52,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             // Simple API error (parse error, invalid request, etc.)
             AppLog.api.error("API error: \(apiError.localizedDescription)")
             await AnalyticsManager.shared.track(.apiFailure(
-                endpoint: endpoint,
+                endpoint: endpointString,
                 error: "api_\(apiError.localizedDescription)"
             ))
             throw apiError
@@ -61,14 +61,14 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             // Network or unknown error - map to domain error
             AppLog.api.error("Network error: \(error.localizedDescription)")
             await AnalyticsManager.shared.track(.apiFailure(
-                endpoint: endpoint,
+                endpoint: endpointString,
                 error: error.localizedDescription
             ))
             
             let mapped = APIErrorMapper.mapNetworkError(
                 error,
                 exchange: exchangeType.identifier,
-                endpoint: endpoint
+                endpoint: endpointString
             )
             throw mapped
         }
@@ -90,7 +90,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
     }
     
     func fetchWalletBalance(for exchangeType: ExchangeType) async throws -> WalletData {
-        let endpoint = "wallet-balance"
+        let endpointString = "wallet-balance"
         
         do {
             // LLApiService handles the entire error detection pipeline:
@@ -99,15 +99,15 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             // 3. Application-level error detection (via BybitErrorDetector, etc.)
             // 4. Parsing (via WalletDataParserFactory)
             
-            let endpointType = EndpointType.wallet(exchangeType.walletType)
+            let endpoint = WalletEndpoint(exchangeType.walletType)
             let account = exchangeType.envIDString
             let credentials = try await credentialManager.getCredentials(forAccount: account)
-            let service = try LLApiServiceBuilder<WalletData>.make(for: exchangeType, endpointType: endpointType, credentials: credentials, networkService: LLNetworkService(urlSession: urlSession))
+            let service = try LLApiServiceBuilder.make(for: exchangeType, endpoint: endpoint, credentials: credentials, networkService: LLNetworkService(urlSession: urlSession))
             let walletData = try await service.execute()
             
             // Track success, but do not block result
             Task.detached {
-                await AnalyticsManager.shared.track(.apiSuccess(endpoint: endpoint))
+                await AnalyticsManager.shared.track(.apiSuccess(endpoint: endpointString))
             }
             return walletData
             
@@ -115,7 +115,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             // Domain error from error detector (HTTP or application-level)
             AppLog.api.error("Domain error: \(domainError.userMessage)")
             await AnalyticsManager.shared.track(.apiFailure(
-                endpoint: endpoint,
+                endpoint: endpointString,
                 error: "domain_\(domainError.context.apiCode ?? "unknown")"
             ))
             throw domainError
@@ -124,7 +124,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             // Simple API error (parse error, invalid request, etc.)
             AppLog.api.error("API error: \(apiError.localizedDescription)")
             await AnalyticsManager.shared.track(.apiFailure(
-                endpoint: endpoint,
+                endpoint: endpointString,
                 error: "api_\(apiError.localizedDescription)"
             ))
             throw apiError
@@ -133,14 +133,14 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             // Network or unknown error - map to domain error
             AppLog.api.error("Network error: \(error.localizedDescription)")
             await AnalyticsManager.shared.track(.apiFailure(
-                endpoint: endpoint,
+                endpoint: endpointString,
                 error: error.localizedDescription
             ))
             
             let mapped = APIErrorMapper.mapNetworkError(
                 error,
                 exchange: exchangeType.identifier,
-                endpoint: endpoint
+                endpoint: endpointString
             )
             throw mapped
         }
