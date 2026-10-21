@@ -15,6 +15,8 @@ import Combine
 import AppKit
 #endif
 
+import LLCore
+
 @main
 struct bbtickerApp: App {
     
@@ -62,6 +64,8 @@ struct bbtickerApp: App {
             Self.isFirebaseConfigured = true
         }
         #endif
+        
+        ExchangeRegistry.shared.registerBybitDefaults()
         
         // Create dependencies as local variables
         let credentialManager = CredentialManager(keychainHelper: KeychainHelper.shared)

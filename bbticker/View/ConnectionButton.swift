@@ -179,7 +179,7 @@ struct ConnectionButton_Previews: PreviewProvider {
             ApiKeyInfoData(createdAt: Date())
         }
         
-        func getWalletData(for exchangeType: any LLCore.ExchangeType) async throws -> LLCore.WalletData {
+        func getWalletData(for exchangeType: any LLCore.ExchangeType) async throws -> WalletData {
             WalletData(totalEquity: 123.1, walletBalance: 32.1)
         }
     }

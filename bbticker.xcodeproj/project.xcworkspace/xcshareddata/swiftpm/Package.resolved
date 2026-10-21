@@ -1,5 +1,5 @@
 {
-  "originHash" : "6e82ddd5b2356220ab4842c79937ea80bdfc3e6a26cc27a3c55dd923cc2ac04a",
+  "originHash" : "15e804127066b21072fda84da943e037ef368cb3354477565d8678a1874b28b0",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -110,15 +110,6 @@
       }
     },
     {
-      "identity" : "llcore",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/beemol/LLCore.git",
-      "state" : {
-        "revision" : "760f222de3f4081fadad2a794cd1c3c4a95be51c",
-        "version" : "0.1.1"
-      }
-    },
-    {
       "identity" : "nanopb",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/firebase/nanopb.git",
@@ -134,15 +125,6 @@
       "state" : {
         "revision" : "f4a19a3c313dc2616c70bb49d29a799fb16be837",
         "version" : "2.4.1"
-      }
-    },
-    {
-      "identity" : "sparkle",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/sparkle-project/Sparkle.git",
-      "state" : {
-        "revision" : "eef1a539a373c1f1a320624b1130fc5de7b2e100",
-        "version" : "2.10.0"
       }
     }
   ],

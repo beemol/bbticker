@@ -161,6 +161,7 @@
 				"Info-STANDALONE.plist",
 				Navigation/Tests/DeepLinkParserTests.swift,
 				Navigation/Tests/RouterTests.swift,
+				PollingModule/PollingStrategy.swift,
 				Repository/Tests/WalletRepositoryTests.swift,
 				Service/ApiKeyExpiration/Tests/ApiKeyExpirationTests.swift,
 				Service/BackgroundTaskManager.swift,
@@ -523,9 +524,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				E7E7B9A52E37AAAF00CBD9F4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				E7590AE32E411C3B00F1B7ED /* XCRemoteSwiftPackageReference "Sparkle" */,
 				E7579BA62ECE5DA000BA30FC /* XCRemoteSwiftPackageReference "LLApiService" */,
-				F2041426302200E900B92C71 /* XCRemoteSwiftPackageReference "LLCore" */,
+				F2CDF6BA3073D6E6009696A5 /* XCLocalSwiftPackageReference "../LLCore" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E7C513BF2E16C55700561E15 /* Products */;
@@ -1241,6 +1241,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		F2CDF6BA3073D6E6009696A5 /* XCLocalSwiftPackageReference "../LLCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../LLCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		E7579BA62ECE5DA000BA30FC /* XCRemoteSwiftPackageReference "LLApiService" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -1248,14 +1255,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 0.1.0;
-			};
-		};
-		E7590AE32E411C3B00F1B7ED /* XCRemoteSwiftPackageReference "Sparkle" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.7.1;
 			};
 		};
 		E791F3822E6FFCE3005B9BE8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
@@ -1280,14 +1279,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 12.0.0;
-			};
-		};
-		F2041426302200E900B92C71 /* XCRemoteSwiftPackageReference "LLCore" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/beemol/LLCore.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

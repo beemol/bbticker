@@ -203,15 +203,15 @@ class BBClient: ObservableObject {
         )
     }
 
-    func handlePollingError(_ error: Error) -> PollingStrategyAction {
+    func handlePollingError(_ error: PollingError) -> PollingStrategyAction {
         // print("[BBClient] handlePollingError called with error: \(error)")
         
-        if let apiError = error as? APIDomainError, case .network = apiError {
+        if case let .general(pError) = error, let apiError = pError as? APIDomainError, case .network = apiError {
             authenticationError = apiError.userMessage
             $walletState.markStale()
             return .continuePolling
-        } else if let apiError = error as? APIDomainError, case .unknown = apiError {
-            authenticationError = "Polling Error: \(error.localizedDescription)"
+        } else if case .maxAttemptsReached = error {
+            authenticationError = "Polling Error: Max attempts reached. Giving up."
             $walletState.markStale()
             pollingStrategy?.stop()
             
@@ -219,7 +219,11 @@ class BBClient: ObservableObject {
             
             return .stopPolling
         } else {
-            setDisconnectedState(errorMessage: "API Error: \(error.localizedDescription)")
+            var errMsg: String = "Unknown"
+            if case let .general(pError) = error {
+                errMsg = pError.localizedDescription
+            }
+            setDisconnectedState(errorMessage: "API Error: \(errMsg)")
             return .stopPolling
         }
     }
@@ -252,6 +256,7 @@ class BBClient: ObservableObject {
         // print("[BBClient] applyErrorAndDisconnectIfNeeded called with error: \(error)")
         
         if let apiError = error as? APIDomainError, case .network = apiError {
+            // network interruptions, continue polling
             authenticationError = apiError.userMessage
             $walletState.markStale()
             return .continuePolling
