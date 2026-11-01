@@ -6,7 +6,7 @@
 //
 
 import Testing
-import LLCore
+@testable import LLCore
 @testable import bbticker
 import Foundation
 
@@ -55,7 +55,7 @@ class MockWalletRepository: WalletRepositoryProtocol, @unchecked Sendable {
         self.credentialsManager = credentialsManager
     }
     
-    func getWalletData(for exchangeType: any LLCore.ExchangeType) async throws -> LLCore.WalletData {
+    func getWalletData(for exchangeType: any LLCore.ExchangeType) async throws -> WalletData {
         if let credentialsManager = credentialsManager {
             do {
                 _ = try await credentialsManager.getCredentials(forAccount: exchangeType.envIDString)

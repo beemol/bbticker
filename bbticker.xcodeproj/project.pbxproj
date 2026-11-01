@@ -20,7 +20,9 @@
 		E7FAB5DD2E33DFE80050B48D /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E7FAB5DC2E33DFE80050B48D /* WidgetKit.framework */; };
 		E7FAB5DF2E33DFE80050B48D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E7FAB5DE2E33DFE80050B48D /* SwiftUI.framework */; };
 		E7FAB5EE2E33DFEC0050B48D /* BybitWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E7FAB5DA2E33DFE80050B48D /* BybitWidgetExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		F2E4892330207E8500D6A0E3 /* LLCore in Frameworks */ = {isa = PBXBuildFile; productRef = F2E4892230207E8500D6A0E3 /* LLCore */; };
+		F271AAFC30970DDA0032FD30 /* LLCore in Frameworks */ = {isa = PBXBuildFile; productRef = F2E4892230207E8500D6A0E3 /* LLCore */; };
+		F28F60493096FEB400E6737A /* LLApiService in Frameworks */ = {isa = PBXBuildFile; productRef = E7579BA72ECE5DF500BA30FC /* LLApiService */; };
+		F28F604A3096FEB400E6737A /* LLCore in Frameworks */ = {isa = PBXBuildFile; productRef = E782C1902EDF087E00733AC6 /* LLCore */; };
 		F3A000000000000000000003 /* CompactBalanceFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A000000000000000000004 /* CompactBalanceFormatter.swift */; };
 		F3A000000000000000000006 /* CompactBalanceText.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A000000000000000000007 /* CompactBalanceText.swift */; };
 /* End PBXBuildFile section */
@@ -98,6 +100,16 @@
 		E723797E2FC32A3F009F2F0D /* Exceptions for "bbticker" folder in "bbtickerTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				DomainModule/Tests/APIServiceIntegrationTests.swift,
+				DomainModule/Tests/ErrorDetectorTests.swift,
+				DomainModule/Tests/ErrorMapperTests.swift,
+				DomainModule/Tests/HelpersTests.swift,
+				DomainModule/Tests/LLCoreTests.swift,
+				DomainModule/Tests/Mocks/MockURLSession.swift,
+				DomainModule/Tests/ModelTests.swift,
+				DomainModule/Tests/ParserTests.swift,
+				DomainModule/Tests/PollingStrategyTest.swift,
+				DomainModule/Tests/RequestBuilderTests.swift,
 				IAP/Tests/Products.storekit,
 				IAP/Tests/ProEntitlementTests.swift,
 				IAP/Tests/SpyIAPManager.swift,
@@ -118,6 +130,16 @@
 		E759BE8D2E1AD20600D1FE2B /* Exceptions for "bbticker" folder in "bbticker" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				DomainModule/Tests/APIServiceIntegrationTests.swift,
+				DomainModule/Tests/ErrorDetectorTests.swift,
+				DomainModule/Tests/ErrorMapperTests.swift,
+				DomainModule/Tests/HelpersTests.swift,
+				DomainModule/Tests/LLCoreTests.swift,
+				DomainModule/Tests/Mocks/MockURLSession.swift,
+				DomainModule/Tests/ModelTests.swift,
+				DomainModule/Tests/ParserTests.swift,
+				DomainModule/Tests/PollingStrategyTest.swift,
+				DomainModule/Tests/RequestBuilderTests.swift,
 				IAP/Tests/ProEntitlementTests.swift,
 				IAP/Tests/SpyIAPManager.swift,
 				IAP/Tests/StoreKitIntegrationTests.swift,
@@ -149,6 +171,16 @@
 				Client/BBWebSocketClient.swift,
 				Client/ConnectionStatus.swift,
 				Client/WalletState.swift,
+				DomainModule/Tests/APIServiceIntegrationTests.swift,
+				DomainModule/Tests/ErrorDetectorTests.swift,
+				DomainModule/Tests/ErrorMapperTests.swift,
+				DomainModule/Tests/HelpersTests.swift,
+				DomainModule/Tests/LLCoreTests.swift,
+				DomainModule/Tests/Mocks/MockURLSession.swift,
+				DomainModule/Tests/ModelTests.swift,
+				DomainModule/Tests/ParserTests.swift,
+				DomainModule/Tests/PollingStrategyTest.swift,
+				DomainModule/Tests/RequestBuilderTests.swift,
 				Donation/DonationView.swift,
 				Donation/DonationViewModel.swift,
 				"GoogleService-Info.plist",
@@ -263,6 +295,11 @@
 			path = Documentation;
 			sourceTree = "<group>";
 		};
+		F3A000000000000000000008 /* bbticker/DomainModule/Tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = bbticker/DomainModule/Tests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -288,6 +325,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F28F60493096FEB400E6737A /* LLApiService in Frameworks */,
+				F28F604A3096FEB400E6737A /* LLCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,12 +334,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F271AAFC30970DDA0032FD30 /* LLCore in Frameworks */,
 				E782C1912EDF087E00733AC6 /* LLCore in Frameworks */,
 				E7A154BF2E51F7720096F8F0 /* FirebaseCrashlytics in Frameworks */,
 				E7E7B9A72E37AAAF00CBD9F4 /* FirebaseAnalytics in Frameworks */,
 				E7E1638D2E39584500B6BAC5 /* FirebaseRemoteConfig in Frameworks */,
 				E7579BA82ECE5DF500BA30FC /* LLApiService in Frameworks */,
-				F2E4892330207E8500D6A0E3 /* LLCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,6 +367,7 @@
 				F3A000000000000000000007 /* CompactBalanceText.swift */,
 				E7FAB5E02E33DFE80050B48D /* BybitWidget */,
 				E79209452E3A191D003244E4 /* bbtickerTests */,
+				F3A000000000000000000008 /* bbticker/DomainModule/Tests */,
 				E7FAB5DB2E33DFE80050B48D /* Frameworks */,
 				E7C513BF2E16C55700561E15 /* Products */,
 			);
@@ -425,9 +465,12 @@
 			);
 			fileSystemSynchronizedGroups = (
 				E79209452E3A191D003244E4 /* bbtickerTests */,
+				F3A000000000000000000008 /* bbticker/DomainModule/Tests */,
 			);
 			name = bbtickerTests;
 			packageProductDependencies = (
+				E7579BA72ECE5DF500BA30FC /* LLApiService */,
+				E782C1902EDF087E00733AC6 /* LLCore */,
 			);
 			productName = bbtickerTests;
 			productReference = E79209442E3A191D003244E4 /* bbtickerTests.xctest */;
