@@ -20,6 +20,11 @@ class MockUserDataStorage: UserDataStorageProtocol {
 
 @MainActor
 final class SettingsServiceTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        ExchangeRegistry.shared.registerKuCoinDefaults()
+    }
+
     func testInitialLoad_UsesStoredValues() {
         let mock = MockUserDataStorage()
         mock.save(key: "update_frequency", value: 10.0)

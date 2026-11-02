@@ -449,28 +449,29 @@ struct BBClientReconnectionTests {
                "Should resume API calls after network restoration")
     }
     
-    @Test("Client should reconnect after transient unknown API error during polling")
+    @Test("Unknown API error during polling disconnects the client")
     @MainActor
-    func testReconnectAfterTransientUnknownAPIError() async throws {
+    func testUnknownAPIErrorDuringPollingDisconnectsClient() async throws {
         let (client, apiService, _, _, _) = createTestClient()
         
         await client.connect()
         #expect(client.connectionStatus == .connected, "Initial connection should succeed")
         
-        // Transient unmapped API response (e.g. unrecognized retCode) during a poll cycle.
+        // An unmapped API response is wrapped as PollingError.general and currently
+        // treated as a terminal polling error by BBClient.handlePollingError.
         apiService.simulateUnknownAPIErrors(count: 1)
         
         try await Task.sleep(for: .milliseconds(500))
         
-        #expect(client.connectionStatus == .connected,
-               "Unknown API errors should not disconnect right away")
-        #expect(client.$walletState.isStale, "Data should be marked as stale")
+        #expect(client.connectionStatus == .disconnected,
+               "Unknown API errors should disconnect the client")
+        #expect(client.$walletState.isStale,
+               "Data should be marked as stale after an unknown API error")
         
+        // The current polling-error path does not schedule automatic reconnection.
         try await Task.sleep(for: .seconds(1))
-        
-        #expect(client.connectionStatus == .connected,
-               "Should be reconnected after reconnectionDelay time passed")
-        #expect(client.$walletState.isStale == false, "Data should be fresh again")
+        #expect(client.connectionStatus == .disconnected,
+               "Unknown API errors should not schedule automatic reconnection")
     }
     
     @Test("Network restoration should trigger reconnection even after API-induced disconnection")

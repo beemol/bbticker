@@ -9,6 +9,11 @@ import LLCore
 
 extension ExchangeRegistry {
     // MARK: - Default Registrations
+    func registerDomainDefaults() {
+        registerBybitDefaults()
+        registerKuCoinDefaults()
+    }
+
     func registerBybitDefaults() {
         setCapabilities(defaultCapabilitiesForBybit(), for: .bybit)
         

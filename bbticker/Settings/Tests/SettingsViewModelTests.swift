@@ -359,7 +359,7 @@ class MockSettingsService: SettingsServiceProtocol {
     func setExchangeType(_ exchangeType: Exchange) {
         setExchangeTypeCalled = true
         lastExchangeType = exchangeType
-        realService.setExchangeType(exchangeType)
+        realService.state.exchangeType = exchangeType
     }
     
     func setShowMarginLevelDot(_ enabled: Bool) {

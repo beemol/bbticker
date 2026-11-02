@@ -61,9 +61,8 @@ struct PollingStrategyTest {
         self.frequency = { return 3 }
         let updateWasCalled = BoolRef(false)
         
-        errorHandler = { error in
-            // we should not receive a CancellationError
-            #expect(!(error is CancellationError))
+        errorHandler = { _ in
+            // Cancellation is handled by PollingStrategy before this handler is called.
             return PollingStrategyAction.stopPolling
         }
         

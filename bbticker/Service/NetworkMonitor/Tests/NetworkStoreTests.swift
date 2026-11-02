@@ -208,7 +208,7 @@ struct NetworkStoreTests {
         await store.dispatch(.startMonitoring)
         
         // Wait for engine to emit actions
-        try? await Task.sleep(for: .milliseconds(100))
+        try? await Task.sleep(for: .milliseconds(50))
         
         // Verify actions were processed
         #expect(store.state.isConnected == true)

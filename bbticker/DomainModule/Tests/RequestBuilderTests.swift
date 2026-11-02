@@ -279,7 +279,7 @@ struct RequestBuilderTests {
         @Test("Returns nil when credentials not found")
         @MainActor
         func testReturnsNilForMissingCredentials() async {
-            let credManager = MockCredentialManager()
+            let credManager = MockCredentialManager(fallbackOnMissing: false)
             // Don't set any credentials
             
             let exchange = Exchange(.bybit, wallet: .unified)
