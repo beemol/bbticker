@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import LLCore
 
 @Observable
 final class WalletState {

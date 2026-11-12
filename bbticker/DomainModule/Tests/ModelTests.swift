@@ -344,21 +344,21 @@ struct ModelTests {
             #expect(data.maintenanceMarginPercentage == 0) // Avoid division by zero, return 0
         }
         
-        @Test("Formats maintenance margin percentage correctly")
-        func testMaintenanceMarginPercentageFormatted() {
-            let data = WalletData(totalEquity: 1000.00, walletBalance: 900.00, maintenanceMargin: 50.00)
-            
-            #expect(data.maintenanceMarginPercentageFormatted() == "5.00%")
-            #expect(data.maintenanceMarginPercentageFormatted(decimalPlaces: 1) == "5.0%")
-            #expect(data.maintenanceMarginPercentageFormatted(decimalPlaces: 3) == "5.000%")
-        }
+//        @Test("Formats maintenance margin percentage correctly")
+//        func testMaintenanceMarginPercentageFormatted() {
+//            let data = WalletData(totalEquity: 1000.00, walletBalance: 900.00, maintenanceMargin: 50.00)
+//            
+//            #expect(data.maintenanceMarginPercentageFormatted() == "5.00%")
+//            #expect(data.maintenanceMarginPercentageFormatted(decimalPlaces: 1) == "5.0%")
+//            #expect(data.maintenanceMarginPercentageFormatted(decimalPlaces: 3) == "5.000%")
+//        }
         
-        @Test("Formats zero percentage correctly")
-        func testMaintenanceMarginPercentageFormattedZero() {
-            let data = WalletData(totalEquity: 1000.00, walletBalance: 900.00) // MM defaults to 0
-            
-            #expect(data.maintenanceMarginPercentageFormatted() == "0.00%")
-        }
+//        @Test("Formats zero percentage correctly")
+//        func testMaintenanceMarginPercentageFormattedZero() {
+//            let data = WalletData(totalEquity: 1000.00, walletBalance: 900.00) // MM defaults to 0
+//            
+//            #expect(data.maintenanceMarginPercentageFormatted() == "0.00%")
+//        }
         
         @Test("Calculates percentage with decimal values")
         func testMaintenanceMarginPercentageWithDecimals() {

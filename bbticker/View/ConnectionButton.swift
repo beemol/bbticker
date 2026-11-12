@@ -1,6 +1,5 @@
 import SwiftUI
 import Combine
-import LLCore
 
 struct ConnectionButton: View {
     let connectionStatus: ConnectionStatus
@@ -114,6 +113,9 @@ private extension View {
 }
 
 #if DEBUG
+
+import LLCore
+
 struct ConnectionButton_Previews: PreviewProvider {
     class MockNetworkMonitorForPreviews: NetworkStoreProtocol {
         var statusStream: AsyncStream<Bool> = AsyncStream<Bool>.makeStream().stream

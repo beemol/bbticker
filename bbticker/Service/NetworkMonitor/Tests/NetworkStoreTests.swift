@@ -8,6 +8,25 @@
 import Testing
 @testable import bbticker
 
+@MainActor
+public func waitUntil(
+    timeout: Duration = .seconds(1),
+    condition: @escaping () -> Bool
+) async -> Bool {
+    let clock = ContinuousClock()
+    let deadline = clock.now.advanced(by: timeout)
+
+    while !condition() {
+        guard clock.now < deadline else {
+            return false
+        }
+
+        try? await Task.sleep(for: .milliseconds(5))
+    }
+
+    return true
+}
+
 // MARK: - Test Compatibility Methods
 extension NetworkStore {
     /// Simulates network loss for testing
@@ -202,17 +221,32 @@ struct NetworkStoreTests {
     }
     
     @Test func testMonitoringEngineActionsAreDispatched() async throws {
-        let engine = ActionEmittingMonitoringEngine()
+        let engine = ControllableMonitoringEngine()
         let store = NetworkStore(monitoringEngine: engine, startMonitoring: false)
         
         await store.dispatch(.startMonitoring)
         
-        // Wait for engine to emit actions
-        try? await Task.sleep(for: .milliseconds(50))
+        let monitoringStarted = await waitUntil {
+            engine.startCallCount == 1
+        }
+        
+        #expect(monitoringStarted)
+        
+        engine.emit(.statusChanged(true))
+        engine.emit(.internetStatusChanged(.reachable))
+        
+        let actionsProcessed = await waitUntil {
+            store.state.isConnected &&
+            store.state.internetStatus == .reachable
+        }
+
+        #expect(actionsProcessed)
         
         // Verify actions were processed
         #expect(store.state.isConnected == true)
         #expect(store.state.internetStatus == .reachable)
+        
+        await store.dispatch(.stopMonitoring)
     }
     
     // MARK: - Reducer Tests (Pure Logic)
@@ -303,6 +337,10 @@ final class ControllableMonitoringEngine: MonitoringEngineProtocol {
         return AsyncStream { continuation in
             self.continuation = continuation
         }
+    }
+    
+    func emit(_ action: NetworkAction) {
+        continuation?.yield(action)
     }
     
     func stop() {

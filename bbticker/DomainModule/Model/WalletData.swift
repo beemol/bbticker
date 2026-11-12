@@ -6,14 +6,7 @@
 //
 
 import Foundation
-import Combine
-import Network
-import SwiftUI
 
-// MARK: Public data models
-
-/// Wallet data model - only created when data is valid
-/// If parsing fails, parsers return nil instead of creating invalid WalletData
 public struct WalletData: Sendable {
     /// Total equity value (in currency units, e.g., USDT)
     public let totalEquity: Double
@@ -42,7 +35,7 @@ public struct WalletData: Sendable {
     /// Returns the maintenance margin percentage formatted as a string with specified decimal places
     /// - Parameter decimalPlaces: Number of decimal places (default: 2)
     /// - Returns: Formatted percentage string (e.g., "5.00%")
-    public func maintenanceMarginPercentageFormatted(decimalPlaces: Int = 2) -> String {
-        return String(format: "%.\(decimalPlaces)f%%", maintenanceMarginPercentage)
-    }
+//    public func maintenanceMarginPercentageFormatted(decimalPlaces: Int = 2) -> String {
+//        return String(format: "%.\(decimalPlaces)f%%", maintenanceMarginPercentage)
+//    }
 }

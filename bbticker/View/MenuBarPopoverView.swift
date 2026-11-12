@@ -1,7 +1,6 @@
 import SwiftUI
 import Combine
 import Foundation
-import LLCore
 
 #if os(macOS)
 
@@ -165,6 +164,7 @@ struct MenuBarPopoverView_Previews: PreviewProvider {
 #endif
 
 #endif
+import LLCore
 
 class Mocks {
     final class MockSettingsService: SettingsServiceProtocol {
