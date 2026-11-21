@@ -20,17 +20,17 @@ struct GetBalanceIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog & ReturnsValue<String> {
         // Get dependencies from container
-        let container = DependencyContainer.shared
+        //let container = DependencyContainer.shared
         let settingsService = container.getSettingsService()
         let credentialManager = container.getCredentialManager()
         let analyticsManager = AnalyticsManager.shared
         
         // Get current exchange type from SettingsService
-        let exchangeType = settingsService.state.exchangeType
-        let accountDisplayName = exchangeType.displayName
+        let exchange = settingsService.state.exchange
+        let accountDisplayName = exchange.displayName
         
         // Get credentials from Keychain using stable envIDString ("bybit:production", etc.)
-        let creds = try await credentialManager.getCredentials(forAccount: exchangeType.envIDString)
+        let creds = try await credentialManager.getCredentials(forAccount: exchange.envIDString)
         
         let key = creds.apiKey
         let secret = creds.apiSecret

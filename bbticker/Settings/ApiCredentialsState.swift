@@ -50,7 +50,7 @@ final class ApiCredentialsState {
         let hasKeyAndSecret = !apiKey.isEmpty && !apiSecret.isEmpty
         
         // KuCoin requires a passphrase, other exchanges don't
-        if settingsService.state.exchangeType.identifier == .kucoin {
+        if settingsService.state.exchange.identifier == .kucoin {
             return hasKeyAndSecret && !apiPassphrase.isEmpty
         }
         
@@ -58,14 +58,14 @@ final class ApiCredentialsState {
     }
     
     var requiresPassphrase: Bool {
-        if settingsService.state.exchangeType.identifier == .kucoin {
+        if settingsService.state.exchange.identifier == .kucoin {
             return true
         }
         return false
     }
     
     func saveCredentials() async {
-        let account = settingsService.state.exchangeType.envIDString
+        let account = settingsService.state.exchange.envIDString
         
         let status = await credentialManager.saveCredentials(
             key: apiKey,
@@ -84,7 +84,7 @@ final class ApiCredentialsState {
     }
     
     func deleteCredentials() async {
-        let account = settingsService.state.exchangeType.envIDString
+        let account = settingsService.state.exchange.envIDString
         
         let status = await credentialManager.deleteCredentials(
             forAccount: account
@@ -101,7 +101,7 @@ final class ApiCredentialsState {
     }
     
     func loadCredentials() async {
-        let account = settingsService.state.exchangeType.envIDString
+        let account = settingsService.state.exchange.envIDString
         
         if let credentials = try? await credentialManager.getCredentials(forAccount: account) {
             apiKey = credentials.apiKey

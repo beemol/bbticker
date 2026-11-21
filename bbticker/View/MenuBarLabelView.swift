@@ -170,7 +170,7 @@ struct MenuBarLabelViewPreview: View {
     @State private var maintenanceMargin: Double = 0
     @State private var isStale: Bool = false
     @State private var showMarginLevelDot: Bool = true
-    @State private var previewSettingsService = SettingsService()
+    @State private var previewSettingsService = SettingsService(exchangeRegistry: Mocks.MockRegistry())
     
     var body: some View {
         VStack(spacing: 20) {

@@ -65,7 +65,7 @@ class BBClient: ObservableObject {
         $walletState.set(threshold: settingsService.state.updateFrequency + 1) // + 1 for a buffer
         
         setupNetworkMonitoring()
-        observeExchangeTypeChanges()
+        observeExchangeChanges()
     }
     
     // keep for tests
@@ -78,8 +78,8 @@ class BBClient: ObservableObject {
         return networkMonitor.state.isConnected
     }
     
-    private var currentExchangeType: ExchangeType {
-        return settingsService.state.exchangeType
+    private var currentExchange: Exchange {
+        return settingsService.state.exchange
     }
     
     // light weight protection for a stale data comming through
@@ -97,7 +97,7 @@ class BBClient: ObservableObject {
         }
         
         do {
-            let walletData = try await walletRepository.getWalletData(for: currentExchangeType)
+            let walletData = try await walletRepository.getWalletData(for: currentExchange)
             
             guard generation == connectGeneration else { return }
             
@@ -178,7 +178,7 @@ class BBClient: ObservableObject {
                                 fetchHandler: { [weak self] in
             guard let self = self else { throw NSError(domain: "TestError", code: 500, userInfo: nil) }
             
-            return try await self.walletRepository.getWalletData(for: currentExchangeType)
+            return try await self.walletRepository.getWalletData(for: currentExchange)
         }, updateHandler: { [weak self] walletData in
             self?.applyWalletData(walletData)
         }, errorHandler: { [weak self] error in
@@ -348,21 +348,21 @@ class BBClient: ObservableObject {
     
     // MARK: - Exchange / Environment Change Handling
     
-    private func observeExchangeTypeChanges() {
+    private func observeExchangeChanges() {
         withObservationTracking {
-            _ = self.settingsService.state.exchangeType
+            _ = self.settingsService.state.exchange
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                self.handleExchangeTypeChanged()
+                self.handleExchangeChanged()
                 
                 //re-arm
-                self.observeExchangeTypeChanges()
+                self.observeExchangeChanges()
             }
         }
     }
     
-    private func handleExchangeTypeChanged() {
+    private func handleExchangeChanged() {
         AppLog.client.info("Exchange/environment changed — reconnecting")
         
         if isConnected || connectionStatus == .connecting  {

@@ -12,25 +12,42 @@ import LLCore
 
 @MainActor
 class LLAPIServiceWrapper: APIServiceProtocol {
-    func fetchApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any ApiKeyInfo {
+    init(registry: ExchangeRegistryProtocol, credentialManager: CredentialManagerProtocol, settingsService: any SettingsServiceProtocol, urlSession: URLSessionProtocol) {
+        self.credentialManager = credentialManager
+        self.settingsService = settingsService
+        self.urlSession = urlSession
+        self.registry = registry
+    }
+    
+    let registry: ExchangeRegistryProtocol
+    
+    private let credentialManager: CredentialManagerProtocol
+    private let settingsService: any SettingsServiceProtocol
+    private let urlSession: URLSessionProtocol
+    
+    private func getService<E: Endpoint>(for exchange: Exchange,
+                            endpoint: E,
+                            credentials: Credentials) throws -> LLApiService<E.Output> {
+
+        guard let configuration = registry.configuration(for: exchange) else { throw APIError.invalidRequest }
+        
+        return try LLApiServiceBuilder(registry: registry).make(
+            for: exchange,
+            exchangeConfiguration: configuration,
+            endpoint: endpoint,
+            credentials: credentials,
+            networkService: LLNetworkService(urlSession: urlSession))
+    }
+    
+    func fetchApiKeyInfo(for exchange: LLCore.Exchange) async throws -> any ApiKeyInfo {
         let endpointString = "api-key-info"
         
         do {
-            // LLApiService handles the entire error detection pipeline:
-            // 1. Network request (via LLNetworkService)
-            // 2. HTTP status check (via HTTPStatusErrorDetector)
-            // 3. Application-level error detection (via BybitErrorDetector, etc.)
-            // 4. Parsing (via ByBitApiKeyInfoParser)
-            
             let endpoint = APIKeyInfoEndpoint()
-            let account = exchangeType.envIDString
+            let account = exchange.envIDString
             let credentials = try await credentialManager.getCredentials(forAccount: account)
-            let service = try LLApiServiceBuilder.make(
-                for: exchangeType,
-                endpoint: endpoint,
-                credentials: credentials,
-                networkService: LLNetworkService(urlSession: urlSession)
-            )
+            
+            let service = try getService(for: exchange, endpoint: endpoint, credentials: credentials)
             let apiKeyInfo = try await service.execute()
             
             // Track success, but do not block result
@@ -67,42 +84,28 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             
             let mapped = APIErrorMapper.mapNetworkError(
                 error,
-                exchange: exchangeType.identifier,
+                exchange: exchange.identifier,
                 endpoint: endpointString
             )
             throw mapped
         }
     }
     
-    private let credentialManager: CredentialManagerProtocol
-    private let settingsService: any SettingsServiceProtocol
-    private let urlSession: URLSessionProtocol
-    
-    init(credentialManager: CredentialManagerProtocol, settingsService: any SettingsServiceProtocol, urlSession: URLSessionProtocol) {
-        self.credentialManager = credentialManager
-        self.settingsService = settingsService
-        self.urlSession = urlSession
-    }
-    
     func fetchWalletBalanceForCurrentExchange() async throws -> WalletData {
-        let exchangeType = settingsService.state.exchangeType
-        return try await fetchWalletBalance(for: exchangeType)
+        let exchange = settingsService.state.exchange
+        return try await fetchWalletBalance(for: exchange)
     }
     
-    func fetchWalletBalance(for exchangeType: ExchangeType) async throws -> WalletData {
+    func fetchWalletBalance(for exchange: Exchange) async throws -> WalletData {
         let endpointString = "wallet-balance"
         
         do {
-            // LLApiService handles the entire error detection pipeline:
-            // 1. Network request (via LLNetworkService)
-            // 2. HTTP status check (via HTTPStatusErrorDetector)
-            // 3. Application-level error detection (via BybitErrorDetector, etc.)
-            // 4. Parsing (via WalletDataParserFactory)
-            
-            let endpoint = WalletEndpoint(exchangeType.walletType)
-            let account = exchangeType.envIDString
+            let endpoint = WalletEndpoint(exchange.walletType)
+            let account = exchange.envIDString
             let credentials = try await credentialManager.getCredentials(forAccount: account)
-            let service = try LLApiServiceBuilder.make(for: exchangeType, endpoint: endpoint, credentials: credentials, networkService: LLNetworkService(urlSession: urlSession))
+            
+            let service = try getService(for: exchange, endpoint: endpoint, credentials: credentials)
+            //let service = try LLApiServiceBuilder.make(for: Exchange, exchangeConfiguration: configuration, endpoint: endpoint, credentials: credentials, networkService: LLNetworkService(urlSession: urlSession))
             let walletData = try await service.execute()
             
             // Track success, but do not block result
@@ -139,7 +142,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             
             let mapped = APIErrorMapper.mapNetworkError(
                 error,
-                exchange: exchangeType.identifier,
+                exchange: exchange.identifier,
                 endpoint: endpointString
             )
             throw mapped

@@ -1,7 +1,7 @@
 import SwiftUI
 import LLCore
 
-struct ExchangeTypeSection: View {
+struct ExchangeSection: View {
     let settingsService: any SettingsServiceProtocol
     
     #if os(macOS)
@@ -9,12 +9,12 @@ struct ExchangeTypeSection: View {
     #endif
     
     var body: some View {
-        let exchangeType = settingsService.state.exchangeType
-        let walletTypes = exchangeType.availableWalletTypes
+        let exchange = settingsService.state.exchange
+        let walletTypes = settingsService.availableWalletTypes
 
         return Section {
             Picker("Exchange", selection: settingsService.selectedExchangeBinding) {
-                ForEach(ExchangeRegistry.shared.availableExchanges
+                ForEach(settingsService.availableExchanges
                         // filter out the rest of the platforms for the first app store release.
                     .filter { $0 == .bybit }, id: \.self) { exchangeName in
                     Text(exchangeName.rawValue.capitalized).tag(exchangeName)
@@ -41,20 +41,20 @@ struct ExchangeTypeSection: View {
                     }
                     .popover(isPresented: $isShowingExchangeInfoPopover, arrowEdge: .top) {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("API details for \(exchangeType.displayName.capitalized)")
+                            Text("API details for \(exchange.displayName.capitalized)")
                                 .font(.headline)
                             Divider()
                             Text("Base URL")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            Text(exchangeType.baseURL)
+                            Text(settingsService.exchangeConfiguration?.baseURL ?? "")
                                 .font(.system(size: 12, weight: .regular, design: .monospaced))
                                 .textSelection(.enabled)
                             Text("Endpoint")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .padding(.top, 6)
-                            Text(exchangeType.endpoint)
+                            Text(settingsService.exchangeConfiguration?.endpoint(for: .wallet(settingsService.state.exchange.walletType)) ?? "")
                                 .font(.system(size: 12, weight: .regular, design: .monospaced))
                                 .textSelection(.enabled)
                         }

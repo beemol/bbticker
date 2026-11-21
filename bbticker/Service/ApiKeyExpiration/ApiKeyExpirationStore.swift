@@ -27,7 +27,7 @@ struct ApiKeyExpirationState {
 }
 
 enum ApiKeyExpirationAction {
-    case checkExpiration(ExchangeType)
+    case checkExpiration(Exchange)
     case dataLoaded(ApiKeyInfo)
     case loadingFailed(Error)
 }
@@ -53,7 +53,7 @@ class ApiKeyExpirationStateStore {
         var newState = state
         
         switch action {
-        case .checkExpiration(let exchangeType):
+        case .checkExpiration(let exchange):
             newState.loadingState = .loading
             newState.expirationWarnings = ""
             break
@@ -71,10 +71,10 @@ class ApiKeyExpirationStateStore {
     @MainActor
     func handleSideEffects(action: ApiKeyExpirationAction) {
         switch action {
-        case .checkExpiration(let exchangeType):
+        case .checkExpiration(let exchange):
             Task {
                 do {
-                    let result = try await repository.getApiKeyInfo(for: exchangeType)
+                    let result = try await repository.getApiKeyInfo(for: exchange)
                     dispatch(.dataLoaded(result))
                 } catch {
                     dispatch(.loadingFailed(error))

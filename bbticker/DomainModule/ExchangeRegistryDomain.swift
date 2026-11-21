@@ -6,59 +6,11 @@
 //
 
 import LLCore
+import LLApiService
 
-extension ExchangeRegistry {
-    // MARK: - Default Registrations
-    func registerDomainDefaults() {
-        registerBybitDefaults()
-        registerKuCoinDefaults()
-    }
+extension ExchangeRegistry {}
 
-    func registerBybitDefaults() {
-        setCapabilities(defaultCapabilitiesForBybit(), for: .bybit)
-        
-        registerParserFactory({ endpointType in
-            switch endpointType {
-            case .wallet(_):
-                return BybitUnifiedWalletDataParser()
-            case .apiKeyInfo:
-                return ByBitApiKeyInfoParser()
-            }
-        }, for: .bybit)
-        
-        registerErrorDetector(BybitErrorDetector(), for: .bybit)
-        
-        registerRequestBuilderFactory({ config, creds, endpointType in
-            switch endpointType {
-            case .wallet(_):
-                return BybitWalletAPIRequestBuilder(exchangeType: config, creds: creds)
-            case .apiKeyInfo:
-                return BybitAPIKeyInfoAPIRequestBuilder(exchangeType: config, creds: creds)
-            }
-        }, for: .bybit)
-    }
-    
-    func registerKuCoinDefaults() {
-        setCapabilities(defaultCapabilitiesForKucoin(), for: .kucoin)
-        
-        registerParserFactory({ endpointType in
-            switch endpointType {
-            case .wallet(let walletType):
-                return KuCoinWalletDataParser(walletType: walletType)
-            case .apiKeyInfo:
-                // TODO:
-                return KuCoinWalletDataParser() // temporary fallback
-            }
-        }, for: .kucoin)
-        
-        registerErrorDetector(KucoinErrorDetector(), for: .kucoin)
-        
-        registerRequestBuilderFactory({ config, creds, endpointType in
-            KuCoinAPIRequestBuilder(exchangeType: config, creds: creds)
-        }, for: .kucoin)
-    }
-    
-    // helpers
+class RegistryHelper {
     func defaultCapabilitiesForBybit() -> ExchangeCapabilities {
         ExchangeCapabilities(
             urls: [
@@ -66,11 +18,6 @@ extension ExchangeRegistry {
                 .testnet: "https://api-testnet.bybit.com",
                 .demo: "https://api-demo.bybit.com"
             ],
-//            walletEndpoints: [
-//                .unified: "/v5/account/wallet-balance?accountType=UNIFIED",
-//                .spot: "/v5/account/wallet-balance?accountType=SPOT",
-//                .futures: "/v5/account/wallet-balance?accountType=CONTRACT"
-//            ],
             endpoints: [
                 .wallet(.unified): "/v5/account/wallet-balance?accountType=UNIFIED",
                 .wallet(.spot): "/v5/account/wallet-balance?accountType=SPOT",
@@ -87,11 +34,6 @@ extension ExchangeRegistry {
                 .testnet: "https://api-sandbox-futures.kucoin.com",
                 .demo: "https://api-sandbox-futures.kucoin.com"
             ],
-//            walletEndpoints: [
-//                .futures: "/api/v1/account-overview?currency=USDT",
-//                .spot: "/api/v1/accounts?type=main",
-//                .unified: "/api/v1/accounts",
-//            ],
             endpoints: [
                 .wallet(.unified): "/api/v1/accounts",
                 .wallet(.spot): "/api/v1/accounts?type=main",
@@ -99,5 +41,31 @@ extension ExchangeRegistry {
                 .apiKeyInfo: "/api/v1/user-info/all-sub-users"
             ]
         )
+    }
+    
+    func getBybitRegistry() -> ExchangeRegistry {
+        
+        let bybitParserFactory: @Sendable (EndpointID) -> any LLResponseParserProtocol = { endpointType in
+            switch endpointType {
+            case .wallet(_):
+                return BybitUnifiedWalletDataParser()
+            case .apiKeyInfo:
+                return ByBitApiKeyInfoParser()
+            }
+        }
+        
+        let bybitRequestBuilderFactory: @Sendable (ExchangeConfiguration, Credentials, EndpointID) -> LLAPIRequestBuilder = { config, creds, endpointType in
+            switch endpointType {
+            case .wallet(let walletType):
+                return BybitWalletAPIRequestBuilder(exchangeConfiguration: config, walletType: walletType, creds: creds)
+            case .apiKeyInfo:
+                return BybitAPIKeyInfoAPIRequestBuilder(exchangeConfiguration: config, creds: creds)
+            }
+        }
+        
+        return ExchangeRegistry(capabilities: [.bybit: defaultCapabilitiesForBybit()],
+                             parserFactories: [.bybit: bybitParserFactory],
+                              errorDetectors: [.bybit: BybitErrorDetector()],
+                     requestBuilderFactories: [.bybit: bybitRequestBuilderFactory])
     }
 }

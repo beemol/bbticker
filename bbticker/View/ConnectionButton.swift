@@ -124,7 +124,9 @@ struct ConnectionButton_Previews: PreviewProvider {
     }
     
     class MockAPIServiceForPreviews: APIServiceProtocol {
-        func fetchApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any ApiKeyInfo {
+        var registry: any ExchangeRegistryProtocol { Mocks.MockRegistry() }
+        
+        func fetchApiKeyInfo(for exchange: Exchange) async throws -> any ApiKeyInfo {
             ApiKeyInfoData(createdAt: Date())
         }
         
@@ -132,7 +134,7 @@ struct ConnectionButton_Previews: PreviewProvider {
             return WalletData(totalEquity: 1000.00, walletBalance: 500.00)
         }
         
-        func fetchWalletBalance(for exchangeType: ExchangeType) async throws -> WalletData {
+        func fetchWalletBalance(for exchange: Exchange) async throws -> WalletData {
             // Return mock data for previews
             return WalletData(totalEquity: 1000.00, walletBalance: 500.00)
         }
@@ -177,11 +179,11 @@ struct ConnectionButton_Previews: PreviewProvider {
     }
     
     class MockWalletRepository: WalletRepositoryProtocol, @unchecked Sendable {
-        func getApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any ApiKeyInfo {
+        func getApiKeyInfo(for exchange: Exchange) async throws -> any ApiKeyInfo {
             ApiKeyInfoData(createdAt: Date())
         }
         
-        func getWalletData(for exchangeType: any LLCore.ExchangeType) async throws -> WalletData {
+        func getWalletData(for exchange: Exchange) async throws -> WalletData {
             WalletData(totalEquity: 123.1, walletBalance: 32.1)
         }
     }

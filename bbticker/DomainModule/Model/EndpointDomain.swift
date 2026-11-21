@@ -12,10 +12,6 @@ public struct WalletEndpoint: Endpoint {
     public let walletType: WalletType
     public var id: EndpointID { .wallet(walletType) }
 
-    public func path(for exchange: any ExchangeType) -> String {
-        exchange.getEndpointString(for: id)
-    }
-
     public init(_ walletType: WalletType) {
         self.walletType = walletType
     }
@@ -24,10 +20,6 @@ public struct WalletEndpoint: Endpoint {
 public struct APIKeyInfoEndpoint: Endpoint {
     public typealias Output = ApiKeyInfoData
     public var id: EndpointID { .apiKeyInfo }
-
-    public func path(for exchange: any ExchangeType) -> String {
-        exchange.getEndpointString(for: id)
-    }
 
     public init() {}
 }

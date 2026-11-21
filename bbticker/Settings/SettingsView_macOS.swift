@@ -40,7 +40,7 @@ struct SettingsView_macOS: View {
             // Content
             Form {
                 apiEnvironmentSection
-                ExchangeTypeSection(settingsService: viewModel.settingsService)
+                ExchangeSection(settingsService: viewModel.settingsService)
                 ApiCredentialsSection (settingsService: viewModel.settingsService, credentialManager: viewModel.credentialManager)
                 apiKeyCreationSection
                 proSection
@@ -79,20 +79,20 @@ struct SettingsView_macOS: View {
         }
         .popover(isPresented: $isShowingExchangeInfoPopover, arrowEdge: .top) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("API details for \(viewModel.exchangeType.displayName.capitalized)")
+                Text("API details for \(viewModel.exchange.displayName.capitalized)")
                     .font(.headline)
                 Divider()
                 Text("Base URL")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                Text(viewModel.exchangeType.baseURL)
+                Text(viewModel.exchangeBaseURLString)
                     .font(.system(size: 12, weight: .regular, design: .monospaced))
                     .textSelection(.enabled)
                 Text("Endpoint")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.top, 6)
-                Text(viewModel.exchangeType.endpoint)
+                Text(viewModel.walletEndpointString)
                     .font(.system(size: 12, weight: .regular, design: .monospaced))
                     .textSelection(.enabled)
             }

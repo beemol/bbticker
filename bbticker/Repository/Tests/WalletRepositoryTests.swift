@@ -41,7 +41,7 @@ struct WalletRepositoryTests {
 }
 
 class MockWalletRepository: WalletRepositoryProtocol, @unchecked Sendable {
-    func getApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any bbticker.ApiKeyInfo {
+    func getApiKeyInfo(for exchange: any LLCore.Exchange) async throws -> any bbticker.ApiKeyInfo {
         ApiKeyInfoData(createdAt: Date())
     }
     
@@ -55,10 +55,10 @@ class MockWalletRepository: WalletRepositoryProtocol, @unchecked Sendable {
         self.credentialsManager = credentialsManager
     }
     
-    func getWalletData(for exchangeType: any LLCore.ExchangeType) async throws -> WalletData {
+    func getWalletData(for exchange: any LLCore.Exchange) async throws -> WalletData {
         if let credentialsManager = credentialsManager {
             do {
-                _ = try await credentialsManager.getCredentials(forAccount: exchangeType.envIDString)
+                _ = try await credentialsManager.getCredentials(forAccount: exchange.envIDString)
             } catch {
                 throw error
             }
@@ -67,7 +67,7 @@ class MockWalletRepository: WalletRepositoryProtocol, @unchecked Sendable {
         if let error = errorToThrow {
             throw error
         } else if let api = apiService {
-            return try await api.fetchWalletBalance(for: exchangeType)
+            return try await api.fetchWalletBalance(for: Exchange)
         }
         
         return WalletData(totalEquity: 123.45, walletBalance: 54.321)

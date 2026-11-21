@@ -64,7 +64,7 @@ struct ApiCredentialsSection: View {
         .onAppear {
             Task { await state.loadCredentials() }
         }
-        .onChange(of: state.settingsService.state.exchangeType) {
+        .onChange(of: state.settingsService.state.exchange) {
             Task { await state.loadCredentials() }
         }
         .onChange(of: state.saveStatus.isShowing) { _, isShowing in

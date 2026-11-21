@@ -17,7 +17,9 @@ struct BBClientReconnectionTests {
     
     @MainActor
     class TestableAPIService: APIServiceProtocol {
-        func fetchApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any bbticker.ApiKeyInfo {
+        let registry: any LLCore.ExchangeRegistryProtocol = ExchangeRegistry()
+        
+        func fetchApiKeyInfo(for exchange: any LLCore.Exchange) async throws -> any bbticker.ApiKeyInfo {
             ApiKeyInfoData(createdAt: Date())
         }
         
@@ -30,7 +32,7 @@ struct BBClientReconnectionTests {
         var callTimestamps: [Date] = []
         var callResults: [String] = []
         
-        func fetchWalletBalance(for exchangeType: ExchangeType) async throws -> WalletData {
+        func fetchWalletBalance(for exchange: Exchange) async throws -> WalletData {
             let callTime = Date()
             callTimestamps.append(callTime)
             

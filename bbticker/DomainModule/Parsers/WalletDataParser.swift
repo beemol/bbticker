@@ -24,7 +24,7 @@ public extension WalletDataParserProtocol {
 }
 
 struct WalletDataParserFactory {
-    static func parser(for exchange: ExchangeType) -> any WalletDataParserProtocol {
+    static func parser(for exchange: Exchange) -> any WalletDataParserProtocol {
         switch exchange.identifier {
         case .bybit:
             switch exchange.walletType {

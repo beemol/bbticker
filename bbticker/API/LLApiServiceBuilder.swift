@@ -10,14 +10,16 @@ import LLApiService
 import LLCore
 
 struct LLApiServiceBuilder {
-    static func make<E: Endpoint>(for exchange: ExchangeType,
+    let registry: ExchangeRegistryProtocol
+    
+    @MainActor
+    func make<E: Endpoint>(for exchange: Exchange,
+                         exchangeConfiguration: ExchangeConfiguration,
                                       endpoint: E,
                                    credentials: Credentials,
                                 networkService: LLNetworkServiceProtocol) throws -> LLApiService<E.Output> {
         
-        let registry = exchange.registry
-        
-        guard let requestBuilder = registry.requestBuilder(for: exchange, credentials: credentials, endpointType: endpoint.id) else {
+        guard let requestBuilder = registry.requestBuilder(for: exchange.identifier, configuration: exchangeConfiguration, credentials: credentials, endpointType: endpoint.id) else {
             throw NSError(domain: "LLApiServiceBuilder",
                                  code: 1,
                                  userInfo: [NSLocalizedDescriptionKey: "Not able to find request builder for exchange: \(exchange.identifier), endpoint: \(endpoint)"])

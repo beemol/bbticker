@@ -21,7 +21,7 @@ struct SettingsView_iOS: View {
     var body: some View {
         NavigationView {
             Form {
-                ExchangeTypeSection(
+                ExchangeSection(
                     settingsService: viewModel.settingsService
                 )
                 ApiCredentialsSection (state: apiCredentialsState)

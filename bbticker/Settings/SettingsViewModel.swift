@@ -28,8 +28,17 @@ class SettingsViewModel: ObservableObject {
         settingsService.state.isProActive
     }
     
-    var exchangeType: ExchangeType {
-        settingsService.state.exchangeType
+    var exchange: Exchange {
+        settingsService.state.exchange
+    }
+    
+    var exchangeBaseURLString: String {
+        settingsService.exchangeConfiguration?.baseURL ?? ""
+    }
+    
+    var walletEndpointString: String {
+        let currentWalletType = settingsService.state.exchange.walletType
+        return settingsService.exchangeConfiguration?.endpoint(for: .wallet(currentWalletType)) ?? ""
     }
     
     private var cancellables = Set<AnyCancellable>()
@@ -224,7 +233,7 @@ struct APIKeySteps: Codable {
 extension SettingsViewModel {
     /// Loads API key creation steps for a given exchange from Firebase Remote Config, or falls back to local file
     func loadAPIKeySteps() -> APIKeySteps? {
-        let exchange = settingsService.state.exchangeType.displayName
+        let exchange = settingsService.state.exchange.displayName
         
         if FirebaseBootstrap.isConfigured {
             let remoteConfig = RemoteConfig.remoteConfig()

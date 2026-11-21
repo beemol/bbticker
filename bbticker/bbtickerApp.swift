@@ -65,25 +65,26 @@ struct bbtickerApp: App {
         }
         #endif
         
-        ExchangeRegistry.shared.registerBybitDefaults()
+        let registry = RegistryHelper().getBybitRegistry()
         
         // Create dependencies as local variables
         let credentialManager = CredentialManager(keychainHelper: KeychainHelper.shared)
-        let settings = SettingsService()
+        let settings = SettingsService(exchangeRegistry: registry)
         let analyticsManager = AnalyticsManager.shared
         let remoteConfig = RemoteConfigManager()
         
         let apiService = LLAPIServiceWrapper(
+            registry: registry,
             credentialManager: credentialManager,
             settingsService: settings,
             urlSession: URLSession.shared
         )
         
         // Register dependencies in the container for AppIntents and other global access
-        DependencyContainer.shared.register(
-            settingsService: settings,
-            credentialManager: credentialManager
-        )
+//        DependencyContainer.shared.register(
+//            settingsService: settings,
+//            credentialManager: credentialManager
+//        )
         
         bybitClient = BBClient(
             settingsService: settings,

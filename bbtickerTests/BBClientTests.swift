@@ -111,7 +111,7 @@ class BBClientTests: XCTestCase {
     
     @MainActor func testConnect_Success_WithKuCoinCredentials() async {
         // Given
-        mockSettingsService.setExchangeType(Exchange(.kucoin, wallet: .spot))
+        mockSettingsService.setExchange(Exchange(.kucoin, wallet: .spot))
         await mockCredentialManager.setCredentialsToReturn(Credentials(
             apiKey: "kucoin-key",
             apiSecret: "kucoin-secret",
@@ -413,9 +413,9 @@ class BBClientTests: XCTestCase {
     
     // MARK: - Exchange Type Tests
     
-    @MainActor func testExchangeType_Bybit() async {
+    @MainActor func testExchange_Bybit() async {
         // Given
-        mockSettingsService.setExchangeType(Exchange(.bybit, wallet: .spot))
+        mockSettingsService.setExchange(Exchange(.bybit, wallet: .spot))
         mockAPIService.shouldSucceed = true
         
         // When
@@ -423,12 +423,12 @@ class BBClientTests: XCTestCase {
         
         // Then
         XCTAssertTrue(mockAPIService.fetchWalletBalanceCalled)
-        XCTAssertEqual(mockAPIService.lastExchangeType?.displayName, Exchange(.bybit, wallet: .spot).displayName)
+        XCTAssertEqual(mockAPIService.lastExchange?.displayName, Exchange(.bybit, wallet: .spot).displayName)
     }
     
-//    @MainActor func testExchangeType_Binance() async {
+//    @MainActor func testExchange_Binance() async {
 //        // Given
-//        mockSettingsService.setExchangeType(Exchange(.binance, wallet: .futures))
+//        mockSettingsService.setExchange(Exchange(.binance, wallet: .futures))
 //        mockAPIService.shouldSucceed = true
 //        
 //        // When
@@ -436,7 +436,7 @@ class BBClientTests: XCTestCase {
 //        
 //        // Then
 //        XCTAssertTrue(mockAPIService.fetchWalletBalanceCalled)
-//        XCTAssertEqual(mockAPIService.lastExchangeType?.displayName, Exchange(.binance, wallet: .futures).displayName)
+//        XCTAssertEqual(mockAPIService.lastExchange?.displayName, Exchange(.binance, wallet: .futures).displayName)
 //    }
     
     // MARK: - Error Handling Tests
@@ -651,9 +651,9 @@ class BBClientTests: XCTestCase {
     
     // MARK: - Multiple Exchange Type Tests
     
-    @MainActor func testExchangeType_KuCoinSpot() async {
+    @MainActor func testExchange_KuCoinSpot() async {
         // Given
-        mockSettingsService.setExchangeType(Exchange(.kucoin, wallet: .spot))
+        mockSettingsService.setExchange(Exchange(.kucoin, wallet: .spot))
         mockAPIService.shouldSucceed = true
         
         // When
@@ -661,12 +661,12 @@ class BBClientTests: XCTestCase {
         
         // Then
         XCTAssertTrue(mockAPIService.fetchWalletBalanceCalled)
-        XCTAssertEqual(mockAPIService.lastExchangeType?.displayName, Exchange(.kucoin, wallet: .spot).displayName)
+        XCTAssertEqual(mockAPIService.lastExchange?.displayName, Exchange(.kucoin, wallet: .spot).displayName)
     }
     
-    @MainActor func testExchangeType_KuCoinFutures() async {
+    @MainActor func testExchange_KuCoinFutures() async {
         // Given
-        mockSettingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        mockSettingsService.setExchange(Exchange(.kucoin, wallet: .futures))
         mockAPIService.shouldSucceed = true
         
         // When
@@ -674,27 +674,27 @@ class BBClientTests: XCTestCase {
         
         // Then
         XCTAssertTrue(mockAPIService.fetchWalletBalanceCalled)
-        XCTAssertEqual(mockAPIService.lastExchangeType?.displayName, Exchange(.kucoin, wallet: .futures).displayName)
+        XCTAssertEqual(mockAPIService.lastExchange?.displayName, Exchange(.kucoin, wallet: .futures).displayName)
     }
     
     // MARK: - Exchange / Environment Change Reconnection
     
-    @MainActor func testExchangeTypeChange_TriggersReconnect() async {
+    @MainActor func testExchangeChange_TriggersReconnect() async {
         // Given
         mockAPIService.shouldSucceed = true
         await sut.connect()
         XCTAssertEqual(sut.connectionStatus, .connected)
         let initialCallCount = mockAPIService.callCount
         
-        // When - switch exchange (environment is intrinsic to exchangeType)
-        mockSettingsService.setExchangeType(Exchange(.kucoin, wallet: .spot))
+        // When - switch exchange (environment is intrinsic to Exchange)
+        mockSettingsService.setExchange(Exchange(.kucoin, wallet: .spot))
         
         // Wait for the observation to fire and the reconnect to complete
         try? await Task.sleep(nanoseconds: 400_000_000) // 0.4s
         
         // Then
         XCTAssertGreaterThan(mockAPIService.callCount, initialCallCount, "Switching exchange should trigger a reconnect")
-        XCTAssertEqual(mockAPIService.lastExchangeType?.identifier, .kucoin)
+        XCTAssertEqual(mockAPIService.lastExchange?.identifier, .kucoin)
         XCTAssertEqual(sut.connectionStatus, .connected)
     }
     
@@ -706,18 +706,18 @@ class BBClientTests: XCTestCase {
         let initialCallCount = mockAPIService.callCount
         
         // When - switch environment (reconstructs the exchange with the new environment)
-        mockSettingsService.setExchangeType(Exchange(.bybit, environment: .testnet, wallet: .unified))
+        mockSettingsService.setExchange(Exchange(.bybit, environment: .testnet, wallet: .unified))
         
         // Wait for the observation to fire and the reconnect to complete
         try? await Task.sleep(nanoseconds: 400_000_000) // 0.4s
         
         // Then
         XCTAssertGreaterThan(mockAPIService.callCount, initialCallCount, "Switching environment should trigger a reconnect")
-        XCTAssertEqual(mockAPIService.lastExchangeType?.environment, .testnet)
+        XCTAssertEqual(mockAPIService.lastExchange?.environment, .testnet)
         XCTAssertEqual(sut.connectionStatus, .connected)
     }
     
-    @MainActor func testExchangeTypeChange_SetsConnectingStateDuringReconnect() async {
+    @MainActor func testExchangeChange_SetsConnectingStateDuringReconnect() async {
         // Given
         mockAPIService.shouldSucceed = true
         await sut.connect()
@@ -726,7 +726,7 @@ class BBClientTests: XCTestCase {
         var observedStatuses: [ConnectionStatus] = [sut.connectionStatus]
         
         // When - switch exchange
-        mockSettingsService.setExchangeType(Exchange(.kucoin, wallet: .spot))
+        mockSettingsService.setExchange(Exchange(.kucoin, wallet: .spot))
         
         // Poll connection status while the async reconnect runs
         for _ in 0..<25 {
@@ -753,7 +753,7 @@ class BBClientTests: XCTestCase {
         // When - switch to kucoin, which fails to connect
         mockAPIService.shouldSucceed = false
         mockAPIService.mockError = NSError(domain: "TestError", code: 401, userInfo: [NSLocalizedDescriptionKey: "Unauthorized"])
-        mockSettingsService.setExchangeType(Exchange(.kucoin, wallet: .spot))
+        mockSettingsService.setExchange(Exchange(.kucoin, wallet: .spot))
         try? await Task.sleep(nanoseconds: 400_000_000) // 0.4s
         
         XCTAssertEqual(sut.connectionStatus, .disconnected)
@@ -763,7 +763,7 @@ class BBClientTests: XCTestCase {
         // When - switch back to bybit, which succeeds
         mockAPIService.shouldSucceed = true
         mockAPIService.mockError = nil
-        mockSettingsService.setExchangeType(Exchange(.bybit, wallet: .spot))
+        mockSettingsService.setExchange(Exchange(.bybit, wallet: .spot))
         try? await Task.sleep(nanoseconds: 400_000_000) // 0.4s
         
         // Then - should reconnect to bybit
@@ -828,7 +828,7 @@ class BBClientTests: XCTestCase {
     
     @MainActor func testCredentialAccountName_UsesEnvIDString() async {
         // Given
-        mockSettingsService.setExchangeType(Exchange(.bybit, wallet: .spot))
+        mockSettingsService.setExchange(Exchange(.bybit, wallet: .spot))
         
         // When
         await sut.connect()
@@ -842,7 +842,7 @@ class BBClientTests: XCTestCase {
     
     @MainActor func testCredentialAccountName_KuCoinUsesEnvIDString() async {
         // Given
-        mockSettingsService.setExchangeType(Exchange(.kucoin, wallet: .spot))
+        mockSettingsService.setExchange(Exchange(.kucoin, wallet: .spot))
         
         // When
         await sut.connect()
@@ -997,7 +997,9 @@ final class StableMockNetworkStore: NetworkStoreProtocol {
 }
 
 class MockAPIService: APIServiceProtocol {
-    func fetchApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any bbticker.ApiKeyInfo {
+    let registry: any LLCore.ExchangeRegistryProtocol = ExchangeRegistry()
+    
+    func fetchApiKeyInfo(for exchange: any LLCore.Exchange) async throws -> any bbticker.ApiKeyInfo {
         ApiKeyInfoData(createdAt: Date())
     }
     
@@ -1012,13 +1014,13 @@ class MockAPIService: APIServiceProtocol {
     var mockMaintenanceMargin: Double = 0.00
     var mockError: Error?
     var fetchWalletBalanceCalled = false
-    var lastExchangeType: ExchangeType?
+    var lastExchange: Exchange?
     var callCount = 0
     private var callTimestamps: [Date] = []
     
-    func fetchWalletBalance(for exchangeType: ExchangeType) async throws -> WalletData {
+    func fetchWalletBalance(for exchange: Exchange) async throws -> WalletData {
         fetchWalletBalanceCalled = true
-        lastExchangeType = exchangeType
+        lastExchange = exchange
         callCount += 1
         callTimestamps.append(Date())
         
@@ -1034,7 +1036,7 @@ class MockAPIService: APIServiceProtocol {
     
     func reset() {
         fetchWalletBalanceCalled = false
-        lastExchangeType = nil
+        lastExchange = nil
         callCount = 0
         callTimestamps = []
     }
@@ -1052,10 +1054,12 @@ class MockAPIService: APIServiceProtocol {
 /// so we can force a stale (older) connect to finish after a newer one.
 @MainActor
 final class ControllableAPIService: APIServiceProtocol {
+    let registry: any LLCore.ExchangeRegistryProtocol = ExchangeRegistry()
+    
     var blockFirstCall = true
     private(set) var callCount = 0
 
-    func fetchApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any bbticker.ApiKeyInfo {
+    func fetchApiKeyInfo(for exchange: any LLCore.Exchange) async throws -> any bbticker.ApiKeyInfo {
         ApiKeyInfoData(createdAt: Date())
     }
 
@@ -1063,7 +1067,7 @@ final class ControllableAPIService: APIServiceProtocol {
         throw NSError(domain: "MockError", code: 500, userInfo: nil)
     }
 
-    func fetchWalletBalance(for exchangeType: ExchangeType) async throws -> WalletData {
+    func fetchWalletBalance(for exchange: Exchange) async throws -> WalletData {
         callCount += 1
         if callCount == 1 {
             // Hold the first call until the test releases it, yielding so newer connects can run.

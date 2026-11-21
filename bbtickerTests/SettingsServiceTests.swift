@@ -34,7 +34,7 @@ final class SettingsServiceTests: XCTestCase {
         let service = SettingsService(storage: mock)
 
         XCTAssertEqual(service.state.updateFrequency, 10.0)
-        XCTAssertEqual(service.state.exchangeType, Exchange(.kucoin, wallet: .futures))
+        XCTAssertEqual(service.state.exchange, Exchange(.kucoin, wallet: .futures))
         XCTAssertTrue(service.state.isProActive)
     }
 
@@ -43,7 +43,7 @@ final class SettingsServiceTests: XCTestCase {
         let service = SettingsService(storage: mock)
 
         XCTAssertEqual(service.state.updateFrequency, ProFeatures.freePollingInterval)
-        XCTAssertEqual(service.state.exchangeType, Exchange(.bybit, wallet: .unified))
+        XCTAssertEqual(service.state.exchange, Exchange(.bybit, wallet: .unified))
         XCTAssertFalse(service.state.isProActive)
     }
 
@@ -57,13 +57,13 @@ final class SettingsServiceTests: XCTestCase {
         XCTAssertEqual(mock.value(forKey: "update_frequency") as? Double, 15.0)
     }
 
-    func testSetExchangeType_SavesSerializedValue() {
+    func testSetExchange_SavesSerializedValue() {
         let mock = MockUserDataStorage()
         let service = SettingsService(storage: mock)
 
-        service.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        service.setExchange(Exchange(.kucoin, wallet: .futures))
 
-        XCTAssertEqual(service.state.exchangeType, Exchange(.kucoin, wallet: .futures))
+        XCTAssertEqual(service.state.exchange, Exchange(.kucoin, wallet: .futures))
         XCTAssertEqual(mock.value(forKey: "selected_exchange_type") as? String, "kucoin:futures:production")
     }
 
@@ -77,13 +77,13 @@ final class SettingsServiceTests: XCTestCase {
         XCTAssertEqual(mock.value(forKey: "iap_ispro_unlocked") as? Bool, true)
     }
 
-    func testLoadExchangeType_InvalidStringFallsBack() {
+    func testLoadExchange_InvalidStringFallsBack() {
         let mock = MockUserDataStorage()
         mock.save(key: "selected_exchange_type", value: "invalid:format")
 
         let service = SettingsService(storage: mock)
 
-        XCTAssertEqual(service.state.exchangeType, Exchange(.bybit, wallet: .unified))
+        XCTAssertEqual(service.state.exchange, Exchange(.bybit, wallet: .unified))
     }
 
     // MARK: - API Environment Tests
@@ -92,16 +92,16 @@ final class SettingsServiceTests: XCTestCase {
         let mock = MockUserDataStorage()
         let service = SettingsService(storage: mock)
 
-        XCTAssertEqual(service.state.exchangeType.environment, .production)
+        XCTAssertEqual(service.state.exchange.environment, .production)
     }
 
     func testAPIEnvironment_SetToTestnet_SavesValue() {
         let mock = MockUserDataStorage()
         let service = SettingsService(storage: mock)
 
-        service.setExchangeType(Exchange(.bybit, environment: .testnet, wallet: .unified))
+        service.setExchange(Exchange(.bybit, environment: .testnet, wallet: .unified))
 
-        XCTAssertEqual(service.state.exchangeType.environment, .testnet)
+        XCTAssertEqual(service.state.exchange.environment, .testnet)
         XCTAssertEqual(mock.value(forKey: "selected_exchange_type") as? String, "bybit:unified:testnet")
     }
 
@@ -109,10 +109,10 @@ final class SettingsServiceTests: XCTestCase {
         let mock = MockUserDataStorage()
         let service = SettingsService(storage: mock)
 
-        service.setExchangeType(Exchange(.bybit, environment: .testnet, wallet: .unified))
-        service.setExchangeType(Exchange(.bybit, environment: .production, wallet: .unified))
+        service.setExchange(Exchange(.bybit, environment: .testnet, wallet: .unified))
+        service.setExchange(Exchange(.bybit, environment: .production, wallet: .unified))
 
-        XCTAssertEqual(service.state.exchangeType.environment, .production)
+        XCTAssertEqual(service.state.exchange.environment, .production)
         XCTAssertEqual(mock.value(forKey: "selected_exchange_type") as? String, "bybit:unified:production")
     }
 
@@ -122,7 +122,7 @@ final class SettingsServiceTests: XCTestCase {
 
         let service = SettingsService(storage: mock)
 
-        XCTAssertEqual(service.state.exchangeType.environment, .testnet)
+        XCTAssertEqual(service.state.exchange.environment, .testnet)
     }
 
     func testAPIEnvironment_LegacyTwoPartValueDefaultsToProduction() {
@@ -131,7 +131,7 @@ final class SettingsServiceTests: XCTestCase {
 
         let service = SettingsService(storage: mock)
 
-        XCTAssertEqual(service.state.exchangeType.environment, .production)
+        XCTAssertEqual(service.state.exchange.environment, .production)
     }
 
     func testAPIEnvironment_InvalidStoredValueFallsBackToProduction() {
@@ -140,7 +140,7 @@ final class SettingsServiceTests: XCTestCase {
 
         let service = SettingsService(storage: mock)
 
-        XCTAssertEqual(service.state.exchangeType.environment, .production)
+        XCTAssertEqual(service.state.exchange.environment, .production)
     }
 
     func testAPIEnvironment_AvailableEnvironments_FromRegistry() {
@@ -170,7 +170,7 @@ final class SettingsServiceTests: XCTestCase {
         let binding = service.selectedAPIEnvironmentBinding
         binding.wrappedValue = .testnet
 
-        XCTAssertEqual(service.state.exchangeType.environment, .testnet)
+        XCTAssertEqual(service.state.exchange.environment, .testnet)
         XCTAssertEqual(mock.value(forKey: "selected_exchange_type") as? String, "bybit:unified:testnet")
     }
 }

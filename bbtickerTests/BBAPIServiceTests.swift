@@ -11,8 +11,6 @@ import LLApiService
 import LLCore
 @testable import bbticker
 
-// TODO: Can be removed since LLCore already cover all the integration test cases
-
 @MainActor
 class BBAPIServiceTests: XCTestCase {
     
@@ -25,18 +23,18 @@ class BBAPIServiceTests: XCTestCase {
     @MainActor
     private lazy var mockSettingsService = MockSettingsService()
     
-//    @MainActor
-//    private lazy var apiService = BBAPIService(
-//        credentialManager: mockCredentialManager,
-//        settingsService: mockSettingsService,
-//        urlSession: mockURLSession
-//    )
+    @MainActor
+    private lazy var registry = ExchangeRegistry()
     
     @MainActor
-    private lazy var apiService = LLAPIServiceWrapper(
+    private lazy var apiService = LLAPIServiceWrapper(registry: registry,
         credentialManager: mockCredentialManager,
         settingsService: mockSettingsService, urlSession: mockURLSession
     )
+    
+    override func setUp() async throws {
+        registry.registerBybitDefaults()
+    }
     
     // MARK: - Application-Level Error Detection Tests (HTTP 200 with errors)
     

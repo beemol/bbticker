@@ -25,10 +25,10 @@ struct ContentView: View {
         NavigationView {
             Form {
                 VStack(spacing: 20) {
-                    Text(settingsService.state.exchangeType.displayName)
+                    Text(settingsService.state.exchange.displayName)
                         .font(.largeTitle)
-                        .foregroundColor(settingsService.state.exchangeType.displayColor)
-                    Text(settingsService.state.exchangeType.walletType.rawValue)
+                        .foregroundColor(settingsService.state.exchange.displayColor)
+                    Text(settingsService.state.exchange.walletType.rawValue)
                         .padding(.bottom, 2)
                     Divider()
 

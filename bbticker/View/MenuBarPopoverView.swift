@@ -18,11 +18,11 @@ struct MenuBarPopoverView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text(settingsService.state.exchangeType.displayName)
+                Text(settingsService.state.exchange.displayName)
                     //.font(.headline)
-                    .foregroundColor(settingsService.state.exchangeType.displayColor)
+                    .foregroundColor(settingsService.state.exchange.displayColor)
                     //.padding(.bottom, 2)
-                Text("( \(settingsService.state.exchangeType.walletType.rawValue) )")
+                Text("( \(settingsService.state.exchange.walletType.rawValue) )")
                     .foregroundColor(.secondary)
             }
             
@@ -46,7 +46,7 @@ struct MenuBarPopoverView: View {
                 
                 ApiKeyExpirationView(state: bybitClient.apiKeyExpirationStore.state)
                     .onAppear {
-                        bybitClient.apiKeyExpirationStore.dispatch(.checkExpiration(settingsService.state.exchangeType))
+                        bybitClient.apiKeyExpirationStore.dispatch(.checkExpiration(settingsService.state.exchange))
                     }
             }
             .frame(height: 40)
@@ -156,7 +156,7 @@ struct MenuBarPopoverView_Previews: PreviewProvider {
                 // print("Donation opened in preview")
             }
         )
-        .environmentObject(SettingsService())
+        .environmentObject(SettingsService(exchangeRegistry: Mocks.MockRegistry()))
         .frame(width: 260)
         .previewDisplayName("Menu Bar Popover")
     }
@@ -165,9 +165,44 @@ struct MenuBarPopoverView_Previews: PreviewProvider {
 
 #endif
 import LLCore
+import LLApiService
 
 class Mocks {
+    final class MockRegistry: ExchangeRegistryProtocol {
+        let availableExchanges: [ExchangeIdentifier] = []
+        
+        func capabilities(for identifier: ExchangeIdentifier) -> ExchangeCapabilities? {
+            nil
+        }
+        
+        func configuration(for exchange: Exchange) -> ExchangeConfiguration? {
+            nil
+        }
+        
+        func parser<E>(for identifier: ExchangeIdentifier, endpoint: E) -> (any LLResponseParserProtocol<E.Output>)? where E : Endpoint {
+            nil
+        }
+        
+        func errorDetector(for identifier: ExchangeIdentifier) -> LLDomainErrorDetector? {
+            nil
+        }
+        
+        func requestBuilder(for identifier: ExchangeIdentifier, configuration: ExchangeConfiguration, credentials: Credentials, endpointType: EndpointID) -> LLAPIRequestBuilder? {
+            nil
+        }
+    }
+    
     final class MockSettingsService: SettingsServiceProtocol {
+        var availableExchanges: [LLCore.ExchangeIdentifier] { [] }
+        
+        var availableAPIEnvironments: [LLCore.APIEnvironment] { [] }
+        
+        var availableWalletTypes: [LLCore.WalletType] { [] }
+        
+        var exchangeConfiguration: LLCore.ExchangeConfiguration? {
+            nil
+        }
+        
         func setWallet(_ wallet: WalletType) {
             //
         }
@@ -176,16 +211,16 @@ class Mocks {
 
         // MARK: - Optional conveniences (not required by the protocol)
         // We keep these if your code still reads these directly instead of state.*
-        var exchangeType: ExchangeType { state.exchangeType }
+        var exchange: Exchange { state.exchange }
         var updateFrequency: Double { state.updateFrequency }
 
         // MARK: - Legacy Combine bridges (safe to remove once fully on Observation)
-        private let exchangeTypeSubject: CurrentValueSubject<ExchangeType, Never>
+        private let ExchangeSubject: CurrentValueSubject<Exchange, Never>
         private let unlockSubject: CurrentValueSubject<Bool, Never>
 
         // If a ViewModel still uses Combine, expose these:
-        var exchangeTypePublisher: AnyPublisher<ExchangeType, Never> {
-            exchangeTypeSubject.eraseToAnyPublisher()
+        var ExchangePublisher: AnyPublisher<Exchange, Never> {
+            ExchangeSubject.eraseToAnyPublisher()
         }
 
         var isUpdateFrequencyUnlockedPublisher: AnyPublisher<Bool, Never> {
@@ -194,11 +229,11 @@ class Mocks {
 
         // MARK: - Call tracking for assertions
         private(set) var setUpdateFrequencyCalled = false
-        private(set) var setExchangeTypeCalled = false
+        private(set) var setExchangeCalled = false
         private(set) var setUpdateFrequencyUnlockedCalled = false
 
         private(set) var lastUpdateFrequency: Double?
-        private(set) var lastExchangeType: ExchangeType?
+        private(set) var lastExchange: Exchange?
 
         // MARK: - Init
         init(
@@ -206,11 +241,11 @@ class Mocks {
             initialFrequency: Double = 5.0,
             initialUnlocked: Bool = false
         ) {
-            state.exchangeType = initialExchange
+            state.exchange = initialExchange
             state.updateFrequency = initialFrequency
             state.isProActive = initialUnlocked
 
-            exchangeTypeSubject = .init(initialExchange)
+            ExchangeSubject = .init(initialExchange)
             unlockSubject = .init(initialUnlocked)
         }
 
@@ -222,11 +257,11 @@ class Mocks {
             // No publisher needed for frequency (BBClient observes via Observation)
         }
 
-        func setExchangeType(_ exchangeType: Exchange) {
-            setExchangeTypeCalled = true
-            lastExchangeType = exchangeType
-            state.exchangeType = exchangeType
-            exchangeTypeSubject.send(exchangeType)
+        func setExchange(_ _exchange: Exchange) {
+            setExchangeCalled = true
+            lastExchange = exchange
+            state.exchange = exchange
+            ExchangeSubject.send(exchange)
         }
 
         func applyProStatus(_ unlocked: Bool) {
@@ -246,16 +281,16 @@ class Mocks {
         // MARK: - Test helper
         func reset() {
             setUpdateFrequencyCalled = false
-            setExchangeTypeCalled = false
+            setExchangeCalled = false
             setUpdateFrequencyUnlockedCalled = false
             lastUpdateFrequency = nil
-            lastExchangeType = nil
+            lastExchange = nil
 
             state.updateFrequency = 5.0
-            state.exchangeType = Exchange(.bybit, wallet: .unified)
+            state.exchange = Exchange(.bybit, wallet: .unified)
             state.isProActive = false
 
-            exchangeTypeSubject.send(state.exchangeType)
+            ExchangeSubject.send(state.exchange)
             unlockSubject.send(state.isProActive)
         }
     }
@@ -376,7 +411,9 @@ class Mocks {
     }
     
     class MockAPIService: APIServiceProtocol {
-        func fetchApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any ApiKeyInfo {
+        let registry: any LLCore.ExchangeRegistryProtocol = MockRegistry()
+        
+        func fetchApiKeyInfo(for exchange: Exchange) async throws -> any ApiKeyInfo {
             ApiKeyInfoData(createdAt: Date())
         }
         
@@ -384,17 +421,17 @@ class Mocks {
             return WalletData(totalEquity: 1234.56, walletBalance: 789.01)
         }
         
-        func fetchWalletBalance(for exchangeType: ExchangeType) async throws -> WalletData {
+        func fetchWalletBalance(for exchange: Exchange) async throws -> WalletData {
             return WalletData(totalEquity: 1234.56, walletBalance: 789.01)
         }
     }
     
     class MockWalletRepository: WalletRepositoryProtocol, @unchecked Sendable {
-        func getApiKeyInfo(for exchangeType: any LLCore.ExchangeType) async throws -> any ApiKeyInfo {
+        func getApiKeyInfo(for exchange: Exchange) async throws -> any ApiKeyInfo {
             ApiKeyInfoData(createdAt: Date())
         }
         
-        func getWalletData(for exchangeType: any LLCore.ExchangeType) async throws -> WalletData {
+        func getWalletData(for exchange: Exchange) async throws -> WalletData {
             WalletData(totalEquity: 123.1, walletBalance: 32.1)
         }
     }

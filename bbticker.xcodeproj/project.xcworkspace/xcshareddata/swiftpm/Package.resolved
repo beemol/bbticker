@@ -1,5 +1,5 @@
 {
-  "originHash" : "15e804127066b21072fda84da943e037ef368cb3354477565d8678a1874b28b0",
+  "originHash" : "038d6234e19d3e5c41062af0a81d4b85e98f5ea7b89532129b9ba9448af6dc5d",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -103,10 +103,19 @@
     {
       "identity" : "llapiservice",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/beemol/LLApiService.git",
+      "location" : "https://github.com/beemol/LLApiService",
       "state" : {
-        "revision" : "14fac0be9bf86fa3960ed7e992f5d267526351ec",
-        "version" : "0.1.0"
+        "revision" : "e50bfc4342015495acda2c1522c8ae7a52763ef5",
+        "version" : "0.2.0"
+      }
+    },
+    {
+      "identity" : "llcore",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/beemol/LLCore.git",
+      "state" : {
+        "revision" : "e1de97922dc5c9d289037d10fee87de6f326b9cc",
+        "version" : "0.2.0"
       }
     },
     {

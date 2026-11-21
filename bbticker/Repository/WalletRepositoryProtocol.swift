@@ -9,8 +9,8 @@ import Foundation
 import LLCore
 
 protocol WalletRepositoryProtocol: Sendable {
-    func getWalletData(for exchangeType: ExchangeType) async throws -> WalletData
-    func getApiKeyInfo(for exchangeType: ExchangeType) async throws -> ApiKeyInfo
+    func getWalletData(for exchange: Exchange) async throws -> WalletData
+    func getApiKeyInfo(for exchange: Exchange) async throws -> ApiKeyInfo
 }
 
 @MainActor
@@ -25,24 +25,24 @@ final class WalletRepository: WalletRepositoryProtocol {
         self.apiService = apiService
     }
     
-    func getWalletData(for exchangeType: ExchangeType) async throws -> WalletData {
-        let credentials = try await credentialManager.getCredentials(forAccount: exchangeType.envIDString)
+    func getWalletData(for exchange: Exchange) async throws -> WalletData {
+        let credentials = try await credentialManager.getCredentials(forAccount: exchange.envIDString)
         
         if credentials.apiKey.isEmpty || credentials.apiSecret.isEmpty {
-            throw APIDomainError.missingOrInvalidParams(context: APIErrorContext(exchange: exchangeType.identifier))
+            throw APIDomainError.missingOrInvalidParams(context: APIErrorContext(exchange: exchange.identifier))
         }
         
-        return try await apiService.fetchWalletBalance(for: exchangeType)
+        return try await apiService.fetchWalletBalance(for: exchange)
     }
     
-    func getApiKeyInfo(for exchangeType: ExchangeType) async throws -> ApiKeyInfo {
-        let credentials = try await credentialManager.getCredentials(forAccount: exchangeType.envIDString)
+    func getApiKeyInfo(for exchange: Exchange) async throws -> ApiKeyInfo {
+        let credentials = try await credentialManager.getCredentials(forAccount: exchange.envIDString)
         
         if credentials.apiKey.isEmpty || credentials.apiSecret.isEmpty {
-            throw APIDomainError.missingOrInvalidParams(context: APIErrorContext(exchange: exchangeType.identifier))
+            throw APIDomainError.missingOrInvalidParams(context: APIErrorContext(exchange: exchange.identifier))
         }
         
-        let data = try await apiService.fetchApiKeyInfo(for: exchangeType)
+        let data = try await apiService.fetchApiKeyInfo(for: exchange)
         return data
     }
 }

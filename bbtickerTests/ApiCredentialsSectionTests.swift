@@ -15,7 +15,7 @@ struct ApiCredentialsSectionTests {
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
         
         // Start with Bybit
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         let state = ApiCredentialsState(
             settingsService: settingsService,
             credentialManager: credentialManager
@@ -30,7 +30,7 @@ struct ApiCredentialsSectionTests {
         #expect(state.saveStatus == .success(message: "Credentials saved successfully!"))
         
         // Switch to KuCoin
-        settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        settingsService.setExchange(Exchange(.kucoin, wallet: .futures))
         await state.loadCredentials()
         #expect(state.apiKey == "")
         #expect(state.requiresPassphrase == true)
@@ -45,7 +45,7 @@ struct ApiCredentialsSectionTests {
         #expect(state.saveStatus == .success(message: "Credentials saved successfully!"))
         
         // Switch back to Bybit
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         await state.loadCredentials()
         #expect(state.apiKey == "bybit-key")
         #expect(state.apiSecret == "bybit-secret")
@@ -116,7 +116,7 @@ struct ApiCredentialsSectionTests {
     func cannotSaveWithEmptyKey() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,
@@ -133,7 +133,7 @@ struct ApiCredentialsSectionTests {
     func cannotSaveWithEmptySecret() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,
@@ -150,7 +150,7 @@ struct ApiCredentialsSectionTests {
     func canSaveBybitCredentials() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,
@@ -168,7 +168,7 @@ struct ApiCredentialsSectionTests {
     func cannotSaveKuCoinWithoutPassphrase() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        settingsService.setExchange(Exchange(.kucoin, wallet: .futures))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,
@@ -186,7 +186,7 @@ struct ApiCredentialsSectionTests {
     func canSaveKuCoinWithPassphrase() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        settingsService.setExchange(Exchange(.kucoin, wallet: .futures))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,
@@ -204,7 +204,7 @@ struct ApiCredentialsSectionTests {
     func bybitDoesNotRequirePassphrase() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,
@@ -218,7 +218,7 @@ struct ApiCredentialsSectionTests {
     func kucoinRequiresPassphrase() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        settingsService.setExchange(Exchange(.kucoin, wallet: .futures))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,
@@ -234,7 +234,7 @@ struct ApiCredentialsSectionTests {
     func saveCredentialsSuccess() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,
@@ -259,7 +259,7 @@ struct ApiCredentialsSectionTests {
     func saveCredentialsFailure() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         
         // Configure mock to return failure
         await credentialManager.setSaveResult(errSecAuthFailed)
@@ -283,7 +283,7 @@ struct ApiCredentialsSectionTests {
     func saveKuCoinCredentialsWithPassphrase() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        settingsService.setExchange(Exchange(.kucoin, wallet: .futures))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,
@@ -311,7 +311,7 @@ struct ApiCredentialsSectionTests {
     func deleteCredentialsSuccess() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,
@@ -337,7 +337,7 @@ struct ApiCredentialsSectionTests {
     func deleteCredentialsFailure() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         
         // Configure mock to return failure
         await credentialManager.setDeleteResult(errSecAuthFailed)
@@ -367,7 +367,7 @@ struct ApiCredentialsSectionTests {
     func loadCredentialsSuccess() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         
         // Pre-save credentials
         await credentialManager.saveCredentials(
@@ -393,7 +393,7 @@ struct ApiCredentialsSectionTests {
     func loadCredentialsWhenNoneExist() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,
@@ -417,7 +417,7 @@ struct ApiCredentialsSectionTests {
     func loadKuCoinCredentialsWithPassphrase() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        settingsService.setExchange(Exchange(.kucoin, wallet: .futures))
         
         // Pre-save KuCoin credentials with passphrase
         await credentialManager.saveCredentials(
@@ -447,7 +447,7 @@ struct ApiCredentialsSectionTests {
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
         
         // Save Bybit credentials
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         await credentialManager.saveCredentials(
             key: "bybit-key",
             secret: "bybit-secret",
@@ -456,7 +456,7 @@ struct ApiCredentialsSectionTests {
         )
         
         // Save KuCoin credentials
-        settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        settingsService.setExchange(Exchange(.kucoin, wallet: .futures))
         await credentialManager.saveCredentials(
             key: "kucoin-key",
             secret: "kucoin-secret",
@@ -465,7 +465,7 @@ struct ApiCredentialsSectionTests {
         )
         
         // Start with Bybit
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         let state = ApiCredentialsState(
             settingsService: settingsService,
             credentialManager: credentialManager
@@ -478,7 +478,7 @@ struct ApiCredentialsSectionTests {
         #expect(state.requiresPassphrase == false)
         
         // Switch to KuCoin
-        settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        settingsService.setExchange(Exchange(.kucoin, wallet: .futures))
         await state.loadCredentials()
         
         #expect(state.apiKey == "kucoin-key")
@@ -493,7 +493,7 @@ struct ApiCredentialsSectionTests {
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
         
         // Save Bybit credentials only
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         await credentialManager.saveCredentials(
             key: "bybit-key",
             secret: "bybit-secret",
@@ -510,7 +510,7 @@ struct ApiCredentialsSectionTests {
         #expect(state.apiKey == "bybit-key")
         
         // Switch to KuCoin (no credentials saved)
-        settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        settingsService.setExchange(Exchange(.kucoin, wallet: .futures))
         await state.loadCredentials()
         
         #expect(state.apiKey == "")
@@ -524,7 +524,7 @@ struct ApiCredentialsSectionTests {
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
         
         // Save credentials for both exchanges
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         await credentialManager.saveCredentials(
             key: "bybit-key",
             secret: "bybit-secret",
@@ -532,7 +532,7 @@ struct ApiCredentialsSectionTests {
             forAccount: "bybit:production"
         )
         
-        settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        settingsService.setExchange(Exchange(.kucoin, wallet: .futures))
         await credentialManager.saveCredentials(
             key: "kucoin-key",
             secret: "kucoin-secret",
@@ -541,7 +541,7 @@ struct ApiCredentialsSectionTests {
         )
         
         // Start with Bybit
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         let state = ApiCredentialsState(
             settingsService: settingsService,
             credentialManager: credentialManager
@@ -551,12 +551,12 @@ struct ApiCredentialsSectionTests {
         #expect(state.apiKey == "bybit-key")
         
         // Switch to KuCoin
-        settingsService.setExchangeType(Exchange(.kucoin, wallet: .futures))
+        settingsService.setExchange(Exchange(.kucoin, wallet: .futures))
         await state.loadCredentials()
         #expect(state.apiKey == "kucoin-key")
         
         // Switch back to Bybit
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         await state.loadCredentials()
         #expect(state.apiKey == "bybit-key")
         #expect(state.apiSecret == "bybit-secret")
@@ -631,7 +631,7 @@ struct ApiCredentialsSectionTests {
     func viewInitializationWithState() async throws {
         let settingsService = MockSettingsService()
         let credentialManager = MockCredentialManager(fallbackOnMissing: false)
-        settingsService.setExchangeType(Exchange(.bybit, wallet: .unified))
+        settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,

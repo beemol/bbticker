@@ -32,6 +32,12 @@ extension Exchange {
     }
 }
 
+// Convenient computed properties
+public extension Exchange {
+    // For backward compatibility with ApiRequestable
+    var displayName: String { identifier.rawValue }
+}
+
 #if canImport(FirebaseCore)
 import FirebaseCore
 #endif

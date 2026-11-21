@@ -12,9 +12,11 @@ import LLCore
 
 @MainActor
 protocol APIServiceProtocol {
-    func fetchWalletBalance(for exchangeType: ExchangeType) async throws -> WalletData
+    var registry: ExchangeRegistryProtocol { get }
+    
+    func fetchWalletBalance(for exchange: Exchange) async throws -> WalletData
     func fetchWalletBalanceForCurrentExchange() async throws -> WalletData
-    func fetchApiKeyInfo(for exchangeType: ExchangeType) async throws -> ApiKeyInfo
+    func fetchApiKeyInfo(for exchange: Exchange) async throws -> ApiKeyInfo
 }
 
 //class BBAPIService: APIServiceProtocol {
@@ -29,15 +31,15 @@ protocol APIServiceProtocol {
 //    }
 //    
 //    func fetchWalletBalanceForCurrentExchange() async throws -> BBWalletData {
-//        let exchangeType = settingsService.state.exchangeType
-//        return try await fetchWalletBalance(for: exchangeType)
+//        let exchange = settingsService.state.exchange
+//        return try await fetchWalletBalance(for: Exchange)
 //    }
 //    
-//    func fetchWalletBalance(for exchangeType: ExchangeType) async throws -> BBWalletData {
+//    func fetchWalletBalance(for exchange: Exchange) async throws -> BBWalletData {
 //        // Analytics tracking setup
 //        let endpoint = "wallet-balance"
 //        
-//        guard let request = await APIRequestBuilderFactory.builder(for: exchangeType, creds: credentialManager)?.createWalletBalanceRequest() else {
+//        guard let request = await APIRequestBuilderFactory.builder(for: Exchange, creds: credentialManager)?.createWalletBalanceRequest() else {
 //            AnalyticsManager.shared.track(.apiFailure(endpoint: endpoint, error: "invalid_request"))
 //            throw APIError.invalidRequest
 //        }
@@ -61,7 +63,7 @@ protocol APIServiceProtocol {
 //                    print("BBAPIService: Error response body: \(responseString)")
 //                }
 //                AnalyticsManager.shared.track(.apiFailure(endpoint: endpoint, error: "http_\(httpResponse.statusCode)"))
-//                let domainError = APIErrorMapper.mapHTTPResponse(exchange: exchangeType, endpoint: endpoint, data: data, response: httpResponse)
+//                let domainError = APIErrorMapper.mapHTTPResponse(exchange: Exchange, endpoint: endpoint, data: data, response: httpResponse)
 //                throw domainError ?? APIError.invalidRequest
 //            }
 //            
@@ -70,7 +72,7 @@ protocol APIServiceProtocol {
 //                print("BBAPIService: Response body: \(responseString)")
 //                
 //                do {
-//                    try AplicationErrorDetectorFactory.build(for: exchangeType)?.detectError(data: data, response: response)
+//                    try AplicationErrorDetectorFactory.build(for: Exchange)?.detectError(data: data, response: response)
 //                } catch let appError as APIDomainError {
 //                    print("BBAPIService: Application error detected in HTTP 200 response: \(appError)")
 //                    AnalyticsManager.shared.track(.apiFailure(endpoint: endpoint, error: "app_error_\(appError.context.apiCode ?? "unknown")"))
@@ -87,12 +89,12 @@ protocol APIServiceProtocol {
 //            }
 //            
 //            AnalyticsManager.shared.track(.apiFailure(endpoint: endpoint, error: error.localizedDescription))
-//            let mapped = APIErrorMapper.mapNetworkError(error, exchange: exchangeType, endpoint: endpoint)
+//            let mapped = APIErrorMapper.mapNetworkError(error, exchange: Exchange, endpoint: endpoint)
 //            throw mapped
 //        }
 //        
 //        // Parsing happens after successful network response and error checks
-//        guard let walletData = WalletDataParserFactory.parser(for: exchangeType).parseWalletBalance(from: data) else {
+//        guard let walletData = WalletDataParserFactory.parser(for: Exchange).parseWalletBalance(from: data) else {
 //            AnalyticsManager.shared.track(.apiFailure(endpoint: endpoint, error: "parse_error"))
 //            throw APIError.parseError
 //        }

@@ -72,16 +72,16 @@ class SettingsViewModelTests: XCTestCase {
     
     // MARK: - Exchange Type Settings Tests
     
-//    func testSetExchangeType() {
+//    func testSetExchange() {
 //        // When
-//        viewModel.setExchangeType(.binance(walletType: .futures))
+//        viewModel.setExchange(.binance(walletType: .futures))
 //        
 //        // Then
-//        XCTAssertTrue(mockSettingsService.setExchangeTypeCalled)
-//        XCTAssertEqual(mockSettingsService.lastExchangeType?.displayName, ExchangeType.binance(walletType: .futures).displayName)
+//        XCTAssertTrue(mockSettingsService.setExchangeCalled)
+//        XCTAssertEqual(mockSettingsService.lastExchange?.displayName, Exchange.binance(walletType: .futures).displayName)
 //    }
 //    
-//    func testSelectedExchangeBinding_UpdatesExchangeType() {
+//    func testSelectedExchangeBinding_UpdatesExchange() {
 //        // Given
 //        let binding = viewModel.selectedExchangeNameBinding
 //        
@@ -89,11 +89,11 @@ class SettingsViewModelTests: XCTestCase {
 //        binding.wrappedValue = .kucoin
 //        
 //        // Then
-//        XCTAssertTrue(mockSettingsService.setExchangeTypeCalled)
-//        XCTAssertEqual(mockSettingsService.lastExchangeType?.exchangeName, .kucoin)
+//        XCTAssertTrue(mockSettingsService.setExchangeCalled)
+//        XCTAssertEqual(mockSettingsService.lastExchange?.exchangeName, .kucoin)
 //    }
 //    
-//    func testSelectedWalletTypeBinding_UpdatesExchangeType() {
+//    func testSelectedWalletTypeBinding_UpdatesExchange() {
 //        // Given
 //        let binding = viewModel.selectedWalletTypeBinding
 //        
@@ -101,8 +101,8 @@ class SettingsViewModelTests: XCTestCase {
 //        binding.wrappedValue = .futures
 //        
 //        // Then
-//        XCTAssertTrue(mockSettingsService.setExchangeTypeCalled)
-//        XCTAssertEqual(mockSettingsService.lastExchangeType?.walletType, .futures)
+//        XCTAssertTrue(mockSettingsService.setExchangeCalled)
+//        XCTAssertEqual(mockSettingsService.lastExchange?.walletType, .futures)
 //    }
 //    
 //    func testInitialWalletTypeBinding_IsValid() {
@@ -210,7 +210,7 @@ class SettingsViewModelTests: XCTestCase {
 
     // MARK: - Exchange Type Reactive Tests
     
-//    func testExchangeTypeChange_ReloadsCredentials() async {
+//    func testExchangeChange_ReloadsCredentials() async {
 //        // Given
 //        viewModel = makeViewModel()
 //        let expectation = XCTestExpectation(description: "Credentials reloaded")
@@ -224,7 +224,7 @@ class SettingsViewModelTests: XCTestCase {
 //        mockCredentialManager.reset()
 //        
 //        // When
-//        mockSettingsService.exchangeType = .binance(walletType: .futures)
+//        mockSettingsService.exchange = .binance(walletType: .futures)
 //        
 //        // Wait for the reactive binding to trigger
 //        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -235,7 +235,7 @@ class SettingsViewModelTests: XCTestCase {
 //        
 //        // Then
 //        XCTAssertTrue(mockCredentialManager.getCredentialsCalled)
-//        XCTAssertEqual(mockCredentialManager.lastAccountRequested, ExchangeType.binance(walletType: .futures).displayName)
+//        XCTAssertEqual(mockCredentialManager.lastAccountRequested, Exchange.binance(walletType: .futures).displayName)
 //    }
 
     // MARK: - Unlock/IAP Binding and Flows
@@ -320,19 +320,19 @@ class MockSettingsService: SettingsServiceProtocol {
     
     // Call tracking for assertions
     var setUpdateFrequencyCalled = false
-    var setExchangeTypeCalled = false
+    var setExchangeCalled = false
     var setUpdateFrequencyUnlockedCalled = false
     var lastUpdateFrequency: Double?
-    var lastExchangeType: ExchangeType?
+    var lastExchange: Exchange?
     
     var state: SettingsState {
         realService.state
     }
     
     // Convenience accessors used in tests
-    var exchangeType: Exchange {
-        get { state.exchangeType }
-        set { setExchangeType(newValue) }
+    var exchange: Exchange {
+        get { state.exchange }
+        set { setExchange(newValue) }
     }
     var updateFrequency: Double { state.updateFrequency }
     var isUpdateFrequencyUnlocked: Bool { state.isProActive }
@@ -342,7 +342,7 @@ class MockSettingsService: SettingsServiceProtocol {
         realService = SettingsService(storage: mockStorage)
         
         // Override defaults for tests to match previous behavior
-        realService.setExchangeType(Exchange(.bybit, wallet: .spot))
+        realService.setExchange(Exchange(.bybit, wallet: .spot))
     }
 
     func applyProStatus(_ unlocked: Bool) {
@@ -356,10 +356,10 @@ class MockSettingsService: SettingsServiceProtocol {
         realService.setUpdateFrequency(frequency)
     }
 
-    func setExchangeType(_ exchangeType: Exchange) {
-        setExchangeTypeCalled = true
-        lastExchangeType = exchangeType
-        realService.state.exchangeType = exchangeType
+    func setExchange(_exchange: Exchange) {
+        setExchangeCalled = true
+        lastExchange = exchange
+        realService.state.exchange = Exchange
     }
     
     func setShowMarginLevelDot(_ enabled: Bool) {
@@ -372,15 +372,15 @@ class MockSettingsService: SettingsServiceProtocol {
 
     func reset() {
         setUpdateFrequencyCalled = false
-        setExchangeTypeCalled = false
+        setExchangeCalled = false
         setUpdateFrequencyUnlockedCalled = false
         lastUpdateFrequency = nil
-        lastExchangeType = nil
+        lastExchange = nil
         
         // Reset storage and reinitialize to defaults
         mockStorage.reset()
         realService.setUpdateFrequency(5.0)
-        realService.setExchangeType(Exchange(.bybit, wallet: .spot))
+        realService.setExchange(Exchange(.bybit, wallet: .spot))
         realService.applyProStatus(false)
     }
 }

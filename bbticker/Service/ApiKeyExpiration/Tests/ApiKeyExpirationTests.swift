@@ -25,15 +25,15 @@ struct ApiKeyExpirationTests {
         var apiKeyInfoToReturn: ApiKeyInfo?
         var errorToThrow: Error?
         var getApiKeyInfoCalled = false
-        var lastExchangeType: ExchangeType?
+        var lastExchange: Exchange?
 
-        func getWalletData(for exchangeType: ExchangeType) async throws -> WalletData {
+        func getWalletData(for exchange: Exchange) async throws -> WalletData {
             fatalError("getWalletData not used in these tests")
         }
 
-        func getApiKeyInfo(for exchangeType: ExchangeType) async throws -> ApiKeyInfo {
+        func getApiKeyInfo(for exchange: Exchange) async throws -> ApiKeyInfo {
             getApiKeyInfoCalled = true
-            lastExchangeType = exchangeType
+            lastExchange = exchange
             if let error = errorToThrow {
                 throw error
             }
