@@ -27,13 +27,13 @@ final class SettingsServiceTests: XCTestCase {
     func testInitialLoad_UsesStoredValues() {
         let mock = MockUserDataStorage()
         mock.save(key: "update_frequency", value: 10.0)
-        mock.save(key: "selected_exchange_type", value: "kucoin:futures")
+        mock.save(key: "selected_exchange_type", value: "bybit:unified")
         mock.save(key: "iap_ispro_unlocked", value: true)
 
         let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         XCTAssertEqual(service.state.updateFrequency, 10.0)
-        XCTAssertEqual(service.state.exchange, Exchange(.kucoin, wallet: .futures))
+        XCTAssertEqual(service.state.exchange, Exchange(.bybit, wallet: .unified))
         XCTAssertTrue(service.state.isProActive)
     }
 

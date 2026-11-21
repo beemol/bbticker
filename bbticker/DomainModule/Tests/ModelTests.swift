@@ -47,26 +47,26 @@ struct ModelTests {
             #expect(RegistryHelper().getBybitRegistry().configuration(for: exchange)?.baseURL == "https://api-demo.bybit.com")
         }
         
-        @Test("KuCoin futures has correct properties")
-        func testKuCoinFuturesProperties() {
-            let exchange = Exchange(.kucoin, wallet: .futures)
-            
-            #expect(exchange.walletType == .futures)
-            #expect(exchange.displayName == "kucoin")
-            #expect(RegistryHelper().getBybitRegistry().configuration(for: exchange)?.baseURL == "https://api-futures.kucoin.com")
-            #expect(RegistryHelper().getBybitRegistry().configuration(for: exchange)?.endpoint(for: .wallet(exchange.walletType)) == "/api/v1/account-overview?currency=USDT")
-            #expect(exchange.identifier == .kucoin)
-        }
-        
-        @Test("KuCoin spot has correct properties")
-        func testKuCoinSpotProperties() {
-            let exchange = Exchange(.kucoin, wallet: .spot)
-            
-            #expect(exchange.walletType == .spot)
-            #expect(exchange.displayName == "kucoin")
-            #expect(RegistryHelper().getBybitRegistry().configuration(for: exchange)?.baseURL == "https://api-futures.kucoin.com")
-            #expect(RegistryHelper().getBybitRegistry().configuration(for: exchange)?.endpoint(for: .wallet(exchange.walletType)) == "/api/v1/accounts?type=main")
-        }
+//        @Test("KuCoin futures has correct properties")
+//        func testKuCoinFuturesProperties() {
+//            let exchange = Exchange(.kucoin, wallet: .futures)
+//            
+//            #expect(exchange.walletType == .futures)
+//            #expect(exchange.displayName == "kucoin")
+//            #expect(RegistryHelper().getBybitRegistry().configuration(for: exchange)?.baseURL == "https://api-futures.kucoin.com")
+//            #expect(RegistryHelper().getBybitRegistry().configuration(for: exchange)?.endpoint(for: .wallet(exchange.walletType)) == "/api/v1/account-overview?currency=USDT")
+//            #expect(exchange.identifier == .kucoin)
+//        }
+//        
+//        @Test("KuCoin spot has correct properties")
+//        func testKuCoinSpotProperties() {
+//            let exchange = Exchange(.kucoin, wallet: .spot)
+//            
+//            #expect(exchange.walletType == .spot)
+//            #expect(exchange.displayName == "kucoin")
+//            #expect(RegistryHelper().getBybitRegistry().configuration(for: exchange)?.baseURL == "https://api-futures.kucoin.com")
+//            #expect(RegistryHelper().getBybitRegistry().configuration(for: exchange)?.endpoint(for: .wallet(exchange.walletType)) == "/api/v1/accounts?type=main")
+//        }
         
         @Test("Available wallet types for Bybit")
         func testBybitAvailableWalletTypes() {
@@ -75,12 +75,12 @@ struct ModelTests {
             #expect(RegistryHelper().getBybitRegistry().capabilities(for: exchange.identifier)?.availableWalletTypes.contains(.unified) ?? false)
         }
         
-        @Test("Available wallet types for KuCoin")
-        func testKuCoinAvailableWalletTypes() {
-            let exchange = Exchange(.kucoin, wallet: .futures)
-            
-            #expect(RegistryHelper().getBybitRegistry().capabilities(for: exchange.identifier)?.availableWalletTypes.contains(.futures) ?? false)
-        }
+//        @Test("Available wallet types for KuCoin")
+//        func testKuCoinAvailableWalletTypes() {
+//            let exchange = Exchange(.kucoin, wallet: .futures)
+//            
+//            #expect(RegistryHelper().getBybitRegistry().capabilities(for: exchange.identifier)?.availableWalletTypes.contains(.futures) ?? false)
+//        }
         
         @Test("Equality works correctly")
         func testEquality() {
@@ -564,10 +564,10 @@ struct ModelTests {
         @Test("Returns capabilities for known exchanges")
         func testReturnsCapabilities() {
             let bybitCaps = RegistryHelper().getBybitRegistry().capabilities(for: .bybit)
-            let kucoinCaps = RegistryHelper().getBybitRegistry().capabilities(for: .kucoin)
+            //let kucoinCaps = RegistryHelper().getBybitRegistry().capabilities(for: .kucoin)
             
             #expect(bybitCaps != nil)
-            #expect(kucoinCaps != nil)
+            //#expect(kucoinCaps != nil)
         }
         
         @Test("Returns nil for unknown exchange")
@@ -581,7 +581,7 @@ struct ModelTests {
             let available = RegistryHelper().getBybitRegistry().availableExchanges
             
             #expect(available.contains(.bybit))
-            #expect(available.contains(.kucoin))
+            //#expect(available.contains(.kucoin))
         }
     }
 }

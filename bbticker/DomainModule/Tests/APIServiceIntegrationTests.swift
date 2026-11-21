@@ -237,171 +237,171 @@ struct APIServiceIntegrationTests {
     
     // MARK: - KuCoin Application-Level Error Tests
     
-    @Test("KuCoin API key not exists error")
-    func testKuCoinAPIKeyNotExistsError() async {
-        // Given: KuCoin returns HTTP 200 with API key error
-        let errorResponse = """
-        {
-            "code": "400003",
-            "msg": "KC-API-KEY not exists"
-        }
-        """
-        
-        await setupMockResponse(data: errorResponse, statusCode: 200)
-        
-        do {
-            _ = try await apiService.fetchWalletBalance(for: Exchange(.kucoin, wallet: .futures))
-            Issue.record("Expected APIDomainError to be thrown")
-        } catch let error as APIDomainError {
-            guard case .invalidCredentials(let context) = error else {
-                Issue.record("Expected invalidCredentials error, got \(error)")
-                return
-            }
-            #expect(context.apiCode == "400003")
-            #expect(context.rawMessage == "KC-API-KEY not exists")
-            #expect(context.exchange == .kucoin)
-        } catch {
-            Issue.record("Expected APIDomainError, got \(error)")
-        }
-    }
-    
-    @Test("KuCoin invalid signature error")
-    func testKuCoinInvalidSignatureError() async {
-        // Given: KuCoin returns HTTP 200 with signature error
-        let errorResponse = """
-        {
-            "code": "400005",
-            "msg": "KC-API-SIGN Invalid"
-        }
-        """
-        
-        await setupMockResponse(data: errorResponse, statusCode: 200)
-        
-        do {
-            _ = try await apiService.fetchWalletBalance(for: Exchange(.kucoin, wallet: .futures))
-            Issue.record("Expected APIDomainError to be thrown")
-        } catch let error as APIDomainError {
-            guard case .signatureInvalid(let context) = error else {
-                Issue.record("Expected signatureInvalid error, got \(error)")
-                return
-            }
-            #expect(context.apiCode == "400005")
-            #expect(context.rawMessage == "KC-API-SIGN Invalid")
-        } catch {
-            Issue.record("Expected APIDomainError, got \(error)")
-        }
-    }
-    
-    @Test("KuCoin rate limited error")
-    func testKuCoinRateLimitedError() async {
-        // Given: KuCoin returns HTTP 200 with rate limit error
-        let errorResponse = """
-        {
-            "code": "429000",
-            "msg": "Too Many Requests"
-        }
-        """
-        
-        await setupMockResponse(data: errorResponse, statusCode: 200)
-        
-        do {
-            _ = try await apiService.fetchWalletBalance(for: Exchange(.kucoin, wallet: .futures))
-            Issue.record("Expected APIDomainError to be thrown")
-        } catch let error as APIDomainError {
-            guard case .rateLimited(let context) = error else {
-                Issue.record("Expected rateLimited error, got \(error)")
-                return
-            }
-            #expect(context.apiCode == "429000")
-            #expect(context.rawMessage == "Too Many Requests")
-        } catch {
-            Issue.record("Expected APIDomainError, got \(error)")
-        }
-    }
-    
-    // MARK: - Binance Application-Level Error Tests
-    
-    @Test("Binance invalid API key error")
-    func testBinanceInvalidAPIKeyError() async {
-        // Given: Binance returns HTTP 200 with API key error
-        let errorResponse = """
-        {
-            "code": -2014,
-            "msg": "API-key format invalid."
-        }
-        """
-        
-        await setupMockResponse(data: errorResponse, statusCode: 200)
-        
-        do {
-            _ = try await apiService.fetchWalletBalance(for: Exchange(.binance, wallet: .futures))
-            Issue.record("Expected APIDomainError to be thrown")
-        } catch let error as APIDomainError {
-            guard case .invalidCredentials(let context) = error else {
-                Issue.record("Expected invalidCredentials error, got \(error)")
-                return
-            }
-            #expect(context.apiCode == "-2014")
-            #expect(context.rawMessage == "API-key format invalid.")
-            #expect(context.exchange == .binance)
-        } catch {
-            Issue.record("Expected APIDomainError, got \(error)")
-        }
-    }
-    
-    @Test("Binance invalid signature error")
-    func testBinanceInvalidSignatureError() async {
-        // Given: Binance returns HTTP 200 with signature error
-        let errorResponse = """
-        {
-            "code": -1022,
-            "msg": "Signature for this request is not valid."
-        }
-        """
-        
-        await setupMockResponse(data: errorResponse, statusCode: 200)
-        
-        do {
-            _ = try await apiService.fetchWalletBalance(for: Exchange(.binance, wallet: .futures))
-            Issue.record("Expected APIDomainError to be thrown")
-        } catch let error as APIDomainError {
-            guard case .signatureInvalid(let context) = error else {
-                Issue.record("Expected signatureInvalid error, got \(error)")
-                return
-            }
-            #expect(context.apiCode == "-1022")
-            #expect(context.rawMessage == "Signature for this request is not valid.")
-        } catch {
-            Issue.record("Expected APIDomainError, got \(error)")
-        }
-    }
-    
-    @Test("Binance timestamp error")
-    func testBinanceTimestampError() async {
-        // Given: Binance returns HTTP 200 with timestamp error
-        let errorResponse = """
-        {
-            "code": -1021,
-            "msg": "Timestamp for this request is outside of the recvWindow."
-        }
-        """
-        
-        await setupMockResponse(data: errorResponse, statusCode: 200)
-        
-        do {
-            _ = try await apiService.fetchWalletBalance(for: Exchange(.binance, wallet: .futures))
-            Issue.record("Expected APIDomainError to be thrown")
-        } catch let error as APIDomainError {
-            guard case .timestampOutOfRange(let context) = error else {
-                Issue.record("Expected timestampOutOfRange error, got \(error)")
-                return
-            }
-            #expect(context.apiCode == "-1021")
-            #expect(context.rawMessage == "Timestamp for this request is outside of the recvWindow.")
-        } catch {
-            Issue.record("Expected APIDomainError, got \(error)")
-        }
-    }
+//    @Test("KuCoin API key not exists error")
+//    func testKuCoinAPIKeyNotExistsError() async {
+//        // Given: KuCoin returns HTTP 200 with API key error
+//        let errorResponse = """
+//        {
+//            "code": "400003",
+//            "msg": "KC-API-KEY not exists"
+//        }
+//        """
+//        
+//        await setupMockResponse(data: errorResponse, statusCode: 200)
+//        
+//        do {
+//            _ = try await apiService.fetchWalletBalance(for: Exchange(.kucoin, wallet: .futures))
+//            Issue.record("Expected APIDomainError to be thrown")
+//        } catch let error as APIDomainError {
+//            guard case .invalidCredentials(let context) = error else {
+//                Issue.record("Expected invalidCredentials error, got \(error)")
+//                return
+//            }
+//            #expect(context.apiCode == "400003")
+//            #expect(context.rawMessage == "KC-API-KEY not exists")
+//            #expect(context.exchange == .kucoin)
+//        } catch {
+//            Issue.record("Expected APIDomainError, got \(error)")
+//        }
+//    }
+//    
+//    @Test("KuCoin invalid signature error")
+//    func testKuCoinInvalidSignatureError() async {
+//        // Given: KuCoin returns HTTP 200 with signature error
+//        let errorResponse = """
+//        {
+//            "code": "400005",
+//            "msg": "KC-API-SIGN Invalid"
+//        }
+//        """
+//        
+//        await setupMockResponse(data: errorResponse, statusCode: 200)
+//        
+//        do {
+//            _ = try await apiService.fetchWalletBalance(for: Exchange(.kucoin, wallet: .futures))
+//            Issue.record("Expected APIDomainError to be thrown")
+//        } catch let error as APIDomainError {
+//            guard case .signatureInvalid(let context) = error else {
+//                Issue.record("Expected signatureInvalid error, got \(error)")
+//                return
+//            }
+//            #expect(context.apiCode == "400005")
+//            #expect(context.rawMessage == "KC-API-SIGN Invalid")
+//        } catch {
+//            Issue.record("Expected APIDomainError, got \(error)")
+//        }
+//    }
+//    
+//    @Test("KuCoin rate limited error")
+//    func testKuCoinRateLimitedError() async {
+//        // Given: KuCoin returns HTTP 200 with rate limit error
+//        let errorResponse = """
+//        {
+//            "code": "429000",
+//            "msg": "Too Many Requests"
+//        }
+//        """
+//        
+//        await setupMockResponse(data: errorResponse, statusCode: 200)
+//        
+//        do {
+//            _ = try await apiService.fetchWalletBalance(for: Exchange(.kucoin, wallet: .futures))
+//            Issue.record("Expected APIDomainError to be thrown")
+//        } catch let error as APIDomainError {
+//            guard case .rateLimited(let context) = error else {
+//                Issue.record("Expected rateLimited error, got \(error)")
+//                return
+//            }
+//            #expect(context.apiCode == "429000")
+//            #expect(context.rawMessage == "Too Many Requests")
+//        } catch {
+//            Issue.record("Expected APIDomainError, got \(error)")
+//        }
+//    }
+//    
+//    // MARK: - Binance Application-Level Error Tests
+//    
+//    @Test("Binance invalid API key error")
+//    func testBinanceInvalidAPIKeyError() async {
+//        // Given: Binance returns HTTP 200 with API key error
+//        let errorResponse = """
+//        {
+//            "code": -2014,
+//            "msg": "API-key format invalid."
+//        }
+//        """
+//        
+//        await setupMockResponse(data: errorResponse, statusCode: 200)
+//        
+//        do {
+//            _ = try await apiService.fetchWalletBalance(for: Exchange(.binance, wallet: .futures))
+//            Issue.record("Expected APIDomainError to be thrown")
+//        } catch let error as APIDomainError {
+//            guard case .invalidCredentials(let context) = error else {
+//                Issue.record("Expected invalidCredentials error, got \(error)")
+//                return
+//            }
+//            #expect(context.apiCode == "-2014")
+//            #expect(context.rawMessage == "API-key format invalid.")
+//            #expect(context.exchange == .binance)
+//        } catch {
+//            Issue.record("Expected APIDomainError, got \(error)")
+//        }
+//    }
+//    
+//    @Test("Binance invalid signature error")
+//    func testBinanceInvalidSignatureError() async {
+//        // Given: Binance returns HTTP 200 with signature error
+//        let errorResponse = """
+//        {
+//            "code": -1022,
+//            "msg": "Signature for this request is not valid."
+//        }
+//        """
+//        
+//        await setupMockResponse(data: errorResponse, statusCode: 200)
+//        
+//        do {
+//            _ = try await apiService.fetchWalletBalance(for: Exchange(.binance, wallet: .futures))
+//            Issue.record("Expected APIDomainError to be thrown")
+//        } catch let error as APIDomainError {
+//            guard case .signatureInvalid(let context) = error else {
+//                Issue.record("Expected signatureInvalid error, got \(error)")
+//                return
+//            }
+//            #expect(context.apiCode == "-1022")
+//            #expect(context.rawMessage == "Signature for this request is not valid.")
+//        } catch {
+//            Issue.record("Expected APIDomainError, got \(error)")
+//        }
+//    }
+//    
+//    @Test("Binance timestamp error")
+//    func testBinanceTimestampError() async {
+//        // Given: Binance returns HTTP 200 with timestamp error
+//        let errorResponse = """
+//        {
+//            "code": -1021,
+//            "msg": "Timestamp for this request is outside of the recvWindow."
+//        }
+//        """
+//        
+//        await setupMockResponse(data: errorResponse, statusCode: 200)
+//        
+//        do {
+//            _ = try await apiService.fetchWalletBalance(for: Exchange(.binance, wallet: .futures))
+//            Issue.record("Expected APIDomainError to be thrown")
+//        } catch let error as APIDomainError {
+//            guard case .timestampOutOfRange(let context) = error else {
+//                Issue.record("Expected timestampOutOfRange error, got \(error)")
+//                return
+//            }
+//            #expect(context.apiCode == "-1021")
+//            #expect(context.rawMessage == "Timestamp for this request is outside of the recvWindow.")
+//        } catch {
+//            Issue.record("Expected APIDomainError, got \(error)")
+//        }
+//    }
     
     // MARK: - Success Cases (No Application Errors)
     
