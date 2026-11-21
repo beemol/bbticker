@@ -32,14 +32,14 @@ protocol APIServiceProtocol {
 //    
 //    func fetchWalletBalanceForCurrentExchange() async throws -> BBWalletData {
 //        let exchange = settingsService.state.exchange
-//        return try await fetchWalletBalance(for: Exchange)
+//        return try await fetchWalletBalance(for: exchange)
 //    }
 //    
 //    func fetchWalletBalance(for exchange: Exchange) async throws -> BBWalletData {
 //        // Analytics tracking setup
 //        let endpoint = "wallet-balance"
 //        
-//        guard let request = await APIRequestBuilderFactory.builder(for: Exchange, creds: credentialManager)?.createWalletBalanceRequest() else {
+//        guard let request = await APIRequestBuilderFactory.builder(for: exchange, creds: credentialManager)?.createWalletBalanceRequest() else {
 //            AnalyticsManager.shared.track(.apiFailure(endpoint: endpoint, error: "invalid_request"))
 //            throw APIError.invalidRequest
 //        }
@@ -72,7 +72,7 @@ protocol APIServiceProtocol {
 //                print("BBAPIService: Response body: \(responseString)")
 //                
 //                do {
-//                    try AplicationErrorDetectorFactory.build(for: Exchange)?.detectError(data: data, response: response)
+//                    try AplicationErrorDetectorFactory.build(for: exchange)?.detectError(data: data, response: response)
 //                } catch let appError as APIDomainError {
 //                    print("BBAPIService: Application error detected in HTTP 200 response: \(appError)")
 //                    AnalyticsManager.shared.track(.apiFailure(endpoint: endpoint, error: "app_error_\(appError.context.apiCode ?? "unknown")"))
@@ -94,7 +94,7 @@ protocol APIServiceProtocol {
 //        }
 //        
 //        // Parsing happens after successful network response and error checks
-//        guard let walletData = WalletDataParserFactory.parser(for: Exchange).parseWalletBalance(from: data) else {
+//        guard let walletData = WalletDataParserFactory.parser(for: exchange).parseWalletBalance(from: data) else {
 //            AnalyticsManager.shared.track(.apiFailure(endpoint: endpoint, error: "parse_error"))
 //            throw APIError.parseError
 //        }

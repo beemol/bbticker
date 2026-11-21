@@ -22,7 +22,6 @@ class MockUserDataStorage: UserDataStorageProtocol {
 final class SettingsServiceTests: XCTestCase {
     override func setUp() {
         super.setUp()
-        ExchangeRegistry.shared.registerKuCoinDefaults()
     }
 
     func testInitialLoad_UsesStoredValues() {
@@ -31,7 +30,7 @@ final class SettingsServiceTests: XCTestCase {
         mock.save(key: "selected_exchange_type", value: "kucoin:futures")
         mock.save(key: "iap_ispro_unlocked", value: true)
 
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         XCTAssertEqual(service.state.updateFrequency, 10.0)
         XCTAssertEqual(service.state.exchange, Exchange(.kucoin, wallet: .futures))
@@ -40,7 +39,7 @@ final class SettingsServiceTests: XCTestCase {
 
     func testInitialLoad_DefaultsWhenNoValues() {
         let mock = MockUserDataStorage()
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         XCTAssertEqual(service.state.updateFrequency, ProFeatures.freePollingInterval)
         XCTAssertEqual(service.state.exchange, Exchange(.bybit, wallet: .unified))
@@ -49,7 +48,7 @@ final class SettingsServiceTests: XCTestCase {
 
     func testSetUpdateFrequency_SavesValue() {
         let mock = MockUserDataStorage()
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         service.setUpdateFrequency(15.0)
 
@@ -59,7 +58,7 @@ final class SettingsServiceTests: XCTestCase {
 
     func testSetExchange_SavesSerializedValue() {
         let mock = MockUserDataStorage()
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         service.setExchange(Exchange(.kucoin, wallet: .futures))
 
@@ -69,7 +68,7 @@ final class SettingsServiceTests: XCTestCase {
 
     func testSetUpdateFrequencyUnlocked_SavesValue() {
         let mock = MockUserDataStorage()
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         service.applyProStatus(true)
 
@@ -81,7 +80,7 @@ final class SettingsServiceTests: XCTestCase {
         let mock = MockUserDataStorage()
         mock.save(key: "selected_exchange_type", value: "invalid:format")
 
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         XCTAssertEqual(service.state.exchange, Exchange(.bybit, wallet: .unified))
     }
@@ -90,14 +89,14 @@ final class SettingsServiceTests: XCTestCase {
 
     func testAPIEnvironment_DefaultsToProduction() {
         let mock = MockUserDataStorage()
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         XCTAssertEqual(service.state.exchange.environment, .production)
     }
 
     func testAPIEnvironment_SetToTestnet_SavesValue() {
         let mock = MockUserDataStorage()
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         service.setExchange(Exchange(.bybit, environment: .testnet, wallet: .unified))
 
@@ -107,7 +106,7 @@ final class SettingsServiceTests: XCTestCase {
 
     func testAPIEnvironment_SetToProduction_SavesValue() {
         let mock = MockUserDataStorage()
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         service.setExchange(Exchange(.bybit, environment: .testnet, wallet: .unified))
         service.setExchange(Exchange(.bybit, environment: .production, wallet: .unified))
@@ -120,7 +119,7 @@ final class SettingsServiceTests: XCTestCase {
         let mock = MockUserDataStorage()
         mock.save(key: "selected_exchange_type", value: "bybit:unified:testnet")
 
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         XCTAssertEqual(service.state.exchange.environment, .testnet)
     }
@@ -129,7 +128,7 @@ final class SettingsServiceTests: XCTestCase {
         let mock = MockUserDataStorage()
         mock.save(key: "selected_exchange_type", value: "bybit:unified")
 
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         XCTAssertEqual(service.state.exchange.environment, .production)
     }
@@ -138,14 +137,14 @@ final class SettingsServiceTests: XCTestCase {
         let mock = MockUserDataStorage()
         mock.save(key: "selected_exchange_type", value: "bybit:unified:invalid_env")
 
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         XCTAssertEqual(service.state.exchange.environment, .production)
     }
 
     func testAPIEnvironment_AvailableEnvironments_FromRegistry() {
         let mock = MockUserDataStorage()
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         let environments = service.availableAPIEnvironments
 
@@ -156,7 +155,7 @@ final class SettingsServiceTests: XCTestCase {
     func testSelectedAPIEnvironmentBinding_ReadsState() {
         let mock = MockUserDataStorage()
         mock.save(key: "selected_exchange_type", value: "bybit:unified:testnet")
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         let binding = service.selectedAPIEnvironmentBinding
 
@@ -165,7 +164,7 @@ final class SettingsServiceTests: XCTestCase {
 
     func testSelectedAPIEnvironmentBinding_WritesToService() {
         let mock = MockUserDataStorage()
-        let service = SettingsService(storage: mock)
+        let service = SettingsService(storage: mock, exchangeRegistry: RegistryHelper().getBybitRegistry())
 
         let binding = service.selectedAPIEnvironmentBinding
         binding.wrappedValue = .testnet

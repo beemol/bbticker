@@ -32,7 +32,7 @@ final class ProEntitlementTests: XCTestCase {
                 storage.save(key: SettingsService.StorageKey.updateFrequency, value: testCase.initialFrequency)
                 storage.save(key: SettingsService.StorageKey.isProActive, value: testCase.initialPro)
                 
-                let service = SettingsService(storage: storage)
+                let service = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
                 // When
                 service.applyProStatus(testCase.isPro)
                 
@@ -54,7 +54,7 @@ final class ProEntitlementTests: XCTestCase {
         storage.save(key: SettingsService.StorageKey.updateFrequency, value: 5.0)
         storage.save(key: SettingsService.StorageKey.isProActive, value: false)
         // When
-        let service = SettingsService(storage: storage)
+        let service = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
         // Then
         XCTAssertFalse(service.state.isProActive)
         XCTAssertEqual(service.state.updateFrequency, ProFeatures.freePollingInterval)
@@ -66,14 +66,14 @@ final class ProEntitlementTests: XCTestCase {
         storage.save(key: SettingsService.StorageKey.updateFrequency, value: 10.0)
         storage.save(key: SettingsService.StorageKey.isProActive, value: true)
         // When
-        let service = SettingsService(storage: storage)
+        let service = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
         // Then
         XCTAssertTrue(service.state.isProActive)
         XCTAssertEqual(service.state.updateFrequency, 10.0)
     }
     
     func test_givenNoPersistedValues_whenInit_thenDefaultsToFreeTier() {
-        let service = SettingsService(storage: MockUserDataStorage())
+        let service = SettingsService(storage: MockUserDataStorage(), exchangeRegistry: RegistryHelper().getBybitRegistry())
         XCTAssertFalse(service.state.isProActive)
         XCTAssertEqual(service.state.updateFrequency, ProFeatures.freePollingInterval)
     }

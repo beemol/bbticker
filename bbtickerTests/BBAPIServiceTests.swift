@@ -24,7 +24,7 @@ class BBAPIServiceTests: XCTestCase {
     private lazy var mockSettingsService = MockSettingsService()
     
     @MainActor
-    private lazy var registry = ExchangeRegistry()
+    private lazy var registry = RegistryHelper().getBybitRegistry()
     
     @MainActor
     private lazy var apiService = LLAPIServiceWrapper(registry: registry,
@@ -32,9 +32,9 @@ class BBAPIServiceTests: XCTestCase {
         settingsService: mockSettingsService, urlSession: mockURLSession
     )
     
-    override func setUp() async throws {
-        registry.registerBybitDefaults()
-    }
+//    override func setUp() async throws {
+//        registry.registerBybitDefaults()
+//    }
     
     // MARK: - Application-Level Error Detection Tests (HTTP 200 with errors)
     

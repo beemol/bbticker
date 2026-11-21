@@ -575,12 +575,14 @@ class TestAPIServiceWrapper {
         self.credentialManager = credentialManager
     }
     
-    func fetchWalletBalance(for exchange: any Exchange) async throws -> WalletData {
+    func fetchWalletBalance(for exchange: Exchange) async throws -> WalletData {
         // Build request
-        guard let requestBuilder = await APIRequestBuilderFactory.builder(
-            for: Exchange,
-            creds: credentialManager
-        ) else {
+        guard let exchangeConfiguration = RegistryHelper().getBybitRegistry().configuration(for: exchange),
+              let requestBuilder = await APIRequestBuilderFactory.builder(
+                for: exchange,
+                exchangeConfiguration: exchangeConfiguration,
+                creds: credentialManager
+              ) else {
             throw APIError.invalidRequest
         }
         
@@ -595,14 +597,14 @@ class TestAPIServiceWrapper {
         let appDetector = AplicationErrorDetectorFactory.build(for: exchange.identifier)
         let errorDetector = HTTPStatusErrorDetector(
             exchange: exchange.identifier,
-            endpoint: exchange.endpoint,
+            endpoint: exchangeConfiguration.endpoint(for: .wallet(exchange.walletType)) ?? "",
             appLevelDetector: appDetector
         )
         
         try errorDetector.detectError(data: data, response: response)
         
         // Parse response
-        let parser = WalletDataParserFactory.parser(for: Exchange)
+        let parser = WalletDataParserFactory.parser(for: exchange)
         return try parser.parse(data: data)
     }
 }

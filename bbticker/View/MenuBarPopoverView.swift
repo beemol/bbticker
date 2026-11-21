@@ -257,7 +257,7 @@ class Mocks {
             // No publisher needed for frequency (BBClient observes via Observation)
         }
 
-        func setExchange(_ _exchange: Exchange) {
+        func setExchange(_ exchange: Exchange) {
             setExchangeCalled = true
             lastExchange = exchange
             state.exchange = exchange

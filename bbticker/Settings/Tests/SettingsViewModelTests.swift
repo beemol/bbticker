@@ -336,10 +336,14 @@ class MockSettingsService: SettingsServiceProtocol {
     }
     var updateFrequency: Double { state.updateFrequency }
     var isUpdateFrequencyUnlocked: Bool { state.isProActive }
+    var availableExchanges: [ExchangeIdentifier] { realService.availableExchanges }
+    var availableAPIEnvironments: [APIEnvironment] { realService.availableAPIEnvironments }
+    var availableWalletTypes: [WalletType] { realService.availableWalletTypes }
+    var exchangeConfiguration: ExchangeConfiguration? { realService.exchangeConfiguration }
 
     init() {
         mockStorage = MockUserDataStorage()
-        realService = SettingsService(storage: mockStorage)
+        realService = SettingsService(storage: mockStorage, exchangeRegistry: RegistryHelper().getBybitRegistry())
         
         // Override defaults for tests to match previous behavior
         realService.setExchange(Exchange(.bybit, wallet: .spot))
@@ -356,10 +360,10 @@ class MockSettingsService: SettingsServiceProtocol {
         realService.setUpdateFrequency(frequency)
     }
 
-    func setExchange(_exchange: Exchange) {
+    func setExchange(_ exchange: Exchange) {
         setExchangeCalled = true
         lastExchange = exchange
-        realService.state.exchange = Exchange
+        realService.state.exchange = exchange
     }
     
     func setShowMarginLevelDot(_ enabled: Bool) {

@@ -17,9 +17,9 @@ struct BBClientReconnectionTests {
     
     @MainActor
     class TestableAPIService: APIServiceProtocol {
-        let registry: any LLCore.ExchangeRegistryProtocol = ExchangeRegistry()
+        let registry: any LLCore.ExchangeRegistryProtocol = RegistryHelper().getBybitRegistry()
         
-        func fetchApiKeyInfo(for exchange: any LLCore.Exchange) async throws -> any bbticker.ApiKeyInfo {
+        func fetchApiKeyInfo(for exchange: LLCore.Exchange) async throws -> any bbticker.ApiKeyInfo {
             ApiKeyInfoData(createdAt: Date())
         }
         

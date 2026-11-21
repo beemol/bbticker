@@ -105,7 +105,7 @@ class LLAPIServiceWrapper: APIServiceProtocol {
             let credentials = try await credentialManager.getCredentials(forAccount: account)
             
             let service = try getService(for: exchange, endpoint: endpoint, credentials: credentials)
-            //let service = try LLApiServiceBuilder.make(for: Exchange, exchangeConfiguration: configuration, endpoint: endpoint, credentials: credentials, networkService: LLNetworkService(urlSession: urlSession))
+            //let service = try LLApiServiceBuilder.make(for: exchange, exchangeConfiguration: configuration, endpoint: endpoint, credentials: credentials, networkService: LLNetworkService(urlSession: urlSession))
             let walletData = try await service.execute()
             
             // Track success, but do not block result

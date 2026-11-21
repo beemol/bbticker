@@ -14,7 +14,7 @@ final class MarginLevelDotTests: XCTestCase {
     // MARK: - SettingsService
     
     func test_givenNoStoredValue_whenInit_thenMarginDotDefaultsToTrue() {
-        let service = SettingsService(storage: MockUserDataStorage())
+        let service = SettingsService(storage: MockUserDataStorage(), exchangeRegistry: RegistryHelper().getBybitRegistry())
         XCTAssertTrue(service.state.showMarginLevelDot)
     }
     
@@ -22,14 +22,14 @@ final class MarginLevelDotTests: XCTestCase {
         let storage = MockUserDataStorage()
         storage.save(key: SettingsService.StorageKey.showMarginLevelDot, value: false)
         
-        let service = SettingsService(storage: storage)
+        let service = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
         
         XCTAssertFalse(service.state.showMarginLevelDot)
     }
     
     func test_setShowMarginLevelDot_persistsToStorage() {
         let storage = MockUserDataStorage()
-        let service = SettingsService(storage: storage)
+        let service = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
         
         service.setShowMarginLevelDot(false)
         
@@ -45,7 +45,7 @@ final class MarginLevelDotTests: XCTestCase {
         storage.save(key: SettingsService.StorageKey.showMarginLevelDot, value: true)
         storage.save(key: SettingsService.StorageKey.isProActive, value: true)
         
-        let service = SettingsService(storage: storage)
+        let service = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
         service.applyProStatus(false)
         
         XCTAssertFalse(service.state.isProActive)
@@ -68,7 +68,7 @@ final class MarginLevelDotTests: XCTestCase {
                 storage.save(key: SettingsService.StorageKey.isProActive, value: testCase.isPro)
                 storage.save(key: SettingsService.StorageKey.showMarginLevelDot, value: testCase.dotEnabled)
                 
-                let service = SettingsService(storage: storage)
+                let service = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
                 
                 XCTAssertEqual(
                     menuBarShowsMarginDot(service),
@@ -83,7 +83,7 @@ final class MarginLevelDotTests: XCTestCase {
     
     func test_showMarginLevelDotBinding_reflectsAndUpdatesService() {
         let storage = MockUserDataStorage()
-        let settingsService = SettingsService(storage: storage)
+        let settingsService = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
         settingsService.applyProStatus(true)
         
         let viewModel = SettingsViewModel(

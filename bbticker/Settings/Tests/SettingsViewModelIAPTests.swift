@@ -38,7 +38,7 @@ final class SettingsViewModelIAPTests: XCTestCase {
     
     override func setUp() async throws {
         storage = MockUserDataStorage()
-        settingsService = SettingsService(storage: storage)
+        settingsService = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
         spyIAP = SpyIAPManager()
         viewModel = makeViewModel()
     }

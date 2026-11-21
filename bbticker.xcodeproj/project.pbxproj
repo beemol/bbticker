@@ -17,6 +17,7 @@
 		F240514630B1A39000E5D8E5 /* LLApiService in Frameworks */ = {isa = PBXBuildFile; productRef = F240514530B1A39000E5D8E5 /* LLApiService */; };
 		F271AAFC30970DDA0032FD30 /* LLCore in Frameworks */ = {isa = PBXBuildFile; productRef = F2E4892230207E8500D6A0E3 /* LLCore */; };
 		F27A40C430B1A54700FD2E5D /* LLCore in Frameworks */ = {isa = PBXBuildFile; productRef = F27A40C330B1A54700FD2E5D /* LLCore */; };
+		F27A40C630B1CE3900FD2E5D /* LLApiService in Frameworks */ = {isa = PBXBuildFile; productRef = F27A40C530B1CE3900FD2E5D /* LLApiService */; };
 		F28F604A3096FEB400E6737A /* LLCore in Frameworks */ = {isa = PBXBuildFile; productRef = E782C1902EDF087E00733AC6 /* LLCore */; };
 		F3A000000000000000000003 /* CompactBalanceFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A000000000000000000004 /* CompactBalanceFormatter.swift */; };
 		F3A000000000000000000006 /* CompactBalanceText.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A000000000000000000007 /* CompactBalanceText.swift */; };
@@ -212,6 +213,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F28F604A3096FEB400E6737A /* LLCore in Frameworks */,
+				F27A40C630B1CE3900FD2E5D /* LLApiService in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -325,6 +327,7 @@
 			name = bbtickerTests;
 			packageProductDependencies = (
 				E782C1902EDF087E00733AC6 /* LLCore */,
+				F27A40C530B1CE3900FD2E5D /* LLApiService */,
 			);
 			productName = bbtickerTests;
 			productReference = E79209442E3A191D003244E4 /* bbtickerTests.xctest */;
@@ -1046,6 +1049,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F27A40C230B1A54700FD2E5D /* XCRemoteSwiftPackageReference "LLCore" */;
 			productName = LLCore;
+		};
+		F27A40C530B1CE3900FD2E5D /* LLApiService */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F240514A30B1A41E00E5D8E5 /* XCRemoteSwiftPackageReference "LLApiService" */;
+			productName = LLApiService;
 		};
 		F2E4892230207E8500D6A0E3 /* LLCore */ = {
 			isa = XCSwiftPackageProductDependency;

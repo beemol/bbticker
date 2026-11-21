@@ -997,9 +997,9 @@ final class StableMockNetworkStore: NetworkStoreProtocol {
 }
 
 class MockAPIService: APIServiceProtocol {
-    let registry: any LLCore.ExchangeRegistryProtocol = ExchangeRegistry()
+    let registry: any LLCore.ExchangeRegistryProtocol = RegistryHelper().getBybitRegistry()
     
-    func fetchApiKeyInfo(for exchange: any LLCore.Exchange) async throws -> any bbticker.ApiKeyInfo {
+    func fetchApiKeyInfo(for exchange: LLCore.Exchange) async throws -> any bbticker.ApiKeyInfo {
         ApiKeyInfoData(createdAt: Date())
     }
     
@@ -1054,12 +1054,12 @@ class MockAPIService: APIServiceProtocol {
 /// so we can force a stale (older) connect to finish after a newer one.
 @MainActor
 final class ControllableAPIService: APIServiceProtocol {
-    let registry: any LLCore.ExchangeRegistryProtocol = ExchangeRegistry()
+    let registry: any LLCore.ExchangeRegistryProtocol = RegistryHelper().getBybitRegistry()
     
     var blockFirstCall = true
     private(set) var callCount = 0
 
-    func fetchApiKeyInfo(for exchange: any LLCore.Exchange) async throws -> any bbticker.ApiKeyInfo {
+    func fetchApiKeyInfo(for exchange: LLCore.Exchange) async throws -> any bbticker.ApiKeyInfo {
         ApiKeyInfoData(createdAt: Date())
     }
 

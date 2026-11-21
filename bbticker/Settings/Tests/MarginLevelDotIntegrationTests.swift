@@ -15,7 +15,7 @@ final class MarginLevelDotIntegrationTests: XCTestCase {
     func test_givenProUser_whenToggleMarginDotViaSettingsBinding_thenPersistsAndControlsMenuBarDot() {
         // Given — Pro user with default dot enabled
         let storage = MockUserDataStorage()
-        let settingsService = SettingsService(storage: storage)
+        let settingsService = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
         settingsService.applyProStatus(true)
         
         let viewModel = SettingsViewModel(
@@ -38,7 +38,7 @@ final class MarginLevelDotIntegrationTests: XCTestCase {
         XCTAssertFalse(menuBarShowsMarginDot(settingsService))
         
         // When — simulate app relaunch from persisted storage
-        let reloaded = SettingsService(storage: storage)
+        let reloaded = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
         
         // Then — preference survives relaunch; dot stays hidden
         XCTAssertTrue(reloaded.state.isProActive)
@@ -49,7 +49,7 @@ final class MarginLevelDotIntegrationTests: XCTestCase {
         viewModel.showMarginLevelDotBinding.wrappedValue = true
         
         // Then — persisted and visible again after reload
-        let relaunched = SettingsService(storage: storage)
+        let relaunched = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
         XCTAssertTrue(relaunched.state.showMarginLevelDot)
         XCTAssertTrue(menuBarShowsMarginDot(relaunched))
     }

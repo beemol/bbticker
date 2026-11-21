@@ -69,8 +69,8 @@ final class StoreKitIntegrationTests: XCTestCase {
         if let isProActive {
             storage.save(key: SettingsService.StorageKey.isProActive, value: isProActive)
         }
-        storage.save(key: SettingsService.StorageKey.selectExchange, value: Exchange)
-        let service = SettingsService(storage: storage)
+        storage.save(key: SettingsService.StorageKey.selectExchange, value: exchange)
+        let service = SettingsService(storage: storage, exchangeRegistry: RegistryHelper().getBybitRegistry())
         return (service, storage)
     }
     
