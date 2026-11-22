@@ -81,10 +81,10 @@ struct bbtickerApp: App {
         )
         
         // Register dependencies in the container for AppIntents and other global access
-//        DependencyContainer.shared.register(
-//            settingsService: settings,
-//            credentialManager: credentialManager
-//        )
+        DependencyContainer.shared.register(
+            settingsService: settings,
+            credentialManager: credentialManager, with: registry
+        )
         
         bybitClient = BBClient(
             settingsService: settings,

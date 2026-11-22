@@ -124,7 +124,7 @@ struct ContentView: View {
 // For Xcode Previews
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        let settings = SettingsService()
+        let settings = SettingsService(exchangeRegistry: RegistryHelper().getBybitRegistry())
         let client = BBClient(
             settingsService: settings,
             networkMonitor: Mocks.MockNetworkMonitor(),

@@ -8,7 +8,6 @@
 import Foundation
 import AppIntents
 
-// MARK: - Simple Balance Intent
 #if !os(macOS)
 struct GetBalanceIntent: AppIntent {
     static let title: LocalizedStringResource = "Get Balance"
@@ -20,7 +19,7 @@ struct GetBalanceIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog & ReturnsValue<String> {
         // Get dependencies from container
-        //let container = DependencyContainer.shared
+        let container = DependencyContainer.shared
         let settingsService = container.getSettingsService()
         let credentialManager = container.getCredentialManager()
         let analyticsManager = AnalyticsManager.shared
@@ -49,7 +48,7 @@ struct GetBalanceIntent: AppIntent {
         // Fetch balance
         do {
             let apiService = LLAPIServiceWrapper(
-                credentialManager: credentialManager,
+                registry: container.getRegistry(), credentialManager: credentialManager,
                 settingsService: settingsService,
                 urlSession: URLSession.shared
             )
