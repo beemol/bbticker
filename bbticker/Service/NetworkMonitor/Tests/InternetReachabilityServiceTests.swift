@@ -10,6 +10,7 @@ import LLApiService
 import Foundation
 @testable import bbticker
 
+@MainActor
 final class SessionMock: URLSessionProtocol, @unchecked Sendable {
     private var results: [Result<(Data, URLResponse), Error>]
 
@@ -64,7 +65,7 @@ struct InternetReachabilityServiceTests {
         #expect(result == false)
     }
     
-    @Test func givingTwoValuesExpectToConsiderTheLatest() async {
+    @Test func givenTwoValues_whenStoped_thenExpectTheLatest() async {
         // async stream buffers all the values by default
         // we need to consider only the recent one
         let response = URLResponse()
@@ -85,7 +86,7 @@ struct InternetReachabilityServiceTests {
         #expect(result == false)
     }
     
-    @Test func givingTwoValuesStopAfterTheFirstExpectNoSecondInReturn() async  {
+    @Test func givenTwoValues_whenStopAfterTheFirst_thenExpectNoSecondInReturn() async  {
         let session = SessionMock(results: [.success((Data([1]), URLResponse())),
                                                   .failure(URLError(.unknown))])
         
@@ -106,7 +107,7 @@ struct InternetReachabilityServiceTests {
         #expect(result == true)
     }
     
-    @Test func givingBlockingServiceExpectProperCancellation() async {
+    @Test func givenBlockingService_whenStopped_thenExpectProperCancellation() async {
         let session = BlockingSessionMock()
         let service = InternetReachabilityService(period: 0.1, urlSession: session)
         
