@@ -94,17 +94,18 @@ struct InternetReachabilityServiceTests {
         
         let stream = try? service.run()
         
+        var iter = stream?.makeAsyncIterator()
         // Allow probe 1 to emit before cancellation
-        try? await Task.sleep(for: .milliseconds(50))
+        let first = await iter?.next()
+        #expect(first == true)
         
         service.stop()
         
         try? await Task.sleep(for: .milliseconds(100))
         
-        var iter = stream?.makeAsyncIterator()
-        let result = await iter?.next()
+        let second = await iter?.next()
         
-        #expect(result == true)
+        #expect(second == nil)
     }
     
     @Test func givenBlockingService_whenStopped_thenExpectProperCancellation() async {
