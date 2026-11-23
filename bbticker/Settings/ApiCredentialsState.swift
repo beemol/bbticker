@@ -74,12 +74,13 @@ final class ApiCredentialsState {
             forAccount: account
         )
         
-        if status == errSecSuccess {
+        if status == .changed {
+            settingsService.credentialsChanged()
             saveStatus = .success(message: "Credentials saved successfully!")
             await AnalyticsManager.shared.track(.credentialsSaved)
-        } else {
-            saveStatus = .failure(message: "Failed to save credentials (Error: \(status)).")
-            await AnalyticsManager.shared.track(.keychainError(operation: "save", status: status))
+        } else if case let .failed(errorStatus) = status {
+            saveStatus = .failure(message: "Failed to save credentials (Error: \(errorStatus)).")
+            await AnalyticsManager.shared.track(.keychainError(operation: "save", status: errorStatus))
         }
     }
     
@@ -91,6 +92,7 @@ final class ApiCredentialsState {
         )
         
         if status == errSecSuccess {
+            settingsService.credentialsChanged()
             saveStatus = .success(message: "Credentials deleted!")
             clearFields()
             await AnalyticsManager.shared.track(.credentialsDeleted)

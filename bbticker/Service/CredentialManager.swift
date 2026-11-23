@@ -1,6 +1,5 @@
 import Foundation
 import Security
-
 import LLCore
 
 actor CredentialManager: CredentialManagerProtocol {
@@ -56,16 +55,25 @@ actor CredentialManager: CredentialManagerProtocol {
         }
     }
 
-    func saveCredentials(key: String, secret: String, passphrase: String, forAccount account: String) async -> OSStatus {
+    func saveCredentials(key: String, secret: String, passphrase: String, forAccount account: String) async -> CredentialsSaveResult {
+        let newCredentials = Credentials(apiKey: key, apiSecret: secret, passphrase: passphrase)
+        let oldCredentials: Credentials?
+
+        if let cachedCredentials = cache[account], cachedCredentials == newCredentials {
+            return .unchanged
+        }
+        
         let status = await keychainHelper.save(key: key, secret: secret, passphrase: passphrase, forAccount: account)
+        
         if status == errSecSuccess {
-            let credentials = Credentials(apiKey: key, apiSecret: secret, passphrase: passphrase)
-            
             // bump actual version
             epoch[account, default: 0] += 1
-            cache[account] = credentials
+            cache[account] = newCredentials
+            
+            return .changed
         }
-        return status
+        
+        return .failed(status)
     }
 
     func deleteCredentials(forAccount account: String) async -> OSStatus {

@@ -193,6 +193,8 @@ class Mocks {
     }
     
     final class MockSettingsService: SettingsServiceProtocol {
+        func credentialsChanged() {}
+        
         var availableExchanges: [LLCore.ExchangeIdentifier] { [] }
         
         var availableAPIEnvironments: [LLCore.APIEnvironment] { [] }
@@ -334,8 +336,8 @@ class Mocks {
     }
     
     actor MockCredentialManager: CredentialManagerProtocol {
-        func saveCredentials(key: String, secret: String, passphrase: String, forAccount account: String) async -> OSStatus {
-            return errSecSuccess
+        func saveCredentials(key: String, secret: String, passphrase: String, forAccount account: String) async -> CredentialsSaveResult {
+            return .changed
         }
         
         func deleteCredentials(forAccount account: String) async -> OSStatus {

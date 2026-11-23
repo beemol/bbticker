@@ -65,7 +65,7 @@ class BBClient: ObservableObject {
         $walletState.set(threshold: settingsService.state.updateFrequency + 1) // + 1 for a buffer
         
         setupNetworkMonitoring()
-        observeExchangeChanges()
+        observeSettingsChanges()
     }
     
     // keep for tests
@@ -348,22 +348,23 @@ class BBClient: ObservableObject {
     
     // MARK: - Exchange / Environment Change Handling
     
-    private func observeExchangeChanges() {
+    private func observeSettingsChanges() {
         withObservationTracking {
             _ = self.settingsService.state.exchange
+            _ = self.settingsService.state.credentialsRevision
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                self.handleExchangeChanged()
+                self.handleSettingsChanges()
                 
                 //re-arm
-                self.observeExchangeChanges()
+                self.observeSettingsChanges()
             }
         }
     }
     
-    private func handleExchangeChanged() {
-        AppLog.client.info("Exchange/environment changed — reconnecting")
+    private func handleSettingsChanges() {
+        AppLog.client.info("Importan changes — reconnecting")
         
         if isConnected || connectionStatus == .connecting  {
             pollingStrategy?.stop()

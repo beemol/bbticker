@@ -26,7 +26,7 @@ final class CredentialManagerTests: XCTestCase {
         let status = await manager.saveCredentials(key: "k", secret: "s", passphrase: "p", forAccount: "acc")
 
         // Then
-        XCTAssertEqual(status, errSecSuccess)
+        XCTAssertEqual(status, .changed)
 
         // Should read from cache regardless of keychain changes
         await keychain.setStorage(account: "acc", key: "k2", secret: "s2", passphrase: "p2")
@@ -44,7 +44,7 @@ final class CredentialManagerTests: XCTestCase {
         let status = await manager.saveCredentials(key: "k", secret: "s", passphrase: "p", forAccount: "acc")
 
         // Then
-        XCTAssertEqual(status, errSecItemNotFound)
+        XCTAssertEqual(status, .failed(errSecItemNotFound))
 
         // Since not cached, a subsequent get will look at keychain and throw (empty)
         await keychain.clear(account: "acc")
@@ -295,6 +295,7 @@ actor GatedKeychainHelper: KeychainHelperProtocol {
         // Signal test that snapshot is taken
         if !retrieveStartedFlag {
             retrieveStartedFlag = true
+            print("=== GatedKeychainHelper: retrieveStartedWaiter resume")
             retrieveStartedWaiter?.resume()
             retrieveStartedWaiter = nil
         }
@@ -302,6 +303,7 @@ actor GatedKeychainHelper: KeychainHelperProtocol {
         // Suspend here to allow test to interleave other operations
         await gate.wait()
 
+        print("=== GatedKeychainHelper: Return the stale snapshot  \(String(describing: snap.key))")
         // Return the stale snapshot (simulating slow I/O)
         return (snap.key, snap.secret, snap.passphrase)
     }
@@ -375,7 +377,7 @@ final class CredentialManagerReentrancyTests: XCTestCase {
             passphrase: "newPass",
             forAccount: account
         )
-        XCTAssertEqual(status, errSecSuccess)
+        XCTAssertEqual(status, .changed)
 
         // Resume get() - it returns OLD snapshot
         // This opens the gate, allowing firstGet to complete

@@ -262,7 +262,7 @@ struct ApiCredentialsSectionTests {
         settingsService.setExchange(Exchange(.bybit, wallet: .unified))
         
         // Configure mock to return failure
-        await credentialManager.setSaveResult(errSecAuthFailed)
+        await credentialManager.setSaveResult(.failed(errSecAuthFailed))
         
         let state = ApiCredentialsState(
             settingsService: settingsService,

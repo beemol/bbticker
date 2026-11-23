@@ -314,6 +314,10 @@ class SettingsViewModelTests: XCTestCase {
 // MARK: - Enhanced Mock Objects
 
 class MockSettingsService: SettingsServiceProtocol {
+    func credentialsChanged() {
+        //
+    }
+    
     // Use real SettingsService with mock storage for proper isolation
     private let realService: SettingsService
     private let mockStorage: MockUserDataStorage
@@ -393,7 +397,7 @@ import LLCore
 
 actor MockCredentialManager: CredentialManagerProtocol {
     var credentialsToReturn: Credentials = Credentials(apiKey: "test-key", apiSecret: "test-secret", passphrase: "test-passphrase")
-    var saveResult: OSStatus = errSecSuccess
+    var saveResult: CredentialsSaveResult = .changed
     var deleteResult: OSStatus = errSecSuccess
     var shouldThrowOnGet: Bool = false
     
@@ -466,7 +470,7 @@ actor MockCredentialManager: CredentialManagerProtocol {
     }
     
     @discardableResult
-    func saveCredentials(key: String, secret: String, passphrase: String, forAccount account: String) async -> OSStatus {
+    func saveCredentials(key: String, secret: String, passphrase: String, forAccount account: String) async -> CredentialsSaveResult {
         saveCredentialsCalled = true
         lastSavedKey = key
         lastSavedSecret = secret
@@ -545,7 +549,7 @@ actor MockCredentialManager: CredentialManagerProtocol {
         return lastDeletedAccount
     }
     
-    func setSaveResult(_ result: OSStatus) {
+    func setSaveResult(_ result: CredentialsSaveResult) {
         saveResult = result
     }
     

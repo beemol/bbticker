@@ -20,6 +20,7 @@ protocol SettingsServiceProtocol: ObservableObject {
     func setShowMarginLevelDot(_ enabled: Bool)
     func setBalanceNotificationsEnabled(_ enabled: Bool)
     func applyProStatus(_ unlocked: Bool)
+    func credentialsChanged()
     
     // UI-facing bridge bindings
     var selectedExchangeBinding: Binding<ExchangeIdentifier> { get }
@@ -79,6 +80,8 @@ final class SettingsState {
     var isProActive: Bool = false
     var showMarginLevelDot: Bool = true
     var balanceNotificationsEnabled: Bool = false
+    
+    var credentialsRevision: Int = 0
 }
 
 /// Shared service for app settings that can be observed reactively
@@ -131,6 +134,10 @@ final class SettingsService: SettingsServiceProtocol {
         state.isProActive = cached
         
         applyProStatus(state.isProActive)
+    }
+    
+    func credentialsChanged() {
+        state.credentialsRevision &+= 1
     }
     
     func setUpdateFrequency(_ frequency: Double) {
