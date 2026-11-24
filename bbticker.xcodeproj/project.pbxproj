@@ -80,7 +80,6 @@
 				DomainModule/Tests/APIServiceIntegrationTests.swift,
 				DomainModule/Tests/ErrorDetectorTests.swift,
 				DomainModule/Tests/ErrorMapperTests.swift,
-				DomainModule/Tests/HelpersTests.swift,
 				DomainModule/Tests/LLCoreTests.swift,
 				DomainModule/Tests/Mocks/MockURLSession.swift,
 				DomainModule/Tests/ModelTests.swift,
@@ -102,6 +101,7 @@
 				Settings/Tests/MarginLevelDotTests.swift,
 				Settings/Tests/SettingsViewModelIAPTests.swift,
 				Settings/Tests/SettingsViewModelTests.swift,
+				Support/HelpersTests.swift,
 			);
 			target = E79209432E3A191D003244E4 /* bbtickerTests */;
 		};
@@ -111,7 +111,6 @@
 				DomainModule/Tests/APIServiceIntegrationTests.swift,
 				DomainModule/Tests/ErrorDetectorTests.swift,
 				DomainModule/Tests/ErrorMapperTests.swift,
-				DomainModule/Tests/HelpersTests.swift,
 				DomainModule/Tests/LLCoreTests.swift,
 				DomainModule/Tests/Mocks/MockURLSession.swift,
 				DomainModule/Tests/ModelTests.swift,
@@ -135,6 +134,7 @@
 				Settings/Tests/SettingsViewModelIAPTests.swift,
 				Settings/Tests/SettingsViewModelTests.swift,
 				SparkleUpdater.swift,
+				Support/HelpersTests.swift,
 			);
 			target = E7C513BD2E16C55700561E15 /* bbticker */;
 		};

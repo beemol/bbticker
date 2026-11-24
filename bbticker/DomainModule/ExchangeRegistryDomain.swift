@@ -57,9 +57,9 @@ class RegistryHelper {
         let bybitRequestBuilderFactory: @Sendable (ExchangeConfiguration, Credentials, EndpointID) -> LLAPIRequestBuilder = { config, creds, endpointType in
             switch endpointType {
             case .wallet(let walletType):
-                return BybitWalletAPIRequestBuilder(exchangeConfiguration: config, walletType: walletType, creds: creds)
+                return BybitWalletAPIRequestBuilder(exchangeConfiguration: config, walletType: walletType, creds: creds, signer: IOSSigner())
             case .apiKeyInfo:
-                return BybitAPIKeyInfoAPIRequestBuilder(exchangeConfiguration: config, creds: creds)
+                return BybitAPIKeyInfoAPIRequestBuilder(exchangeConfiguration: config, creds: creds, signer: IOSSigner())
             }
         }
         

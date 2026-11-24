@@ -10,6 +10,13 @@ import Foundation
 @testable import bbticker
 @testable import LLCore
 
+struct MockSigner: RequestSigner {
+    func sign(payload: String, secret: String) throws -> String {
+        let input = "\(secret):\(payload)"
+        return input.data(using: .utf8)!.base64EncodedString()
+    }
+}
+
 @Suite("Request Builder Tests")
 struct RequestBuilderTests {
     
@@ -25,7 +32,7 @@ struct RequestBuilderTests {
             let builder = BybitWalletAPIRequestBuilder(
                 exchangeConfiguration: RegistryHelper().getBybitRegistry().configuration(for: exchange)!,
                 walletType: exchange.walletType,
-                creds: credentials
+                creds: credentials, signer: MockSigner()
             )
             
             let request = try? builder.createRequest()
@@ -47,7 +54,7 @@ struct RequestBuilderTests {
             let builder = BybitWalletAPIRequestBuilder(
                 exchangeConfiguration: RegistryHelper().getBybitRegistry().configuration(for: exchange)!,
                 walletType: exchange.walletType,
-                creds: credentials
+                creds: credentials, signer: MockSigner()
             )
             
             let request = try? builder.createRequest()
@@ -63,7 +70,7 @@ struct RequestBuilderTests {
             let builder = BybitWalletAPIRequestBuilder(
                 exchangeConfiguration: RegistryHelper().getBybitRegistry().configuration(for: exchange)!,
                 walletType: exchange.walletType,
-                creds: credentials
+                creds: credentials, signer: MockSigner()
             )
             
             let request1 = try? builder.createRequest()
@@ -85,7 +92,7 @@ struct RequestBuilderTests {
             let builder = BybitWalletAPIRequestBuilder(
                 exchangeConfiguration: RegistryHelper().getBybitRegistry().configuration(for: exchange)!,
                 walletType: exchange.walletType,
-                creds: credentials
+                creds: credentials, signer: MockSigner()
             )
             
             let request = try? builder.createRequest()

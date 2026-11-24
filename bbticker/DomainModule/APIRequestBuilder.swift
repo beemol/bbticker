@@ -18,20 +18,25 @@ struct APIRequestBuilderFactory {
 
         switch accountName {
         case .bybit:
-            return BybitWalletAPIRequestBuilder(exchangeConfiguration: exchangeConfiguration, walletType: exchange.walletType, creds: credentials)
+            return BybitWalletAPIRequestBuilder(exchangeConfiguration: exchangeConfiguration, walletType: exchange.walletType, creds: credentials, signer: IOSSigner())
 //        case .kucoin:
 //            return KuCoinAPIRequestBuilder(exchangeConfiguration: ExchangeConfiguration, creds: credentials)
 //        case .binance:
 //            return BinanceAPIRequestBuilder(Exchange: Exchange, creds: credentials)
         default:
-            return BybitWalletAPIRequestBuilder(exchangeConfiguration: exchangeConfiguration, walletType: exchange.walletType, creds: credentials)
+            return BybitWalletAPIRequestBuilder(exchangeConfiguration: exchangeConfiguration, walletType: exchange.walletType, creds: credentials, signer: IOSSigner())
         }
     }
+}
+
+protocol RequestSigner {
+    func sign(payload: String, secret: String) throws -> String
 }
 
 struct BybitAPIKeyInfoAPIRequestBuilder: LLAPIRequestBuilder {
     let exchangeConfiguration: ExchangeConfiguration
     let creds: Credentials
+    let signer: RequestSigner
     
     func createRequest() throws -> URLRequest {
         // Get the endpoint from your capabilities
@@ -46,16 +51,21 @@ struct BybitAPIKeyInfoAPIRequestBuilder: LLAPIRequestBuilder {
         // For API key info endpoint, no query params needed
         // Signature is: timestamp + apiKey + recvWindow
         let signaturePayload = timestamp + creds.apiKey + recvWindow
-        let signature = signaturePayload.hmacSHA256(key: creds.apiSecret)
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue(creds.apiKey, forHTTPHeaderField: "X-BAPI-API-KEY")
-        request.setValue(timestamp, forHTTPHeaderField: "X-BAPI-TIMESTAMP")
-        request.setValue(recvWindow, forHTTPHeaderField: "X-BAPI-RECV-WINDOW")
-        request.setValue(signature, forHTTPHeaderField: "X-BAPI-SIGN")
-        
-        return request
+        do {
+            let signature = try signer.sign(payload: signaturePayload, secret: creds.apiSecret)
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue(creds.apiKey, forHTTPHeaderField: "X-BAPI-API-KEY")
+            request.setValue(timestamp, forHTTPHeaderField: "X-BAPI-TIMESTAMP")
+            request.setValue(recvWindow, forHTTPHeaderField: "X-BAPI-RECV-WINDOW")
+            request.setValue(signature, forHTTPHeaderField: "X-BAPI-SIGN")
+            
+            return request
+        } catch {
+            throw APIError.invalidRequest
+        }
     }
 }
 
@@ -64,6 +74,7 @@ struct BybitWalletAPIRequestBuilder: LLAPIRequestBuilder {
     let exchangeConfiguration: ExchangeConfiguration
     let walletType: WalletType
     let creds: Credentials
+    let signer: RequestSigner
     
     func createRequest() throws -> URLRequest {
         let baseURL = exchangeConfiguration.baseURL
@@ -77,14 +88,19 @@ struct BybitWalletAPIRequestBuilder: LLAPIRequestBuilder {
         let accountTypeParam: String = "UNIFIED"
         let queryString = "accountType=\(accountTypeParam)"
         let signaturePayload = timestamp + creds.apiKey + recvWindow + queryString
-        let signature = signaturePayload.hmacSHA256(key: creds.apiSecret)
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue(creds.apiKey, forHTTPHeaderField: "X-BAPI-API-KEY")
-        request.setValue(timestamp, forHTTPHeaderField: "X-BAPI-TIMESTAMP")
-        request.setValue(recvWindow, forHTTPHeaderField: "X-BAPI-RECV-WINDOW")
-        request.setValue(signature, forHTTPHeaderField: "X-BAPI-SIGN")
-        return request
+        
+        do {
+            let signature = try signer.sign(payload: signaturePayload, secret: creds.apiSecret)
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue(creds.apiKey, forHTTPHeaderField: "X-BAPI-API-KEY")
+            request.setValue(timestamp, forHTTPHeaderField: "X-BAPI-TIMESTAMP")
+            request.setValue(recvWindow, forHTTPHeaderField: "X-BAPI-RECV-WINDOW")
+            request.setValue(signature, forHTTPHeaderField: "X-BAPI-SIGN")
+            return request
+        } catch {
+            throw APIError.invalidRequest
+        }
     }
 }
 
