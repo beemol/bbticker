@@ -145,4 +145,4 @@ The margin level dot requires **BBTicker Pro** and can be toggled in Settings.
 
 ## License
 
-BBTicker © 2025-2026 Aleh Fiodarau. All rights reserved.
+BBTicker is licensed under the MIT License. See LICENSE for details.
