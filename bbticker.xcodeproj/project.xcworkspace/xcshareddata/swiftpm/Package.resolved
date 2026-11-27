@@ -123,8 +123,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/beemol/LLPolling.git",
       "state" : {
-        "revision" : "740f4f8d50ca4d78f097a79a202f8a14277783b0",
-        "version" : "0.1.1"
+        "revision" : "03a263fb60a8b89f547593f70a73ed0b6b051525",
+        "version" : "0.1.2"
       }
     },
     {
