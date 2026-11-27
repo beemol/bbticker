@@ -8,6 +8,22 @@
 import SwiftUI
 import OSLog
 
+struct ConnectionStatusView: View {
+    @EnvironmentObject var bybitClient: BBClient
+    
+    var networkMonitor: any NetworkStoreProtocol
+    
+    var body: some View {
+        VStack {
+            NetworkStatusView(state: networkMonitor.state)
+            Text(" | ")
+            Text("API")
+                .font(.headline)
+                .foregroundColor(bybitClient.isConnected ? .green : .red)
+        }
+    }
+}
+
 // Used for iOS only
 #if !os(macOS)
 struct ContentView: View {
@@ -26,15 +42,15 @@ struct ContentView: View {
             Form {
                 VStack(spacing: 20) {
                     Text(settingsService.state.exchange.displayName)
-                        .font(.largeTitle)
+                        .font(.title)
                         .foregroundColor(settingsService.state.exchange.displayColor)
                     Text(settingsService.state.exchange.walletType.rawValue)
                         .padding(.bottom, 2)
                     Divider()
 
-                    HStack {
+                    VStack {
                         NetworkStatusView(state: networkMonitor.state)
-                        Text("API: \(bybitClient.connectionStatus.description)")
+                        Text("api")
                             .font(.headline)
                             .foregroundColor(bybitClient.isConnected ? .green : .red)
                     }

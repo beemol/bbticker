@@ -25,11 +25,7 @@ struct SettingsView_iOS: View {
                     settingsService: viewModel.settingsService
                 )
                 ApiCredentialsSection (state: apiCredentialsState)
-                apiEnvironmentSection
-                //apiCredentialsSection
-                //importantNotesSection
-                //credentialButtonsSection
-                saveStatusSection
+                ProSectionView(viewModel: viewModel)
                 //widgetSettingsSection
                 siriSettingsSection
                 balanceNotificationsSection
@@ -54,21 +50,6 @@ struct SettingsView_iOS: View {
     }
 
     // MARK: - View Components
-
-    private var apiEnvironmentSection: some View {
-        Section {
-            Picker("API Environment", selection: viewModel.settingsService.selectedAPIEnvironmentBinding) {
-                ForEach(viewModel.settingsService.availableAPIEnvironments, id: \.self) { env in
-                    Text(env.rawValue.capitalized).tag(env)
-                }
-            }
-        } header: {
-            Text("API Environment")
-        } footer: {
-            Text("Select which environment to connect to.")
-        }
-    }
-
     private var importantNotesSection: some View {
         Section("Important Notes") {
             Text("1. Create your API Key on the exchange website.")
@@ -77,12 +58,17 @@ struct SettingsView_iOS: View {
             Text("4. Your keys are stored securely in your device's Keychain.")
         }
     }
-
-    private var saveStatusSection: some View {
-        Group {
-            if !apiCredentialsState.saveStatus.message.isEmpty {
-                Text(apiCredentialsState.saveStatus.message)
-                    //.foregroundColor(apiCredentialsState.)
+    
+    private var proSection: some View {
+        Section {
+            ProSectionView(viewModel: viewModel)
+        } header: {
+            Text("BBTicker Pro")
+        } footer: {
+            if viewModel.isProActive {
+                Text("Pro features are active on this device.")
+            } else {
+                Text("Free tier uses 15 second balance updates. Unlock Pro with a one-time purchase.")
             }
         }
     }

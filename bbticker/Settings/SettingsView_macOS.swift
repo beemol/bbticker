@@ -39,11 +39,10 @@ struct SettingsView_macOS: View {
             
             // Content
             Form {
-                apiEnvironmentSection
                 ExchangeSection(settingsService: viewModel.settingsService)
                 ApiCredentialsSection (settingsService: viewModel.settingsService, credentialManager: viewModel.credentialManager)
                 apiKeyCreationSection
-                proSection
+                ProSectionView(viewModel: viewModel)
                 analyticsSection
                 securitySection
                 //importantNotesSection
@@ -101,19 +100,6 @@ struct SettingsView_macOS: View {
         }
     }
 
-    private var apiEnvironmentSection: some View {
-        Section {
-            Picker("API Environment", selection: viewModel.settingsService.selectedAPIEnvironmentBinding) {
-                ForEach(viewModel.settingsService.availableAPIEnvironments, id: \.self) { env in
-                    Text(env.rawValue.capitalized).tag(env)
-                }
-            }
-            .pickerStyle(.menu)
-        } footer: {
-            Text("Select which environment to connect to. Production is the live trading environment. Testnet is for testing with simulated funds.")
-        }
-    }
-
     private var apiKeyCreationSection: some View {
         Section {
             DisclosureGroup(
@@ -154,94 +140,6 @@ struct SettingsView_macOS: View {
                 }
             )
         }
-    }
-    
-    private var proSection: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 16) {
-                proFeatureControls
-                    .disabled(!viewModel.isProActive)
-                    .opacity(viewModel.isProActive ? 1 : 0.45)
-                
-                if !viewModel.isProActive {
-                    proUnlockFooter
-                }
-            }
-        } header: {
-            Text("BBTicker Pro")
-        } footer: {
-            if viewModel.isProActive {
-                Text("Pro features are active on this device.")
-            } else {
-                Text("Free tier uses 15 second balance updates. Unlock Pro with a one-time purchase.")
-            }
-        }
-    }
-    
-    private var proFeatureControls: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Label("Update frequency", systemImage: "arrow.triangle.2.circlepath")
-                    .font(.callout)
-                    .fontWeight(.medium)
-                
-                Text("How often the app refreshes your balance data.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Picker("Update Frequency", selection: viewModel.updateFrequencyBinding) {
-                    Text("1 second").tag(1.0)
-                    Text("5 seconds").tag(5.0)
-                    Text("10 seconds").tag(10.0)
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-            }
-            
-            Toggle(isOn: viewModel.showMarginLevelDotBinding) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Label("Margin level dot", systemImage: "circle.fill")
-                        .font(.callout)
-                        .fontWeight(.medium)
-                    Text("Show a colored dot in the menu bar indicating your maintenance margin level.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-            .toggleStyle(.switch)
-        }
-    }
-    
-    private var proUnlockFooter: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: "lock.fill")
-                    .foregroundColor(.orange)
-                Text("Unlock faster updates and the margin level dot.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Spacer()
-                Button("Unlock") {
-                    viewModel.unlockUpdateFrequency()
-                }
-                .buttonStyle(.borderedProminent)
-                Button("Restore") {
-                    viewModel.restorePurchases()
-                }
-            }
-            
-            switch viewModel.purchaseState {
-            case .purchasing:
-                Text("Purchasing…").font(.caption).foregroundColor(.secondary)
-            case .restoring:
-                Text("Restoring…").font(.caption).foregroundColor(.secondary)
-            case .failed(let message):
-                Text(message).font(.caption).foregroundColor(.red)
-            default:
-                EmptyView()
-            }
-        }
-        .padding(.top, 4)
     }
     
     private var analyticsSection: some View {
@@ -340,13 +238,11 @@ struct SettingsView_macOS: View {
     }
 }
 
-#if DEBUG
 struct SettingsView_macOS_Previews: PreviewProvider {
     static var previews: some View {
         SettingsView_macOS(viewModel: Mocks.MockSettingsViewModel())
-            .frame(width: 500, height: 450)
+            .frame(width: 500, height: 600)
     }
 }
-#endif
 
 //#endif // os(macOS)

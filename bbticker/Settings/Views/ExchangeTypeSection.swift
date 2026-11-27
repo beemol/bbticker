@@ -30,6 +30,13 @@ struct ExchangeSection: View {
                 }
             }
             .pickerStyle(.menu)
+            
+            Picker("API Environment", selection: settingsService.selectedAPIEnvironmentBinding) {
+                ForEach(settingsService.availableAPIEnvironments, id: \.self) { env in
+                    Text(env.rawValue.capitalized).tag(env)
+                }
+            }
+            .pickerStyle(.menu)
         } header: {
             #if os(macOS)
             HStack(spacing: 6) {
@@ -69,4 +76,11 @@ struct ExchangeSection: View {
     }
 }
 
-
+struct ExchangeSection_Previews: PreviewProvider {
+    static var previews: some View {
+        Form {
+            ExchangeSection(settingsService: Mocks.MockSettingsService())
+                
+        }.frame(width: 350, height: 350)
+    }
+}

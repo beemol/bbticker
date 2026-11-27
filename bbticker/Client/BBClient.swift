@@ -10,6 +10,7 @@ import Combine
 import Network
 import SwiftUI
 import LLCore
+import LLPolling
 import Observation
 
 /*

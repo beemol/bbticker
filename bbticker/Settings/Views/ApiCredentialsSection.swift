@@ -52,13 +52,39 @@ struct ApiCredentialsSection: View {
                     TextField("API Passphrase", text: $state.apiPassphrase)
                         .autocorrectionDisabled()
                 }
+                
+                HStack(spacing: 16) {
+                    Button {
+                        Task { await state.saveCredentials() }
+                    } label: {
+                        Text("Save")
+                            .lineLimit(1)
+                    }
+                    .disabled(!state.canSaveCredentials)
+                    .buttonStyle(.borderedProminent)
+                    
+                    Spacer()
+                    
+                    Button {
+                        Task { await state.deleteCredentials() }
+                    } label: {
+                        Text("Delete")
+                            .lineLimit(1)
+                    }
+                    .buttonStyle(.bordered)
+                    .foregroundColor(.red)
+                    
+                    #if (macOS)
+                    Spacer()
+                    #endif
+                }
             }
-            
-            CredentialButtonsSection(
-                canSave: state.canSaveCredentials,
-                onSave: { await state.saveCredentials() },
-                onDelete: { await state.deleteCredentials() }
-            )
+
+//            CredentialButtonsSection(
+//                canSave: state.canSaveCredentials,
+//                onSave: { await state.saveCredentials() },
+//                onDelete: { await state.deleteCredentials() }
+//            )
 
         }
         .onAppear {
@@ -76,45 +102,48 @@ struct ApiCredentialsSection: View {
     }
 }
 
-private struct CredentialButtonsSection: View {
-    let canSave: Bool
-    let onSave: () async -> Void
-    let onDelete: () async -> Void
-    
-    var body: some View {
-        Section {
-            HStack(spacing: 8) {
-                Button {
-                    Task { await onSave() }
-                } label: {
-                    Text("Save Credentials")
-                        .lineLimit(1)
-                }
-                .disabled(!canSave)
-                .buttonStyle(.borderedProminent)
-                
-                Button {
-                    Task { await onDelete() }
-                } label: {
-                    Text("Delete Credentials")
-                        .lineLimit(1)
-                }
-                .buttonStyle(.bordered)
-                .foregroundColor(.red)
-                
-                #if (macOS)
-                Spacer()
-                #endif
-            }
-        }
-    }
-}
+//private struct CredentialButtonsSection: View {
+//    let canSave: Bool
+//    let onSave: () async -> Void
+//    let onDelete: () async -> Void
+//    
+//    var body: some View {
+//        Section {
+//            HStack(spacing: 16) {
+//                Button {
+//                    Task { await onSave() }
+//                } label: {
+//                    Text("Save")
+//                        .lineLimit(1)
+//                }
+//                .disabled(!canSave)
+//                .buttonStyle(.borderedProminent)
+//                
+//                Spacer()
+//                
+//                Button {
+//                    Task { await onDelete() }
+//                } label: {
+//                    Text("Delete")
+//                        .lineLimit(1)
+//                }
+//                .buttonStyle(.bordered)
+//                .foregroundColor(.red)
+//                
+//                #if (macOS)
+//                Spacer()
+//                #endif
+//            }
+//        }
+//    }
+//}
 
 #if DEBUG
 struct ApiCredentialsSection_Previews: PreviewProvider {
     static var previews: some View {
-        ApiCredentialsSection(settingsService: Mocks.MockSettingsService(), credentialManager: Mocks.MockCredentialManager())
-            .frame(width: 500, height: 450)
+        Form {
+            ApiCredentialsSection(settingsService: Mocks.MockSettingsService(), credentialManager: Mocks.MockCredentialManager())
+        }.frame(width: 350, height: 350)
     }
 }
 #endif
